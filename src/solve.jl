@@ -2,7 +2,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   prob::AbstractDDEProblem{uType,tType,lType,isinplace,F,H},
   alg::algType,timeseries_init=uType[],ts_init=tType[],ks_init=[];
   d_discontinuities = tType[],
-  dtmax=tType((prob.tspan[end]-prob.tspan[1])),
+  dtmax=tType(10*minimum(prob.lags)),
   dt = tType(0),
   kwargs...)
 
@@ -33,26 +33,92 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
     dde_f = (t,u) -> prob.f(t,u,h)
   end
 
-  if dt == zero(dt) && adaptive
-    dt = tType(ode_determine_initdt(prob.u0,prob.tspan[1],integrator.tdir,dtmax,integrator.abstol,integrator.reltol,integrator.internalnorm,dde_f,OrdinaryDiffEq.alg_order(order)))
+  if typeof(alg.alg) <: OrdinaryDiffEqCompositeAlgorithm
+    id = OrdinaryDiffEq.CompositeInterpolationData(integrator.sol.interp,dde_f)
+  else
+    id = OrdinaryDiffEq.InterpolationData(integrator.sol.interp,dde_f)
+  end
+
+  if typeof(alg.alg) <: OrdinaryDiffEqCompositeAlgorithm
+    sol = build_solution(integrator.sol.prob,
+                         integrator.sol.alg,
+                         integrator.sol.t,
+                         integrator.sol.u,
+                         dense=integrator.sol.dense,
+                         k=integrator.sol.k,
+                         interp=id,
+                         alg_choice=integrator.sol.alg_choice,
+                         calculate_error = false)
+  else
+    sol = build_solution(integrator.sol.prob,
+                         integrator.sol.alg,
+                         integrator.sol.t,
+                         integrator.sol.u,
+                         dense=integrator.sol.dense,
+                         k=integrator.sol.k,
+                         interp=id,
+                         calculate_error = false)
+  end
+
+  h2 = HistoryFunction(prob.h,sol,integrator)
+  if isinplace
+    dde_f2 = (t,u,du) -> prob.f(t,u,h2,du)
+  else
+    dde_f2 = (t,u) -> prob.f(t,u,h2)
+  end
+
+  if dt == zero(dt) && integrator.opts.adaptive
+    dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0,prob.tspan[1],
+              integrator.tdir,dtmax,integrator.opts.abstol,
+              integrator.opts.reltol,integrator.opts.internalnorm,
+              dde_f,OrdinaryDiffEq.alg_order(alg)))
   end
   integrator.dt = dt
 
+  if typeof(alg.picardabstol) <: Void
+    picardabstol_internal = integrator.opts.abstol
+  else
+    picardabstol_internal = alg.picardabstol
+  end
+  if typeof(alg.picardreltol) <: Void
+    picardreltol_internal = integrator.opts.reltol
+  else
+    picardreltol_internal = alg.picardreltol
+  end
+  if typeof(alg.picardnorm) <: Void
+    picardnorm = integrator.opts.internalnorm
+  end
 
+
+  uEltypeNoUnits = typeof(recursive_one(integrator.u))
+
+  if typeof(integrator.u) <: AbstractArray
+    resid = similar(integrator.u,uEltypeNoUnits)
+    u_cache = similar(integrator.u)
+  else
+    resid = uEltypeNoUnits(1)
+    u_cache = one(uType)
+  end
 
 
 
   dde_int = DDEIntegrator{typeof(integrator.alg),
                              uType,tType,
+                             typeof(picardabstol_internal),
+                             typeof(picardreltol_internal),
+                             typeof(resid),
                              tTypeNoUnits,typeof(integrator.tdir),
-                             typeof(integrator.k),typeof(integrator.sol),
+                             typeof(integrator.k),typeof(sol),
                              typeof(integrator.rate_prototype),
-                             typeof(dde_f),typeof(integrator.prog),
+                             typeof(dde_f2),typeof(integrator.prog),
                              typeof(integrator.cache),
                              typeof(integrator),typeof(prob),
+                             typeof(picardnorm),
                              typeof(integrator.opts)}(
-      integrator.sol,prob,integrator.u,integrator.k,integrator.t,integrator.dt,
-      dde_f,integrator.uprev,integrator.tprev,
+      sol,prob,integrator.u,integrator.k,integrator.t,integrator.dt,
+      dde_f2,integrator.uprev,integrator.tprev,u_cache,
+      eltype(integrator.u)(picardabstol_internal),uEltypeNoUnits(picardreltol_internal),
+      resid,picardnorm,alg.max_picard_iters,
       integrator.alg,integrator.rate_prototype,integrator.notsaveat_idxs,integrator.dtcache,
       integrator.dtchangeable,integrator.dtpropose,integrator.dt_mod,integrator.tdir,
       integrator.EEst,integrator.qold,integrator.q11,integrator.iter,integrator.saveiter,
@@ -87,4 +153,12 @@ function solve!(dde_int::DDEIntegrator)
   else
     return dde_int.sol
   end
+end
+
+function solve{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType,F,H}(
+  prob::AbstractDDEProblem{uType,tType,lType,isinplace,F,H},
+  alg::algType,timeseries_init=uType[],ts_init=tType[],ks_init=[];kwargs...)
+
+  integrator = init(prob,alg,timeseries_init,ts_init,ks_init;kwargs...)
+  solve!(integrator)
 end

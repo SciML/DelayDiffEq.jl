@@ -10,6 +10,7 @@ import DiffEqBase: solve, solve!, init
 
 
 include("integrator_type.jl")
+include("integrator_interface.jl")
 include("history_function.jl")
 include("algorithms.jl")
 include("alg_utils.jl")

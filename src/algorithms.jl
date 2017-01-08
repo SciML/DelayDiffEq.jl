@@ -1,8 +1,17 @@
 abstract DelayDiffEqAlgorithm <: AbstractDDEAlgorithm
 abstract AbstractMethodOfStepsAlgorithm{constrained} <: DelayDiffEqAlgorithm
 
-immutable MethodOfSteps{algType,constrained} <: AbstractMethodOfStepsAlgorithm{constrained}
+immutable MethodOfSteps{algType,AType,RType,NType,constrained} <: AbstractMethodOfStepsAlgorithm{constrained}
   alg::algType
+  picardabstol::AType
+  picardreltol::RType
+  picardnorm::NType
+  max_picard_iters::Int
 end
 
-Base.@pure MethodOfSteps(alg;constrained=false) =  MethodOfSteps{typeof(alg),constrained}(alg)
+Base.@pure MethodOfSteps(alg;constrained=false,
+                             picardabstol = nothing,
+                             picardreltol = nothing,
+                             picardnorm   = nothing,
+                             max_picard_iters = 10) =
+                             MethodOfSteps{typeof(alg),typeof(picardabstol),typeof(picardreltol),typeof(picardnorm),constrained}(alg,picardabstol,picardreltol,picardnorm,max_picard_iters)

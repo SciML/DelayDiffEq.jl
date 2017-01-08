@@ -8,7 +8,7 @@ function (f::HistoryFunction)(t)
   if t < f.sol.t[1]
     return f.h(t)
   elseif t <= f.sol.t[end] # Put equals back
-    return f.sol(t)
+    return f.sol.interp(t)
   else
     return f.integrator(t)
   end
