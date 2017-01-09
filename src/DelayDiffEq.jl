@@ -1,6 +1,6 @@
 module DelayDiffEq
 
-using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, DataStructures, RecursiveArrayTools
+using DiffEqBase, OrdinaryDiffEq, DataStructures, RecursiveArrayTools
 using Base.Test
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!,
