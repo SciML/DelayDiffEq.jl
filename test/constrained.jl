@@ -1,8 +1,8 @@
 using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, Base.Test
-const τ = 1
-lags = [τ]
+
+lags = [1]
 f = function (t,u,h)
-  - h(t-τ)
+  - h(t-1)
 end
 h = (t) -> 0.0
 
@@ -52,7 +52,7 @@ sol = solve!(dde_int)
 @test maximum(sol.errors[:l2]) < 1e-4
 
 f = function (t,u,h,du)
-  du[1] = - h(t-τ)[1]
+  du[1] = - h(t-1)[1]
 end
 h = (t) -> [0.0]
 prob = DDETestProblem(f,h,[1.0],analytic,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
@@ -60,8 +60,3 @@ dde_int = init(prob,alg;dt=0.1)
 sol = solve!(dde_int)
 
 @test maximum(sol.errors[:l∞]) < 1e-4
-
-#=
-using Plots
-plot(sol,ylim=[-0.51,1.05])
-=#

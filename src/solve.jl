@@ -2,7 +2,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   prob::AbstractDDEProblem{uType,tType,lType,isinplace,F,H},
   alg::algType,timeseries_init=uType[],ts_init=tType[],ks_init=[];
   d_discontinuities = tType[],
-  dtmax=tType(10*minimum(prob.lags)),
+  dtmax=tType(7*minimum(prob.lags)),
   dt = tType(0),
   kwargs...)
 
