@@ -8,8 +8,6 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
 
   # Add to the discontinuties vector the lag locations
   d_discontinuities = [d_discontinuities;compute_discontinuity_tree(prob.lags,alg,prob.tspan[1])]
-  @show compute_discontinuity_tree(prob.lags,alg,prob.tspan[1])
-  @show d_discontinuities
 
   # If it's constrained, then no Picard iteration, and thus `dtmax` should match max lag size
   if isconstrained(alg)
