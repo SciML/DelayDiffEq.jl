@@ -115,6 +115,8 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
                              typeof(integrator.cache),
                              typeof(integrator),typeof(prob),
                              typeof(picardnorm),
+                             typeof(integrator.consistant_callbacks),
+                             typeof(integrator.conditional_callbacks),
                              typeof(integrator.opts)}(
       sol,prob,integrator.u,integrator.k,integrator.t,integrator.dt,
       dde_f2,integrator.uprev,integrator.tprev,u_cache,
@@ -122,7 +124,9 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
       resid,picardnorm,alg.max_picard_iters,
       integrator.alg,integrator.rate_prototype,integrator.notsaveat_idxs,integrator.dtcache,
       integrator.dtchangeable,integrator.dtpropose,integrator.dt_mod,integrator.tdir,
-      integrator.EEst,integrator.qold,integrator.q11,integrator.iter,integrator.saveiter,
+      integrator.EEst,integrator.qold,integrator.q11,
+      integrator.consistant_callbacks,integrator.conditional_callbacks,
+      integrator.iter,integrator.saveiter,
       integrator.saveiter_dense,integrator.prog,integrator.cache,
       integrator.kshortsize,integrator.just_hit_tstop,integrator.accept_step,
       integrator.reeval_fsal,integrator.u_modified,integrator.opts,integrator) # Leave off fsalfirst and last

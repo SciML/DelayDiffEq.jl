@@ -4,7 +4,8 @@ using DiffEqBase, OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinato
 using Base.Test
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!,
-       loopheader!, alg_order, handle_tstop!, ODEIntegrator, savevalues!
+       loopheader!, alg_order, handle_tstop!, ODEIntegrator, savevalues!,
+       apply_callback!
 
 import DiffEqBase: solve, solve!, init
 
@@ -13,6 +14,7 @@ include("integrator_type.jl")
 include("integrator_interface.jl")
 include("history_function.jl")
 include("algorithms.jl")
+include("callbacks.jl")
 include("alg_utils.jl")
 include("solve.jl")
 include("utils.jl")
