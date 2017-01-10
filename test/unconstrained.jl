@@ -54,6 +54,3 @@ sol4 = solve(prob,alg4)
 @test abs(sol1[end] - sol2[end]) < 1e-3
 @test abs(sol1[end] - sol3[end]) < 1e-3
 @test abs(sol1[end] - sol4[end]) < 1e-3
-
-
-plot(sol4)
