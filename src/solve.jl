@@ -7,7 +7,9 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   kwargs...)
 
   # Add to the discontinuties vector the lag locations
-  d_discontinuities = [d_discontinuities;vec([prob.tspan[1]+i*τ for i=1:alg_order(alg),τ in prob.lags])]
+  d_discontinuities = [d_discontinuities;compute_discontinuity_tree(prob.lags,alg,prob.tspan[1])]
+  @show compute_discontinuity_tree(prob.lags,alg,prob.tspan[1])
+  @show d_discontinuities
 
   # If it's constrained, then no Picard iteration, and thus `dtmax` should match max lag size
   if isconstrained(alg)
@@ -40,7 +42,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   end
 
   if typeof(alg.alg) <: OrdinaryDiffEqCompositeAlgorithm
-    sol = build_solution(integrator.sol.prob,
+    sol = build_solution(prob,
                          integrator.sol.alg,
                          integrator.sol.t,
                          integrator.sol.u,
@@ -50,7 +52,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
                          alg_choice=integrator.sol.alg_choice,
                          calculate_error = false)
   else
-    sol = build_solution(integrator.sol.prob,
+    sol = build_solution(prob,
                          integrator.sol.alg,
                          integrator.sol.t,
                          integrator.sol.u,
@@ -59,6 +61,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
                          interp=id,
                          calculate_error = false)
   end
+
 
   h2 = HistoryFunction(prob.h,sol,integrator)
   if isinplace
