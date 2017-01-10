@@ -8,7 +8,7 @@ h = (t) -> 0.0
 
 
 prob = DDEProblem(f,h,1.0,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
-alg = MethodOfSteps(Tsit5();constrained=false)
+alg = MethodOfSteps(DP8();constrained=false)
 
 condtion= function (t,u,integrator) # Event when event_f(t,u,k) == 0
   t - 2.60
@@ -20,11 +20,11 @@ end
 
 rootfind = true
 save_positions = (true,true)
-callback = Callback(condtion,affect!,rootfind,save_positions)
+cb = ContinuousCallback(condtion,affect!,rootfind,save_positions)
 
-sol = solve(prob,alg,callback=callback)
+sol = solve(prob,alg,callback=cb)
 
-sol2= solve(prob,alg,callback=callback,dtmax=0.01)
+sol2= solve(prob,alg,callback=cb,dtmax=0.01)
 
 sol3 = appxtrue(sol,sol2)
 

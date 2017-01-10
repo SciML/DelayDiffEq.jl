@@ -5,7 +5,7 @@ using Base.Test
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!,
        loopheader!, alg_order, handle_tstop!, ODEIntegrator, savevalues!,
-       apply_callback!
+       handle_callback_modifiers!
 
 import DiffEqBase: solve, solve!, init
 
