@@ -7,8 +7,8 @@ end
 h = (t) -> 0.0
 
 
-prob = DDEProblem(f,h,1.0,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
-alg = MethodOfSteps(DP8();constrained=false)
+prob = ConstantLagDDEProblem(f,h,1.0,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
+alg = MethodOfSteps(Tsit5();constrained=false)
 
 condtion= function (t,u,integrator) # Event when event_f(t,u,k) == 0
   t - 2.60

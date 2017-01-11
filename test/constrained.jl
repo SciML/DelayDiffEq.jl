@@ -36,7 +36,7 @@ function analytic(t,u0)
 end
 
 
-prob = DDETestProblem(f,h,1.0,analytic,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
+prob = ConstantLagDDETestProblem(f,h,1.0,analytic,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
 alg = MethodOfSteps(BS3();constrained=true)
 
 dde_int = init(prob,alg;dt=0.1)
@@ -45,7 +45,7 @@ sol = solve!(dde_int)
 @test maximum(sol.errors[:final]) < 1e-4
 
 h = (t) -> [0.0]
-prob = DDETestProblem(f,h,[1.0],analytic,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
+prob = ConstantLagDDETestProblem(f,h,[1.0],analytic,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
 dde_int = init(prob,alg;dt=0.1)
 sol = solve!(dde_int)
 
@@ -55,7 +55,7 @@ f = function (t,u,h,du)
   du[1] = - h(t-1)[1]
 end
 h = (t) -> [0.0]
-prob = DDETestProblem(f,h,[1.0],analytic,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
+prob = ConstantLagDDETestProblem(f,h,[1.0],analytic,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
 dde_int = init(prob,alg;dt=0.1)
 sol = solve!(dde_int)
 
@@ -95,7 +95,7 @@ function analytic2(t,u0)
   end
 end
 
-prob = DDETestProblem(f,h,1.0,analytic2,lags,(0.0,1.0);iip=DiffEqBase.isinplace(f,4))
+prob = ConstantLagDDETestProblem(f,h,1.0,analytic2,lags,(0.0,1.0);iip=DiffEqBase.isinplace(f,4))
 alg = MethodOfSteps(BS3();constrained=true)
 
 dde_int = init(prob,alg;dt=0.1)
