@@ -69,10 +69,11 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   end
 
   if dt == zero(dt) && integrator.opts.adaptive
+    ode_prob = ODEProblem(dde_f2,prob.u0,prob.tspan)
     dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0,prob.tspan[1],
               integrator.tdir,dtmax,integrator.opts.abstol,
               integrator.opts.reltol,integrator.opts.internalnorm,
-              dde_f,OrdinaryDiffEq.alg_order(alg)))
+              ode_prob,OrdinaryDiffEq.alg_order(alg)))
   end
   integrator.dt = dt
 
@@ -101,8 +102,6 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
     u_cache = one(uType)
   end
 
-
-
   dde_int = DDEIntegrator{typeof(integrator.alg),
                              uType,tType,
                              typeof(picardabstol_internal),
@@ -126,6 +125,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
       integrator.iter,integrator.saveiter,
       integrator.saveiter_dense,integrator.prog,integrator.cache,
       integrator.kshortsize,integrator.just_hit_tstop,integrator.accept_step,
+      integrator.isout,
       integrator.reeval_fsal,integrator.u_modified,integrator.opts,integrator) # Leave off fsalfirst and last
 
   initialize!(dde_int)
