@@ -33,6 +33,7 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType<:Union{AbstractArray,N
   kshortsize::Int
   just_hit_tstop::Bool
   accept_step::Bool
+  isout::Bool
   reeval_fsal::Bool
   u_modified::Bool
   opts::O
@@ -45,13 +46,13 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType<:Union{AbstractArray,N
       alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,dt_mod,tdir,
       EEst,qold,q11,
       iter,saveiter,saveiter_dense,prog,cache,
-      kshortsize,just_hit_tstop,accept_step,reeval_fsal,u_modified,integrator,opts) = new(
+      kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,integrator,opts) = new(
       sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
       picardabstol,picardreltol,resid,picardnorm,max_picard_iters,
       alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,dt_mod,tdir,
       EEst,qold,q11,
       iter,saveiter,saveiter_dense,prog,cache,
-      kshortsize,just_hit_tstop,accept_step,reeval_fsal,u_modified,integrator,opts) # Leave off fsalfirst and last
+      kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,integrator,opts) # Leave off fsalfirst and last
 end
 
 (integrator::DDEIntegrator)(t) = OrdinaryDiffEq.current_interpolant(t,integrator)

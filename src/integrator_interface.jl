@@ -76,3 +76,53 @@ function initialize!(dde_int::DDEIntegrator)
   initialize!(dde_int,dde_int.cache,dde_int.f)
   initialize!(dde_int.integrator,dde_int.cache,dde_int.f)
 end
+
+u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
+du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
+full_cache(integrator::DDEIntegrator) = chain(u_cache(integrator),du_cache(integrator.cache))
+
+resize!(integrator::DDEIntegrator,i::Int) = resize!(integrator,integrator.cache,i)
+function resize!(integrator::DDEIntegrator,cache,i)
+  for c in full_cache(integrator)
+    resize!(c,i)
+  end
+end
+
+function resize!(integrator::DDEIntegrator,cache::Union{Rosenbrock23Cache,Rosenbrock32Cache},i)
+  for c in full_cache(integrator)
+    resize!(c,i)
+  end
+  for c in vecu_cache(integrator.cache)
+    resize!(c,i)
+  end
+  Jvec = vec(cache.J)
+  cache.J = reshape(resize!(Jvec,i*i),i,i)
+  Wvec = vec(cache.W)
+  cache.W = reshape(resize!(Wvec,i*i),i,i)
+end
+
+function resize!(integrator::DDEIntegrator,cache::Union{ImplicitEulerCache,TrapezoidCache},i)
+  for c in full_cache(integrator)
+    resize!(c,i)
+  end
+  for c in vecu_cache(integrator.cache)
+    resize!(c,i)
+  end
+  for c in dual_cache(integrator.cache)
+    resize!(c.du,i)
+    resize!(c.dual_du,i)
+  end
+  if alg_autodiff(integrator.alg)
+    cache.adf = autodiff_setup(cache.rhs,cache.uhold,integrator.alg)
+  end
+end
+
+function deleteat!(integrator::DDEIntegrator,i::Int)
+  for c in full_cache(integrator)
+    deleteat!(c,i)
+  end
+end
+
+function terminate!(integrator::DDEIntegrator)
+  integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
+end
