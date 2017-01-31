@@ -1,4 +1,4 @@
-type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType<:Union{AbstractArray,Number},tType,absType,relType,residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,ProbType,NType,O} <: AbstractODEIntegrator
+type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,ProbType,NType,O} <: AbstractDDEIntegrator
   sol::SolType
   prob::ProbType
   u::uType

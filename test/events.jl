@@ -18,9 +18,7 @@ affect! = function (integrator)
   integrator.u = -integrator.u
 end
 
-rootfind = true
-save_positions = (true,true)
-cb = ContinuousCallback(condtion,affect!,rootfind,save_positions)
+cb = ContinuousCallback(condtion,affect!)
 
 sol = solve(prob,alg,callback=cb)
 
