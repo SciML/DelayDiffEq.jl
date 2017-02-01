@@ -55,4 +55,7 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
       kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,integrator,opts) # Leave off fsalfirst and last
 end
 
-(integrator::DDEIntegrator)(t) = OrdinaryDiffEq.current_interpolant(t,integrator)
+function (integrator::DDEIntegrator)(t,deriv::Type=Val{0};idxs=size(integrator.uprev))
+  OrdinaryDiffEq.current_interpolant(t,integrator,idxs,deriv)
+end
+(integrator::DDEIntegrator)(val::AbstractArray,t::Union{Number,AbstractArray},deriv::Type=Val{0};idxs=eachindex(integrator.uprev)) = OrdinaryDiffEq.current_interpolant!(val,t,integrator,idxs,deriv)

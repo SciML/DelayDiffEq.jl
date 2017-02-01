@@ -14,6 +14,7 @@ function postamble!(integrator::DDEIntegrator)
 end
 
 function perform_step!(integrator::DDEIntegrator)
+  integrator.tprev = integrator.t # this is necessary to extrapolate from the current interval
   integrator.integrator.uprev = integrator.uprev
   integrator.integrator.tprev = integrator.tprev
   integrator.integrator.fsalfirst = integrator.fsalfirst
