@@ -4,8 +4,8 @@ immutable HistoryFunction{F1,F2,F3} <: Function
   integrator::F3
 end
 
-function (f::HistoryFunction)(t,deriv::Type=Val{0};idxs=nothing)
-  if t < f.sol.t[1]
+function (f::HistoryFunction)(t,deriv::Type=Val{0},idxs=nothing)
+  @inbounds if t < f.sol.t[1]
     if typeof(idxs) <: Void
       return f.h(t)
     else
@@ -14,26 +14,28 @@ function (f::HistoryFunction)(t,deriv::Type=Val{0};idxs=nothing)
   elseif t <= f.sol.t[end] # Put equals back
     return f.sol.interp(t,idxs,deriv)
   else
-    return OrdinaryDiffEq.current_interpolant(t,f.integrator,idxs,deriv)
+    if typeof(idxs) <: Void
+      return OrdinaryDiffEq.current_interpolant(t,f.integrator,size(f.integrator.uprev),deriv)
+    else
+      return OrdinaryDiffEq.current_interpolant(t,f.integrator,idxs,deriv)
+    end
   end
 end
 
-function (f::HistoryFunction)(val,t,deriv::Type=Val{0};idxs=nothing)
-  if typeof(idxs) <: Void
-    if t < f.sol.t[1]
+function (f::HistoryFunction)(val,t,deriv::Type=Val{0},idxs=nothing)
+  @inbounds if t < f.sol.t[1]
+    if typeof(idxs) <: Void
       return f.h(val,t)
-    elseif t <= f.sol.t[end] # Put equals back
-      return f.sol.interp(val,t,idxs,deriv)
     else
-      return f.integrator(val,t,deriv)
+      return f.h(val,t,idxs)
     end
+  elseif t <= f.sol.t[end] # Put equals back
+    return f.sol.interp(val,t,idxs,deriv)
   else
-    if t < f.sol.t[1]
-      return f.h(val,t)
-    elseif t <= f.sol.t[end] # Put equals back
-      return f.sol.interp(val,t,idxs,deriv)
+    if typeof(idxs) <: Void
+      return OrdinaryDiffEq.current_interpolant!(val,t,f.integrator,eachindex(f.integrator.uprev),deriv)
     else
-      return f.integrator(val,t,deriv;idxs=idxs)
+      return OrdinaryDiffEq.current_interpolant!(val,t,f.integrator,idxs,deriv)
     end
   end
 end

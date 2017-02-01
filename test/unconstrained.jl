@@ -12,7 +12,6 @@ f = function (t,u,h)
 end
 h = (t) -> 0.0
 
-
 prob = ConstantLagDDEProblem(f,h,1.0,lags,(0.0,1000.0))
 
 alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
@@ -59,7 +58,7 @@ sol4 = solve(prob,alg4)
 ## Idxs
 
 f = function (t,u,h,du)
-  du[1] = -h(t-.2,idxs=1) + u[1]
+  du[1] = -h(t-.2,Val{0},1) + u[1]
 end
 h = function (t,idxs=nothing)
   if typeof(idxs) <: Void
@@ -72,4 +71,26 @@ end
 prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,1000.0))
 
 alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
-sol1 = solve(prob,alg1)
+@time sol1 = solve(prob,alg1)
+
+f = function (t,u,h,du)
+  h(du,t-.2)
+  du[1] = -du[1]
+  du[1] += u[1]
+end
+h = function (t,idxs=nothing)
+  if typeof(idxs) <: Void
+    return [0.0]
+  else
+    return 0.0
+  end
+end
+h = function (out,t,idxs=nothing)
+  out[1] = 0.0
+end
+
+
+prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,1000.0))
+
+alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
+@time sol1 = solve(prob,alg1)
