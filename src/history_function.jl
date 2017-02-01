@@ -5,22 +5,16 @@ immutable HistoryFunction{F1,F2,F3} <: Function
 end
 
 function (f::HistoryFunction)(t,deriv::Type=Val{0};idxs=nothing)
-  if typeof(idxs) <: Void
-    if t < f.sol.t[1]
+  if t < f.sol.t[1]
+    if typeof(idxs) <: Void
       return f.h(t)
-    elseif t <= f.sol.t[end] # Put equals back
-      return f.sol(t)
     else
-      return f.integrator(t)
+      return f.h(t,idxs)
     end
+  elseif t <= f.sol.t[end] # Put equals back
+    return f.sol.interp(t,idxs,deriv)
   else
-    if t < f.sol.t[1]
-      return f.h(t)
-    elseif t <= f.sol.t[end] # Put equals back
-      return f.sol.interp(t,idxs,deriv)
-    else
-      return f.integrator(t)
-    end
+    return OrdinaryDiffEq.current_interpolant(t,f.integrator,idxs,deriv)
   end
 end
 
