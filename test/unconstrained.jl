@@ -12,7 +12,7 @@ f = function (t,u,h)
 end
 h = (t) -> 0.0
 
-prob = ConstantLagDDEProblem(f,h,1.0,lags,(0.0,1000.0))
+prob = ConstantLagDDEProblem(f,h,1.0,lags,(0.0,100.0))
 
 alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
 sol1 = solve(prob,alg1)
@@ -54,12 +54,14 @@ sol4 = solve(prob,alg4)
 @test abs(sol1[end] - sol3[end]) < 1e-3
 @test abs(sol1[end] - sol4[end]) < 1e-3
 
+println("Standard tests complete. Onto idxs tests")
 
 ## Idxs
 
 f = function (t,u,h,du)
   du[1] = -h(t-.2,Val{0},1) + u[1]
 end
+
 h = function (t,idxs=nothing)
   if typeof(idxs) <: Void
     return [0.0]
@@ -68,7 +70,7 @@ h = function (t,idxs=nothing)
   end
 end
 
-prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,1000.0))
+prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,100.0))
 
 alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
 @time sol1 = solve(prob,alg1)
@@ -90,7 +92,7 @@ h = function (out,t,idxs=nothing)
 end
 
 
-prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,1000.0))
+prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,100.0))
 
 alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
 @time sol1 = solve(prob,alg1)
