@@ -78,6 +78,7 @@ function initialize!(dde_int::DDEIntegrator)
   initialize!(dde_int.integrator,dde_int.cache,dde_int.f)
 end
 
+user_cache(integrator::DDEIntegrator) = user_cache(integrator)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
 full_cache(integrator::DDEIntegrator) = chain(u_cache(integrator),du_cache(integrator.cache))

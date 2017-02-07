@@ -7,7 +7,7 @@ import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!,
        loopheader!, alg_order, handle_tstop!, ODEIntegrator, savevalues!,
        handle_callback_modifiers!
 
-import DiffEqBase: solve, solve!, init, resize!, u_cache,
+import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache,
                    du_cache, full_cache, deleteat!, terminate!
 
 import OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache,
