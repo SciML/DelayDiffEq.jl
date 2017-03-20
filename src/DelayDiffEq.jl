@@ -1,3 +1,5 @@
+__precompile__()
+
 module DelayDiffEq
 
 using DiffEqBase, OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
