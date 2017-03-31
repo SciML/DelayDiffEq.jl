@@ -120,7 +120,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
       eltype(integrator.u)(picardabstol_internal),uEltypeNoUnits(picardreltol_internal),
       resid,picardnorm,alg.max_picard_iters,
       integrator.alg,integrator.rate_prototype,integrator.notsaveat_idxs,integrator.dtcache,
-      integrator.dtchangeable,integrator.dtpropose,integrator.dt_mod,integrator.tdir,
+      integrator.dtchangeable,integrator.dtpropose,integrator.tdir,
       integrator.EEst,integrator.qold,integrator.q11,
       integrator.iter,integrator.saveiter,
       integrator.saveiter_dense,integrator.prog,integrator.cache,
@@ -129,6 +129,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
       integrator.reeval_fsal,integrator.u_modified,integrator.opts,integrator) # Leave off fsalfirst and last
 
   initialize!(dde_int)
+  initialize!(integrator.opts.callback,integrator.t,integrator.u,dde_int)
   dde_int
 end
 
@@ -151,9 +152,9 @@ function solve!(dde_int::DDEIntegrator)
     errors = Dict{Symbol,eltype(dde_int.u)}()
     sol = build_solution(dde_int.sol::AbstractODESolution,u_analytic,errors)
     calculate_solution_errors!(sol;fill_uanalytic=false,timeseries_errors=dde_int.opts.timeseries_errors,dense_errors=dde_int.opts.dense_errors)
-    return sol
+    sol.retcode = :Success
   else
-    return dde_int.sol
+    dde_int.sol.retcode = :Success
   end
 end
 

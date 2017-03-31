@@ -20,7 +20,6 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
   dtcache::tType
   dtchangeable::Bool
   dtpropose::tType
-  dt_mod::tTypeNoUnits
   tdir::tdirType
   EEst::tTypeNoUnits
   qold::tTypeNoUnits
@@ -43,13 +42,13 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
 
   DDEIntegrator(sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
       picardabstol,picardreltol,resid,picardnorm,max_picard_iters,
-      alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,dt_mod,tdir,
+      alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,
       EEst,qold,q11,
       iter,saveiter,saveiter_dense,prog,cache,
       kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,integrator,opts) = new(
       sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
       picardabstol,picardreltol,resid,picardnorm,max_picard_iters,
-      alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,dt_mod,tdir,
+      alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,
       EEst,qold,q11,
       iter,saveiter,saveiter_dense,prog,cache,
       kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,integrator,opts) # Leave off fsalfirst and last
