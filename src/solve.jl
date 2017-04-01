@@ -153,10 +153,11 @@ function solve!(dde_int::DDEIntegrator)
     sol = build_solution(dde_int.sol::AbstractODESolution,u_analytic,errors)
     calculate_solution_errors!(sol;fill_uanalytic=false,timeseries_errors=dde_int.opts.timeseries_errors,dense_errors=dde_int.opts.dense_errors)
     sol.retcode = :Success
+    return sol
   else
     dde_int.sol.retcode = :Success
+    return dde_int.sol
   end
-  return dde_int.sol
 end
 
 function solve{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType,F,H}(
