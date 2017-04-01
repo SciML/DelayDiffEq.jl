@@ -156,6 +156,7 @@ function solve!(dde_int::DDEIntegrator)
   else
     dde_int.sol.retcode = :Success
   end
+  return dde_int.sol
 end
 
 function solve{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType,F,H}(
