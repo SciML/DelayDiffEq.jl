@@ -147,8 +147,8 @@ function solve!(dde_int::DDEIntegrator)
   end
 
   postamble!(dde_int)
-  if typeof(dde_int.prob) <: AbstractDDETestProblem
-    u_analytic = [dde_int.prob.analytic(t,dde_int.sol[1]) for t in dde_int.sol.t]
+  if has_analytic(dde_int.prob.f)
+    u_analytic = [dde_int.prob.f(Val{:analytic},t,dde_int.sol[1]) for t in dde_int.sol.t]
     errors = Dict{Symbol,eltype(dde_int.u)}()
     sol = build_solution(dde_int.sol::AbstractODESolution,u_analytic,errors)
     calculate_solution_errors!(sol;fill_uanalytic=false,timeseries_errors=dde_int.opts.timeseries_errors,dense_errors=dde_int.opts.dense_errors)
