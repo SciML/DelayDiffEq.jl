@@ -1,5 +1,5 @@
-function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType,F,H}(
-  prob::AbstractDDEProblem{uType,tType,lType,isinplace,F,H},
+function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType}(
+  prob::AbstractDDEProblem{uType,tType,lType,isinplace},
   alg::algType,timeseries_init=uType[],ts_init=tType[],ks_init=[];
   d_discontinuities = tType[],
   dtmax=tType(7*minimum(prob.lags)),
@@ -17,11 +17,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   tTypeNoUnits   = typeof(recursive_one(prob.tspan[1]))
 
   # Bootstrap the Integrator Using An ODEProblem
-  if typeof(prob) <: AbstractDDEProblem
-    ode_prob = ODEProblem(prob.f,prob.u0,prob.tspan;iip=isinplace)
-  elseif typeof(prob) <: AbstractDDETestProblem
-    ode_prob = ODETestProblem(prob.f,prob.u0,prob.analytic,prob.tspan;iip=isinplace)
-  end
+  ode_prob = ODEProblem(prob.f,prob.u0,prob.tspan;iip=isinplace)
   integrator = init(ode_prob,alg.alg;dt=1,initialize_integrator=false,
                     d_discontinuities=d_discontinuities,
                     dtmax=dtmax,
@@ -160,8 +156,8 @@ function solve!(dde_int::DDEIntegrator)
   end
 end
 
-function solve{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType,F,H}(
-  prob::AbstractDDEProblem{uType,tType,lType,isinplace,F,H},
+function solve{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType}(
+  prob::AbstractDDEProblem{uType,tType,lType,isinplace},
   alg::algType,timeseries_init=uType[],ts_init=tType[],ks_init=[];kwargs...)
 
   integrator = init(prob,alg,timeseries_init,ts_init,ks_init;kwargs...)
