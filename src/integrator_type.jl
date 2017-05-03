@@ -40,12 +40,19 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
   fsalfirst::rateType
   fsallast::rateType
 
-  DDEIntegrator(sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
+  (::Type{DDEIntegrator{algType,uType,tType,absType,relType,
+                   residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,
+                   ProgressType,CacheType,IType,ProbType,NType,O}}){
+                   algType,uType,tType,absType,
+                   relType,residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,
+                  CacheType,IType,ProbType,NType,O}(sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
       picardabstol,picardreltol,resid,picardnorm,max_picard_iters,
       alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,
       EEst,qold,q11,
       iter,saveiter,saveiter_dense,prog,cache,
-      kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,integrator,opts) = new(
+      kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,
+      integrator,opts) = new{algType,uType,tType,absType,relType,residType,tTypeNoUnits,tdirType,
+      ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,ProbType,NType,O}(
       sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
       picardabstol,picardreltol,resid,picardnorm,max_picard_iters,
       alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,

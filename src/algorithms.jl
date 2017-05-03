@@ -1,5 +1,5 @@
-abstract DelayDiffEqAlgorithm <: AbstractDDEAlgorithm
-abstract AbstractMethodOfStepsAlgorithm{constrained} <: DelayDiffEqAlgorithm
+@compat abstract type DelayDiffEqAlgorithm <: AbstractDDEAlgorithm end
+@compat abstract type AbstractMethodOfStepsAlgorithm{constrained} <: DelayDiffEqAlgorithm end
 
 immutable MethodOfSteps{algType,AType,RType,NType,constrained} <: AbstractMethodOfStepsAlgorithm{constrained}
   alg::algType

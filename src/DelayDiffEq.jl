@@ -3,6 +3,9 @@ __precompile__()
 module DelayDiffEq
 
 using DiffEqBase, OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
+
+using Compat
+
 using Base.Test
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!,
