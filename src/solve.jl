@@ -67,7 +67,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   if dt == zero(dt) && integrator.opts.adaptive
     ode_prob = ODEProblem(dde_f2,prob.u0,prob.tspan)
     dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0,prob.tspan[1],
-              integrator.tdir,dtmax,integrator.opts.abstol,
+              integrator.tdir,min(prob.lags...),integrator.opts.abstol,
               integrator.opts.reltol,integrator.opts.internalnorm,
               ode_prob,OrdinaryDiffEq.alg_order(alg)))
   end
