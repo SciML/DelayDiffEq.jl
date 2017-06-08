@@ -2,7 +2,10 @@ __precompile__()
 
 module DelayDiffEq
 
-using DiffEqBase, OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
+using Reexport
+@reexport using DiffEqBase
+  
+using OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
 
 using Compat
 
