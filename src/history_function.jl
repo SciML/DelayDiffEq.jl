@@ -15,7 +15,7 @@ function (f::HistoryFunction)(t,deriv::Type=Val{0},idxs=nothing)
     return f.sol.interp(t,idxs,deriv)
   else
     if typeof(idxs) <: Void
-      return OrdinaryDiffEq.current_interpolant(t,f.integrator,size(f.integrator.uprev),deriv)
+      return OrdinaryDiffEq.current_interpolant(t,f.integrator,eachindex(f.integrator.uprev),deriv)
     else
       return OrdinaryDiffEq.current_interpolant(t,f.integrator,idxs,deriv)
     end
