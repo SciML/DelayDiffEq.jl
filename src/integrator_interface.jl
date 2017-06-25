@@ -78,6 +78,9 @@ function initialize!(dde_int::DDEIntegrator)
   initialize!(dde_int.integrator,dde_int.cache,dde_int.f)
 end
 
+@inline get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
+@inline set_proposed_dt!(integrator::DDEIntegrator,dt) = (integrator.dtpropose = dt)
+
 user_cache(integrator::DDEIntegrator) = user_cache(integrator)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
