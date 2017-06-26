@@ -86,6 +86,10 @@ u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
 full_cache(integrator::DDEIntegrator) = chain(u_cache(integrator),du_cache(integrator.cache))
 
+@inline function u_modified!(integrator::DDEIntegrator,bool::Bool)
+  integrator.u_modified = bool
+end
+
 resize!(integrator::DDEIntegrator,i::Int) = resize!(integrator,integrator.cache,i)
 function resize!(integrator::DDEIntegrator,cache,i)
   for c in full_cache(integrator)
