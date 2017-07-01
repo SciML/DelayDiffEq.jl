@@ -1,9 +1,9 @@
-function savevalues!(integrator::DDEIntegrator)
+function savevalues!(integrator::DDEIntegrator,force_save=false)
   integrator.integrator.u = integrator.u
   integrator.integrator.k = integrator.k
   integrator.integrator.t = integrator.t
   OrdinaryDiffEq.ode_addsteps!(integrator.integrator,integrator.f)
-  savevalues!(integrator.integrator)
+  savevalues!(integrator.integrator,force_save)
 end
 
 function postamble!(integrator::DDEIntegrator)
@@ -78,6 +78,10 @@ function initialize!(dde_int::DDEIntegrator)
   initialize!(dde_int.integrator,dde_int.cache,dde_int.f)
 end
 
+@inline function u_modified!(integrator::DDEIntegrator,bool::Bool)
+  integrator.u_modified = bool
+end
+
 @inline get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
 @inline set_proposed_dt!(integrator::DDEIntegrator,dt) = (integrator.dtpropose = dt)
 
@@ -85,10 +89,6 @@ user_cache(integrator::DDEIntegrator) = user_cache(integrator)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
 full_cache(integrator::DDEIntegrator) = chain(u_cache(integrator),du_cache(integrator.cache))
-
-@inline function u_modified!(integrator::DDEIntegrator,bool::Bool)
-  integrator.u_modified = bool
-end
 
 resize!(integrator::DDEIntegrator,i::Int) = resize!(integrator,integrator.cache,i)
 function resize!(integrator::DDEIntegrator,cache,i)
