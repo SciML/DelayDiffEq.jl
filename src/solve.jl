@@ -113,7 +113,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
                              typeof(integrator.opts)}(
       sol,prob,integrator.u,integrator.k,integrator.t,integrator.dt,
       dde_f2,integrator.uprev,integrator.tprev,u_cache,
-      eltype(integrator.u)(picardabstol_internal),uEltypeNoUnits(picardreltol_internal),
+      picardabstol_internal,picardreltol_internal,
       resid,picardnorm,alg.max_picard_iters,
       integrator.alg,integrator.rate_prototype,integrator.notsaveat_idxs,integrator.dtcache,
       integrator.dtchangeable,integrator.dtpropose,integrator.tdir,
