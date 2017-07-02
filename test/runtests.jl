@@ -5,3 +5,4 @@ using Base.Test
 @time @testset "Constrained Timestep" begin include("constrained.jl") end
 @time @testset "Unconstrained Timestep" begin include("unconstrained.jl") end
 @time @testset "Events" begin include("events.jl") end
+@time @testset "Units" begin include("units.jl") end
