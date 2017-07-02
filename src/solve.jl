@@ -67,21 +67,16 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   if dt == zero(dt) && integrator.opts.adaptive
     ode_prob = ODEProblem(dde_f2,prob.u0,prob.tspan)
     dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0,prob.tspan[1],
-              integrator.tdir,min(prob.lags...),integrator.opts.abstol,
+              integrator.tdir,minimum(prob.lags),integrator.opts.abstol,
               integrator.opts.reltol,integrator.opts.internalnorm,
               ode_prob,OrdinaryDiffEq.alg_order(alg)))
   end
   integrator.dt = dt
 
   if typeof(alg.picardabstol) <: Void
-    picardabstol_internal = integrator.opts.abstol
+    picardabstol_internal = map(eltype(uType),integrator.opts.abstol)
   else
-    picardabstol_internal = alg.picardabstol
-  end
-  if typeof(alg.picardreltol) <: Void
-    picardreltol_internal = integrator.opts.reltol
-  else
-    picardreltol_internal = alg.picardreltol
+    picardabstol_internal = map(eltype(uType),alg.picardabstol)
   end
   if typeof(alg.picardnorm) <: Void
     picardnorm = integrator.opts.internalnorm
@@ -90,12 +85,17 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
 
   uEltypeNoUnits = typeof(recursive_one(integrator.u))
 
+  if typeof(alg.picardreltol) <: Void
+    picardreltol_internal = map(uEltypeNoUnits,integrator.opts.reltol)
+  else
+    picardreltol_internal = map(uEltypeNoUnits,alg.picardreltol)
+  end
   if typeof(integrator.u) <: AbstractArray
     resid = similar(integrator.u,uEltypeNoUnits)
     u_cache = similar(integrator.u)
   else
-    resid = uEltypeNoUnits(1)
-    u_cache = one(uType)
+    resid = one(uEltypeNoUnits)
+    u_cache = oneunit(eltype(uType))
   end
 
   dde_int = DDEIntegrator{typeof(integrator.alg),
@@ -113,7 +113,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
                              typeof(integrator.opts)}(
       sol,prob,integrator.u,integrator.k,integrator.t,integrator.dt,
       dde_f2,integrator.uprev,integrator.tprev,u_cache,
-      eltype(integrator.u)(picardabstol_internal),uEltypeNoUnits(picardreltol_internal),
+      picardabstol_internal,picardreltol_internal,
       resid,picardnorm,alg.max_picard_iters,
       integrator.alg,integrator.rate_prototype,integrator.notsaveat_idxs,integrator.dtcache,
       integrator.dtchangeable,integrator.dtpropose,integrator.tdir,

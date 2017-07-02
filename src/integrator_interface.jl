@@ -39,9 +39,9 @@ function perform_step!(integrator::DDEIntegrator)
       perform_step!(integrator,integrator.cache)
 
       if typeof(integrator.resid) <: AbstractArray
-        integrator.resid .= (integrator.u .- integrator.u_cache)./(integrator.picardabstol .+ max.(abs.(integrator.u),abs.(integrator.u_cache))*integrator.picardreltol)
+        integrator.resid .= (integrator.u .- integrator.u_cache)./(integrator.picardabstol .+ max.(abs.(integrator.u),abs.(integrator.u_cache)).*integrator.picardreltol)
       else
-        integrator.resid = (integrator.u .- integrator.u_cache)./(integrator.picardabstol .+ max.(abs.(integrator.u),abs.(integrator.u_cache))*integrator.picardreltol)
+        integrator.resid = (integrator.u .- integrator.u_cache)./(integrator.picardabstol .+ max.(abs.(integrator.u),abs.(integrator.u_cache)).*integrator.picardreltol)
       end
 
       picardEEst = integrator.picardnorm(integrator.resid)
