@@ -6,3 +6,4 @@ using Base.Test
 @time @testset "Unconstrained Timestep" begin include("unconstrained.jl") end
 @time @testset "Events" begin include("events.jl") end
 @time @testset "Units" begin include("units.jl") end
+@time @testset "Unique Times" begin include("unique_times.jl") end

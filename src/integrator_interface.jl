@@ -10,7 +10,7 @@ function postamble!(integrator::DDEIntegrator)
   integrator.integrator.u = integrator.u
   integrator.integrator.k = integrator.k
   integrator.integrator.t = integrator.t
-  savevalues!(integrator.integrator)
+  OrdinaryDiffEq.postamble!(integrator.integrator)
 end
 
 function perform_step!(integrator::DDEIntegrator)
