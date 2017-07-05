@@ -9,7 +9,7 @@ using OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
 
 using Compat
 
-using Base.Test
+using NLsolve
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!,
        loopheader!, alg_order, handle_tstop!, ODEIntegrator, savevalues!,
@@ -22,6 +22,9 @@ import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache,
 import OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache,
                        ImplicitEulerCache, TrapezoidCache
 
+import NLsolve: AbstractDifferentiableMultivariateFunction
+
+include("iteration_function.jl")
 include("integrator_type.jl")
 include("integrator_interface.jl")
 include("history_function.jl")

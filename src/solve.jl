@@ -73,10 +73,10 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
   end
   integrator.dt = dt
 
-  if typeof(alg.picardabstol) <: Void
-    picardabstol_internal = map(eltype(uType),integrator.opts.abstol)
+  if typeof(alg.fixedpoint_abstol) <: Void
+    fixedpoint_abstol_internal = map(eltype(uType),integrator.opts.abstol)
   else
-    picardabstol_internal = map(eltype(uType),alg.picardabstol)
+    fixedpoint_abstol_internal = map(eltype(uType),alg.fixedpoint_abstol)
   end
   if typeof(alg.picardnorm) <: Void
     picardnorm = integrator.opts.internalnorm
@@ -85,23 +85,32 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
 
   uEltypeNoUnits = typeof(recursive_one(integrator.u))
 
-  if typeof(alg.picardreltol) <: Void
-    picardreltol_internal = map(uEltypeNoUnits,integrator.opts.reltol)
+  if typeof(alg.fixedpoint_reltol) <: Void
+    fixedpoint_reltol_internal = map(uEltypeNoUnits,integrator.opts.reltol)
   else
-    picardreltol_internal = map(uEltypeNoUnits,alg.picardreltol)
+    fixedpoint_reltol_internal = map(uEltypeNoUnits,alg.fixedpoint_reltol)
   end
   if typeof(integrator.u) <: AbstractArray
-    resid = similar(integrator.u,uEltypeNoUnits)
     u_cache = similar(integrator.u)
+    uprev_cache = similar(integrator.u)
+  else
+    u_cache = oneunit(eltype(uType))
+    uprev_cache = oneunit(eltype(uType))
+  end
+  
+  # for real numbers nlsolve is used for Anderson acceleration of fixed-point iteration which creates vectors of residuals
+  if eltype(integrator.u) <: Real
+    resid = nothing
+  elseif typeof(integrator.u) <: AbstractArray
+    resid = similar(integrator.u,uEltypeNoUnits)
   else
     resid = one(uEltypeNoUnits)
-    u_cache = oneunit(eltype(uType))
   end
 
   dde_int = DDEIntegrator{typeof(integrator.alg),
                              uType,tType,
-                             typeof(picardabstol_internal),
-                             typeof(picardreltol_internal),
+                             typeof(fixedpoint_abstol_internal),
+                             typeof(fixedpoint_reltol_internal),
                              typeof(resid),
                              tTypeNoUnits,typeof(integrator.tdir),
                              typeof(integrator.k),typeof(sol),
@@ -112,9 +121,9 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
                              typeof(picardnorm),
                              typeof(integrator.opts)}(
       sol,prob,integrator.u,integrator.k,integrator.t,integrator.dt,
-      dde_f2,integrator.uprev,integrator.tprev,u_cache,
-      picardabstol_internal,picardreltol_internal,
-      resid,picardnorm,alg.max_picard_iters,
+      dde_f2,integrator.uprev,integrator.tprev,u_cache,uprev_cache,
+      fixedpoint_abstol_internal,fixedpoint_reltol_internal,
+      resid,picardnorm,alg.max_fixedpoint_iters,alg.m,
       integrator.alg,integrator.rate_prototype,integrator.notsaveat_idxs,integrator.dtcache,
       integrator.dtchangeable,integrator.dtpropose,integrator.tdir,
       integrator.EEst,integrator.qold,integrator.q11,
@@ -122,7 +131,7 @@ function init{uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lTyp
       integrator.saveiter_dense,integrator.prog,integrator.cache,
       integrator.kshortsize,integrator.just_hit_tstop,integrator.accept_step,
       integrator.isout,
-      integrator.reeval_fsal,integrator.u_modified,integrator.opts,integrator) # Leave off fsalfirst and last
+      integrator.reeval_fsal,integrator.u_modified,integrator.opts,integrator) # Leave off fsalfirst, fasllast, first_iteration, and iterator
 
   initialize!(dde_int)
   initialize!(integrator.opts.callback,integrator.t,integrator.u,dde_int)

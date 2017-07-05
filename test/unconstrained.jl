@@ -14,16 +14,16 @@ h = (t) -> 0.0
 
 prob = ConstantLagDDEProblem(f,h,1.0,lags,(0.0,100.0))
 
-alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
+alg1 = MethodOfSteps(Tsit5(),constrained=false,max_fixedpoint_iters=100,fixedpoint_abstol=1e-12,fixedpoint_reltol=1e-12)
 sol1 = solve(prob,alg1)
 
-alg2 = MethodOfSteps(DP8(),constrained=false,max_picard_iters=10,picardabstol=1e-8,picardreltol=1e-10)
+alg2 = MethodOfSteps(DP8(),constrained=false,max_fixedpoint_iters=10,fixedpoint_abstol=1e-8,fixedpoint_reltol=1e-10)
 sol2 = solve(prob,alg2)
 
-alg3 = MethodOfSteps(Tsit5(),constrained=true,max_picard_iters=10,picardabstol=1e-8,picardreltol=1e-10)
+alg3 = MethodOfSteps(Tsit5(),constrained=true,max_fixedpoint_iters=10,fixedpoint_abstol=1e-8,fixedpoint_reltol=1e-10)
 sol3 = solve(prob,alg3)
 
-alg4 = MethodOfSteps(DP5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
+alg4 = MethodOfSteps(DP5(),constrained=false,max_fixedpoint_iters=100,fixedpoint_abstol=1e-12,fixedpoint_reltol=1e-12)
 sol4 = solve(prob,alg4)
 
 @test abs(sol1[end] - sol2[end]) < 1e-3
@@ -38,16 +38,16 @@ h = (t) -> 0.0
 
 prob = ConstantLagDDEProblem(f,h,1.0,lags,(0.0,10.0);iip=DiffEqBase.isinplace(f,4))
 
-alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
+alg1 = MethodOfSteps(Tsit5(),constrained=false,max_fixedpoint_iters=100,fixedpoint_abstol=1e-12,fixedpoint_reltol=1e-12)
 sol1 = solve(prob,alg1)
 
-alg2 = MethodOfSteps(DP8(),constrained=false,max_picard_iters=10,picardabstol=1e-8,picardreltol=1e-10)
+alg2 = MethodOfSteps(DP8(),constrained=false,max_fixedpoint_iters=10,fixedpoint_abstol=1e-8,fixedpoint_reltol=1e-10)
 sol2 = solve(prob,alg2)
 
-alg3 = MethodOfSteps(Tsit5(),constrained=true,max_picard_iters=10,picardabstol=1e-8,picardreltol=1e-10)
+alg3 = MethodOfSteps(Tsit5(),constrained=true,max_fixedpoint_iters=10,fixedpoint_abstol=1e-8,fixedpoint_reltol=1e-10)
 sol3 = solve(prob,alg3)
 
-alg4 = MethodOfSteps(DP5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
+alg4 = MethodOfSteps(DP5(),constrained=false,max_fixedpoint_iters=100,fixedpoint_abstol=1e-12,fixedpoint_reltol=1e-12)
 sol4 = solve(prob,alg4)
 
 @test abs(sol1[end] - sol2[end]) < 1e-3
@@ -72,7 +72,7 @@ end
 
 prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,100.0))
 
-alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
+alg1 = MethodOfSteps(Tsit5(),constrained=false,max_fixedpoint_iters=100,fixedpoint_abstol=1e-12,fixedpoint_reltol=1e-12)
 @time sol1 = solve(prob,alg1)
 
 f = function (t,u,h,du)
@@ -94,5 +94,5 @@ end
 
 prob = ConstantLagDDEProblem(f,h,[1.0],lags,(0.0,100.0))
 
-alg1 = MethodOfSteps(Tsit5(),constrained=false,max_picard_iters=100,picardabstol=1e-12,picardreltol=1e-12)
+alg1 = MethodOfSteps(Tsit5(),constrained=false,max_fixedpoint_iters=100,fixedpoint_abstol=1e-12,fixedpoint_reltol=1e-12)
 @time sol1 = solve(prob,alg1)
