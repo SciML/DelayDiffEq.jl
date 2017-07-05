@@ -9,11 +9,13 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
   uprev::uType
   tprev::tType
   u_cache::uType
-  picardabstol::absType
-  picardreltol::relType
+  uprev_cache::uType
+  fixedpoint_abstol::absType
+  fixedpoint_reltol::relType
   resid::residType # This would have to resize for resizing DDE to work
   picardnorm::NType
-  max_picard_iters::Int
+  max_fixedpoint_iters::Int
+  m::Int
   alg::algType
   rate_prototype::rateType
   notsaveat_idxs::Vector{Int}
@@ -39,26 +41,33 @@ type DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
   integrator::IType
   fsalfirst::rateType
   fsallast::rateType
+  first_iteration::Bool
+  iterator::IterationFunction{DDEIntegrator{algType,uType,tType,absType,relType,residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,ProbType,NType,O}}
 
   (::Type{DDEIntegrator{algType,uType,tType,absType,relType,
                    residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,
                    ProgressType,CacheType,IType,ProbType,NType,O}}){
                    algType,uType,tType,absType,
                    relType,residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,
-                  CacheType,IType,ProbType,NType,O}(sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
-      picardabstol,picardreltol,resid,picardnorm,max_picard_iters,
+                  CacheType,IType,ProbType,NType,O}(sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,uprev_cache,
+      fixedpoint_abstol,fixedpoint_reltol,resid,picardnorm,max_fixedpoint_iters,m,
       alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,
       EEst,qold,q11,
       iter,saveiter,saveiter_dense,prog,cache,
       kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,
-      integrator,opts) = new{algType,uType,tType,absType,relType,residType,tTypeNoUnits,tdirType,
+      opts,integrator) = begin
+    dde_int = new{algType,uType,tType,absType,relType,residType,tTypeNoUnits,tdirType,
       ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,ProbType,NType,O}(
-      sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,
-      picardabstol,picardreltol,resid,picardnorm,max_picard_iters,
+      sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,uprev_cache,
+      fixedpoint_abstol,fixedpoint_reltol,resid,picardnorm,max_fixedpoint_iters,m,
       alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,
       EEst,qold,q11,
       iter,saveiter,saveiter_dense,prog,cache,
-      kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,integrator,opts) # Leave off fsalfirst and last
+      kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,integrator) # Leave off fsalfirst, fsallast, first_iteration and iterator
+    dde_int.iterator = IterationFunction{DDEIntegrator{algType,uType,tType,absType,relType,residType,tTypeNoUnits,tdirType,
+                                                      ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,ProbType,NType,O}}(dde_int)
+    dde_int
+  end
 end
 
 function (integrator::DDEIntegrator)(t,deriv::Type=Val{0};idxs=nothing)

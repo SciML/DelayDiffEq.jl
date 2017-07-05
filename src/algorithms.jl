@@ -3,15 +3,17 @@
 
 immutable MethodOfSteps{algType,AType,RType,NType,constrained} <: AbstractMethodOfStepsAlgorithm{constrained}
   alg::algType
-  picardabstol::AType
-  picardreltol::RType
-  picardnorm::NType
-  max_picard_iters::Int
+  fixedpoint_abstol::AType
+  fixedpoint_reltol::RType
+  max_fixedpoint_iters::Int
+  picardnorm::NType # anderson acceleration with nlsolve always uses infinite norm of residuals
+  m::Int # controls history size of anderson acceleration (m=0 corresponds to simple fixed-point iteration)
 end
 
 Base.@pure MethodOfSteps(alg;constrained=false,
-                             picardabstol = nothing,
-                             picardreltol = nothing,
-                             picardnorm   = nothing,
-                             max_picard_iters = 10) =
-                             MethodOfSteps{typeof(alg),typeof(picardabstol),typeof(picardreltol),typeof(picardnorm),constrained}(alg,picardabstol,picardreltol,picardnorm,max_picard_iters)
+                             fixedpoint_abstol = nothing,
+                             fixedpoint_reltol = nothing,
+                             max_fixedpoint_iters = 10,
+                             picardnorm = nothing,
+                             m = 0) =
+                             MethodOfSteps{typeof(alg),typeof(fixedpoint_abstol),typeof(fixedpoint_reltol),typeof(picardnorm),constrained}(alg,fixedpoint_abstol,fixedpoint_reltol,max_fixedpoint_iters,picardnorm,m)
