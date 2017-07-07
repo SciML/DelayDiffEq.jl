@@ -4,23 +4,17 @@ module DelayDiffEq
 
 using Reexport
 @reexport using DiffEqBase
-  
+
 using OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
 
-using Compat
+import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_order,
+                       handle_tstop!, ODEIntegrator, savevalues!, handle_callback_modifiers!
 
-using Base.Test
+import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, full_cache,
+                   deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!
 
-import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!,
-       loopheader!, alg_order, handle_tstop!, ODEIntegrator, savevalues!,
-       handle_callback_modifiers!
-
-import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache,
-                   du_cache, full_cache, deleteat!, terminate!, u_modified!,
-                   get_proposed_dt, set_proposed_dt!
-
-import OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache,
-                       ImplicitEulerCache, TrapezoidCache
+import OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
+                       TrapezoidCache
 
 include("integrator_type.jl")
 include("integrator_interface.jl")
