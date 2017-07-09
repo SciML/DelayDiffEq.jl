@@ -69,7 +69,8 @@ alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                     fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol = solve(prob, alg)
 
-# Unconstrained algorithm with correct units and both absolute and relative tolerance as vector
+# Unconstrained algorithm with correct units and both absolute and relative tolerance as
+# vector
 alg2 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=[1e-9u"mN"], fixedpoint_reltol=[1e-12])
 sol2 = solve(prob, alg2)
@@ -85,7 +86,8 @@ alg = MethodOfSteps(Tsit5(), constrained=true, max_fixedpoint_iters=100,
                     fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol = solve(prob, alg)
 
-# Constrained algorithm with correct units and both absolute and relative tolerance as vector
+# Constrained algorithm with correct units and both absolute and relative tolerance as
+# vector
 alg2 = MethodOfSteps(Tsit5(), constrained=true, max_fixedpoint_iters=100,
                      fixedpoint_abstol=[1e-9u"mN"], fixedpoint_reltol=[1e-12])
 sol2 = solve(prob, alg2)

@@ -1,13 +1,68 @@
-using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, Base.Test
+using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, DiffEqProblemLibrary, Base.Test
 
-lags = [.2]
+# Check that numerical solutions approximate analytical solutions,
+# independent of problem structure
 
-f = function (t,u,h)
-  out = -h(t-.2) + u
-end
-h = (t) -> 0.0
+alg = MethodOfSteps(BS3(); constrained=false)
+u₀ = 1.0
 
-prob = ConstantLagDDEProblem(f, h, 1.0, lags, (0.0, 100.0))
+## Single constant delay
+
+### Not in-place function with scalar history function
+
+prob = prob_dde_1delay_scalar_notinplace(u₀)
+sol = solve(prob, alg)
+
+@test sol.errors[:l∞] < 4e-5
+@test sol.errors[:final] < 2e-5
+@test sol.errors[:l2] < 2e-5
+
+### Not in-place function with vectorized history function
+
+prob = prob_dde_1delay_notinplace(u₀)
+sol2 = solve(prob, alg)
+
+@test sol.t == sol2.t && sol.u == sol2[1, :]
+
+### In-place function
+
+prob = prob_dde_1delay(u₀)
+sol2 = solve(prob, alg)
+
+# Test does not pass!
+# @test sol.t == sol2.t && sol.u == sol2[1, :]
+
+## Two constant delays
+
+### Not in-place function with scalar history function
+
+prob = prob_dde_2delays_scalar_notinplace(u₀)
+sol = solve(prob, alg)
+
+@test sol.errors[:l∞] < 2e-6
+@test sol.errors[:final] < 2e-6
+@test sol.errors[:l2] < 2e-6
+
+### Not in-place function with vectorized history function
+
+prob = prob_dde_2delays_notinplace(u₀)
+sol2 = solve(prob, alg)
+
+@test sol.t == sol2.t && sol.u == sol2[1, :]
+
+### In-place function
+
+prob = prob_dde_2delays(u₀)
+sol = solve(prob, alg)
+
+# Test does not pass!
+# @test sol.t == sol2.t && sol.u == sol2[1, :]
+
+# Problems with long time span
+
+## Single constant delay
+
+prob = prob_dde_1delay_long_scalar_notinplace
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
@@ -29,13 +84,9 @@ sol4 = solve(prob, alg4)
 @test abs(sol1[end] - sol3[end]) < 1e-3
 @test abs(sol1[end] - sol4[end]) < 1e-3
 
-lags = [1//3, 1//5]
-f = function (t,u,h)
-  -h(t-1/3) - h(t-1/5)
-end
-h = (t) -> 0.0
+## Two constant delays
 
-prob = ConstantLagDDEProblem(f, h, 1.0, lags, (0.0, 10.0); iip=DiffEqBase.isinplace(f,4))
+prob = prob_dde_2delays_long_scalar_notinplace
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
@@ -59,7 +110,7 @@ sol4 = solve(prob, alg4)
 
 println("Standard tests complete. Onto idxs tests")
 
-## Idxs
+# Idxs
 
 f = function (t,u,h,du)
   du[1] = -h(t-.2, Val{0}, 1) + u[1]
@@ -94,7 +145,6 @@ end
 h = function (out,t,idxs=nothing)
   out[1] = 0.0
 end
-
 
 prob = ConstantLagDDEProblem(f, h, [1.0], lags, (0.0, 100.0))
 

@@ -1,12 +1,7 @@
-using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, Base.Test, DiffEqDevTools, DiffEqCallbacks
+using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, DiffEqProblemLibrary, DiffEqDevTools,
+      DiffEqCallbacks, Base.Test
 
-lags = [1]
-f = function (t,u,h)
-    du = - h(t-1)
-end
-h = (t) -> 0.0
-
-prob = ConstantLagDDEProblem(f, h, 1.0, lags, (0.0, 10.0); iip=DiffEqBase.isinplace(f, 4))
+prob = prob_dde_1delay_scalar_notinplace(1.0)
 alg = MethodOfSteps(Tsit5(); constrained=false)
 
 # continuous callback
