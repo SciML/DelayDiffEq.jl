@@ -29,7 +29,7 @@ sol2 = solve(prob, alg)
 prob = prob_dde_1delay(u₀)
 sol2 = solve(prob, alg)
 
-@test_broken sol.t == sol2.t && sol.u == sol2[1, :]
+@test sol.t == sol2.t && sol.u == sol2[1, :]
 
 ## Two constant delays
 
@@ -52,9 +52,9 @@ sol2 = solve(prob, alg)
 ### In-place function
 
 prob = prob_dde_2delays(u₀)
-sol = solve(prob, alg)
+sol2 = solve(prob, alg)
 
-@test_broken sol.t == sol2.t && sol.u == sol2[1, :]
+@test sol.t == sol2.t && sol.u == sol2[1, :]
 
 # Problems with long time span
 

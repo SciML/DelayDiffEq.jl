@@ -37,34 +37,34 @@ end
 Calculate next step of `integrator`.
 """
 function perform_step!(integrator::DDEIntegrator)
-    # update previous time to extrapolate from current interval
-    integrator.tprev = integrator.t
-
     # update ODE integrator
     integrator.integrator.uprev = integrator.uprev
-    integrator.integrator.tprev = integrator.tprev
-    integrator.integrator.fsalfirst = integrator.fsalfirst
+    integrator.integrator.tprev = integrator.t # to extrapolate from current interval
     integrator.integrator.t = integrator.t
     integrator.integrator.dt = integrator.dt
 
+    # separate u to avoid influence of calculations on interpolation and to calculate
+    # residuals
+    if typeof(integrator.u) <: AbstractArray
+        recursivecopy!(integrator.u_cache, integrator.u)
+    else
+        integrator.u_cache = integrator.u
+    end
+    integrator.integrator.u = integrator.u_cache
+
+    # separate k to avoid influence of calculations on interpolation
+    # constant caches that contain fsalfirst must be updated for interpolation
+    # has to be changed all such caches - move to OrdinaryDiffEq?
+    if typeof(integrator.cache) <: Union{BS3ConstantCache}
+        integrator.k[1] = integrator.fsalfirst
+    end
+    integrator.integrator.k = recursivecopy(integrator.k)
+
     # if dt is greater than the minimal lag, then it's explicit so use fixed-point iteration
     if integrator.dt > minimum(integrator.prob.lags)
-
-        # save these values to correct the extrapolation after the last iteration
-        tprev_cache = integrator.tprev
-        t_cache = integrator.t # same as tprev_cache?
-        uprev_cache = integrator.uprev
-
         numiters = 1
+
         while true
-
-            # save u to calculate residuals (u is overwritten in calculation of next step)
-            if typeof(integrator.u) <: AbstractArray
-                copy!(integrator.u_cache, integrator.u)
-            else
-                integrator.u_cache = integrator.u
-            end
-
             # calculate next step
             perform_step!(integrator, integrator.cache)
 
@@ -81,44 +81,42 @@ function perform_step!(integrator::DDEIntegrator)
                             integrator.fixedpoint_reltol)
             end
 
-            # stop fixed-point iteration when residuals are small or maximal number of steps is exceeded
+            # stop fixed-point iteration when residuals are small or maximal number of steps
+            # is exceeded
             fixedpointEEst = integrator.fixedpoint_norm(integrator.resid)
             if fixedpointEEst < 1 || numiters > integrator.max_fixedpoint_iters
                 break
             end
 
-            # special updates of ODE integrator after the first iteration step
+            # special update of ODE integrator after the first iteration step
             # to use interpolation of ODE integrator in the next iterations
             # when evaluating the history function
             if numiters == 1
-                integrator.integrator.tprev = integrator.t
                 integrator.integrator.t = integrator.t + integrator.dt
-                integrator.integrator.uprev = integrator.u
             end
 
-            # update ODE integrator
-            integrator.integrator.u = integrator.u
-            integrator.integrator.k = integrator.k
+            # update cached values of u and k
+            if typeof(integrator.u) <: AbstractArray
+                recursivecopy!(integrator.u_cache, integrator.u)
+            else
+                integrator.u_cache = integrator.u
+            end
+            integrator.integrator.u = integrator.u_cache
+
+            recursivecopy!(integrator.integrator.k, integrator.k)
 
             numiters += 1
         end
 
-        # reset values of DDE integrator after last iteration
-        integrator.t = t_cache
-        integrator.tprev = tprev_cache
-        integrator.uprev = uprev_cache
-
-        # update current time of ODE integrator
-        integrator.integrator.t = t_cache
+        # reset time of ODE integrator
+        integrator.integrator.t = integrator.t
     else # no iterations
         perform_step!(integrator, integrator.cache)
     end
 
-    #integrator.u = integrator.integrator.u
-    #integrator.fsallast = integrator.integrator.fsallast
-    #if integrator.opts.adaptive
-    #  integrator.EEst = integrator.integrator.EEst
-    #end
+    # update ODE integrator
+    integrator.integrator.u = integrator.u
+    integrator.integrator.k = integrator.k
 end
 
 """
