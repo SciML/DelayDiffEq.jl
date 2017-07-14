@@ -9,6 +9,9 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     integrator.integrator.k = integrator.k
     integrator.integrator.t = integrator.t
 
+    # update solution of DDE integrator
+    invoke(savevalues!, Tuple{AbstractDDEIntegrator,Bool}, integrator, force_save)
+
     # add steps for interpolation to ODE integrator when needed
     OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
 
@@ -26,6 +29,9 @@ function postamble!(integrator::DDEIntegrator)
     integrator.integrator.u = integrator.u
     integrator.integrator.k = integrator.k
     integrator.integrator.t = integrator.t
+
+    # clean up solution of DDE integrator
+    OrdinaryDiffEq.postamble!(integrator)
 
     # clean up solution of ODE integrator
     OrdinaryDiffEq.postamble!(integrator.integrator)
