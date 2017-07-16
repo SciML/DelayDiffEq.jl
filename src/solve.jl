@@ -1,8 +1,9 @@
 function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
               d_discontinuities=tType[], dtmax=tType(7*minimum(prob.lags)), dt=zero(tType),
-              kwargs...) where {uType,tType,isinplace,
-                                algType<:AbstractMethodOfStepsAlgorithm,lType}
+              saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
+              save_start=true, kwargs...) where
+    {uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType}
 
     # add lag locations to discontinuities vector
     d_discontinuities = [d_discontinuities; compute_discontinuity_tree(prob.lags, alg,
@@ -111,6 +112,27 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         u_cache = oneunit(eltype(uType))
     end
 
+    # create heap of additional time points that will be contained in the solution
+    # exclude the end point because of floating point issues and the starting point since it
+    # is controlled by save_start
+    if typeof(saveat) <: Number
+        saveat_internal = collect(tType,
+                                  (prob.tspan[1] + integrator.tdir * abs(saveat)):
+                                  integrator.tdir * abs(saveat):
+                                  (prob.tspan[end] - integrator.tdir * abs(saveat)))
+    else
+        saveat_internal = collect(tType, Iterators.filter(
+            x -> integrator.tdir * prob.tspan[1] < integrator.tdir * x < integrator.tdir *
+            prob.tspan[end],
+            saveat))
+    end
+
+    if integrator.tdir > 0
+        heapify!(saveat_internal)
+    else
+        heapify!(saveat_internal, Base.Order.Reverse)
+    end
+
     # create DDE integrator combining the new defined problem function with history
     # information, the improved solution, the parameters of the ODE integrator, and
     # parameters of fixed-point iteration
@@ -122,7 +144,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                             typeof(integrator.rate_prototype),typeof(dde_f),
                             typeof(integrator.prog),typeof(integrator.cache),
                             typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
-                            typeof(integrator.opts)}(
+                            typeof(integrator.opts),typeof(save_idxs)}(
                                 sol, prob, integrator.u, integrator.k, integrator.t,
                                 integrator.dt, dde_f, integrator.uprev, integrator.tprev,
                                 u_cache, fixedpoint_abstol_internal,
@@ -136,7 +158,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 integrator.prog, integrator.cache, integrator.kshortsize,
                                 integrator.just_hit_tstop, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
-                                integrator.u_modified, integrator.opts, integrator)
+                                integrator.u_modified, integrator.opts, integrator,
+                                save_idxs, saveat_internal, save_everystep, save_start)
 
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
@@ -171,23 +194,112 @@ function solve!(integrator::DDEIntegrator)
     # clean up solution
     postamble!(integrator)
 
-    # calculate and add errors to solution if analytic solution to problem exists
-    # can not use same mechanism as for ODE problems since analytic solutions for DDE depend
-    # on initial value u0
+    # create vector of time points in the final solution
+    n = integrator.save_everystep ? length(integrator.sol.t) : 2 # starting and end point
+    n += length(integrator.saveat)
+    integrator.save_start || (n -= 1)
+    t_sol = Vector{typeof(integrator.t)}(n)
+
+    # output initial time point if desired
+    cur_ind = 1 # next index to write to
+    if integrator.save_start
+        t_sol[1] = integrator.sol.t[1]
+        cur_ind = 2
+    end
+
+    # next indices to read from
+    saveat_ind = 1
+    sol_ind = 2 # already taken care of first element of solution of ODE integrator
+
+    # merge additional time points and time points of solution of ODE integrator
+    # assumed that both vectors are already sorted
+    if integrator.save_everystep
+        while saveat_ind <= length(integrator.saveat) && sol_ind <= length(integrator.sol.t)
+            if integrator.tdir * integrator.saveat[saveat_ind] < integrator.tdir * integrator.sol.t[sol_ind]
+                t_sol[cur_ind] = integrator.saveat[saveat_ind]
+                saveat_ind += 1
+            else
+                t_sol[cur_ind] = integrator.sol.t[sol_ind]
+                sol_ind += 1
+            end
+
+            cur_ind += 1
+        end
+
+        # copy remaining time points of solution of ODE integrator
+        copy!(t_sol, cur_ind,
+              integrator.sol.t, sol_ind, length(integrator.sol.t) + 1 - sol_ind)
+    end
+    # copy remaining additional time points
+    copy!(t_sol, cur_ind,
+          integrator.saveat, saveat_ind, length(integrator.saveat) + 1 - saveat_ind)
+
+    # always output final time point
+    t_sol[end] = integrator.sol.t[end]
+
+    # evaluate solution at given time points
+    u_sol = integrator.sol(t_sol; idxs=integrator.save_idxs).u
+
+    # calculate analytical solutions to problem if existent
     if has_analytic(integrator.prob.f)
-        u_analytic = [integrator.prob.f(Val{:analytic}, t, integrator.sol[1])
-                      for t in integrator.sol.t]
-        errors = Dict{Symbol,eltype(integrator.u)}()
-        sol = build_solution(integrator.sol::AbstractODESolution, u_analytic, errors)
+        if typeof(integrator.save_idxs) <: Void
+            u_analytic = [integrator.prob.f(Val{:analytic}, t, integrator.sol[1])
+                          for t in t_sol]
+        else
+            u_analytic = [integrator.prob.f(Val{:analytic}, t,
+                                            integrator.sol[1])[integrator.save_idxs]
+                          for t in t_sol]
+        end
+        errors = Dict{Symbol,recursive_eltype(u_sol)}()
+    else
+        u_analytic = nothing
+        errors = nothing
+    end
+
+    # update interpolation data if only a subset of indices is returned
+    if !(typeof(integrator.save_idxs) <: Void)
+        if typeof(integrator.alg) <: OrdinaryDiffEqCompositeAlgorithm
+            interp = OrdinaryDiffEq.CompositeInterpolationData(
+                integrator.sol.interp.f,
+                [u[integrator.save_idxs] for u in integrator.sol.interp.timeseries],
+                integrator.sol.interp.ts,
+                [[k[integrator.save_idxs] for k in ks] for ks in integrator.sol.interp.ks],
+                integrator.sol.interp.alg_choice, integrator.sol.interp.notsaveat_idxs,
+                integrator.sol.interp.dense, integrator.sol.interp.cache)
+        else
+            interp = OrdinaryDiffEq.InterpolationData(
+                integrator.sol.interp.f,
+                [u[integrator.save_idxs] for u in integrator.sol.interp.timeseries],
+                integrator.sol.interp.ts,
+                [[k[integrator.save_idxs] for k in ks] for ks in integrator.sol.interp.ks],
+                integrator.sol.interp.notsaveat_idxs, integrator.sol.interp.dense,
+                integrator.sol.interp.cache)
+        end
+    else
+        interp = integrator.sol.interp
+    end
+
+    # create updated solution which is evaluated at given time points and contains subset of
+    # components and dense interpolation
+    T = eltype(eltype(u_sol))
+    N = length((size(u_sol[1])..., length(u_sol)))
+
+    sol = ODESolution{T,N,typeof(u_sol),typeof(u_analytic),typeof(errors),typeof(t_sol),
+                      typeof(interp.ks),typeof(integrator.sol.prob),
+                      typeof(integrator.sol.alg),typeof(interp)}(
+                          u_sol,u_analytic,errors,t_sol,interp.ks,integrator.sol.prob,
+                          integrator.sol.alg,interp,integrator.sol.dense,
+                          integrator.sol.tslocation,integrator.sol.retcode)
+
+    # calculate errors of solution
+    if sol.u_analytic != nothing
         calculate_solution_errors!(sol; fill_uanalytic=false,
                                    timeseries_errors=integrator.opts.timeseries_errors,
                                    dense_errors=integrator.opts.dense_errors)
-        sol.retcode = :Success
-        return sol
-    else
-        integrator.sol.retcode = :Success
-        return integrator.sol
     end
+
+    sol.retcode = :Success
+    return sol
 end
 
 function solve(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
