@@ -12,7 +12,9 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absTyp
     f::F
     uprev::uType
     tprev::tType
-    u_cache::uType
+    uprev_cache::uType
+    k_cache::ksEltype
+    k_integrator_cache::ksEltype
     fixedpoint_abstol::absType
     fixedpoint_reltol::relType
     resid::residType # This would have to resize for resizing DDE to work
@@ -48,21 +50,22 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absTyp
     function DDEIntegrator{algType,uType,tType,absType,relType,residType,tTypeNoUnits,
                            tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,
                            IType,ProbType,NType,O}(
-                               sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,fixedpoint_abstol,
-                               fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,
-                               alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,
-                               dtpropose,tdir,EEst,qold,q11,iter,saveiter,saveiter_dense,
-                               prog,cache,kshortsize,just_hit_tstop,accept_step,isout,
-                               reeval_fsal,u_modified,opts,integrator) where
+                               sol,prob,u,k,t,dt,f,uprev,tprev,uprev_cache,k_cache,
+                               k_integrator_cache,fixedpoint_abstol,fixedpoint_reltol,resid,
+                               fixedpoint_norm,max_fixedpoint_iters,alg,rate_prototype,
+                               notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,EEst,qold,
+                               q11,iter,saveiter,saveiter_dense,prog,cache,kshortsize,
+                               just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,
+                               integrator) where
         {algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,residType,
          tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,
          ProbType,NType,O}
 
-        new(sol,prob,u,k,t,dt,f,uprev,tprev,u_cache,fixedpoint_abstol,fixedpoint_reltol,
-            resid,fixedpoint_norm,max_fixedpoint_iters,alg,rate_prototype,notsaveat_idxs,
-            dtcache,dtchangeable,dtpropose,tdir,EEst,qold,q11,iter,saveiter,saveiter_dense,
-            prog,cache,kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,
-            opts,integrator)
+        new(sol,prob,u,k,t,dt,f,uprev,tprev,uprev_cache,k_cache,k_integrator_cache,
+            fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,
+            alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,EEst,qold,
+            q11,iter,saveiter,saveiter_dense,prog,cache,kshortsize,just_hit_tstop,
+            accept_step,isout,reeval_fsal,u_modified,opts,integrator)
     end
 end
 

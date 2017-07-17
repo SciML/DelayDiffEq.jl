@@ -15,8 +15,8 @@ dde_int = init(prob, alg; dt=0.1)
 sol = solve!(dde_int)
 
 @test sol.errors[:l∞] < 3e-5
-@test sol.errors[:final] < 2e-5
-@test sol.errors[:l2] < 2e-5
+@test sol.errors[:final] < 1.8e-5
+@test sol.errors[:l2] < 1.4e-5
 
 ## Not in-place function with vectorized history function
 
@@ -42,9 +42,9 @@ prob = prob_dde_2delays_scalar_notinplace(u₀)
 dde_int = init(prob, alg; dt=0.1)
 sol = solve!(dde_int)
 
-@test sol.errors[:l∞] < 5e-6
-@test sol.errors[:final] < 2e-6
-@test sol.errors[:l2] < 3e-6
+@test sol.errors[:l∞] < 4.1e-6
+@test sol.errors[:final] < 1.5e-6
+@test sol.errors[:l2] < 2.3e-6
 
 ## Not in-place function with vectorized history function
 
