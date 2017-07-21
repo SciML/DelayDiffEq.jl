@@ -134,6 +134,11 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         saveat_internal = binary_maxheap(saveat_vec)
     end
 
+    # check if all indices should be returned
+    if !(typeof(save_idxs) <: Void) && collect(save_idxs) == collect(1:length(integrator.u))
+        save_idxs = nothing # prevents indexing of ODE solution and saves memory
+    end
+
     # separate options of integrator and ODE integrator since ODE integrator always saves
     # every step and every index (necessary for history function)
     opts = OrdinaryDiffEq.DEOptions(integrator.opts.maxiters,
