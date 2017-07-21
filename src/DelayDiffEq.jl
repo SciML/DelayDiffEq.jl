@@ -14,7 +14,7 @@ import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, 
                    deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!
 
 import OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
-                       TrapezoidCache, BS3ConstantCache
+                       TrapezoidCache
 
 include("integrator_type.jl")
 include("integrator_interface.jl")
