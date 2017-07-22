@@ -121,12 +121,17 @@ function perform_step!(integrator::DDEIntegrator)
 
             # calculate residuals of fixed-point iteration
             if typeof(integrator.resid) <: AbstractArray
-                @. integrator.resid = (integrator.u - integrator.integrator.u) /
-                    @muladd(integrator.fixedpoint_abstol + max(abs(integrator.u),
-                                                               abs(integrator.integrator.u)) *
-                            integrator.fixedpoint_reltol)
+                @tight_loop_macros @inbounds for (i, atol, rtol) in
+                    zip(eachindex(integrator.u),
+                        Iterators.cycle(integrator.fixedpoint_abstol),
+                        Iterators.cycle(integrator.fixedpoint_reltol))
+
+                    integrator.resid[i] = (integrator.u[i] - integrator.integrator.u[i]) /
+                        @muladd(atol + max(abs(integrator.u[i]),
+                                           abs(integrator.integrator.u[i])) * rtol)
+                end
             else
-                integrator.resid = @. (integrator.u - integrator.integrator.u) /
+                integrator.resid = (integrator.u - integrator.integrator.u) /
                     @muladd(integrator.fixedpoint_abstol + max(abs(integrator.u),
                                                                abs(integrator.integrator.u)) *
                             integrator.fixedpoint_reltol)

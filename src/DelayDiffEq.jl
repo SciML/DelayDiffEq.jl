@@ -8,7 +8,8 @@ using Reexport
 using OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_order,
-                       handle_tstop!, ODEIntegrator, savevalues!, handle_callback_modifiers!
+                       handle_tstop!, ODEIntegrator, savevalues!,
+                       handle_callback_modifiers!, @tight_loop_macros
 
 import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!
