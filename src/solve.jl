@@ -170,6 +170,15 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                     integrator.opts.advance_to_tstop,
                                     integrator.opts.stop_at_next_tstop)
 
+    # need copy of heap of additional time points (nodes will be deleted!) in order to
+    # remove unneeded time points of ODE solution as soon as possible
+    # if no dense interpolation required and only selected time points saved
+    if !opts.dense && !opts.save_everystep
+        saveat_copy = deepcopy(opts.saveat)
+    else
+        saveat_copy = nothing
+    end
+
     # create DDE integrator combining the new defined problem function with history
     # information, the improved solution, the parameters of the ODE integrator, and
     # parameters of fixed-point iteration
@@ -181,7 +190,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                             typeof(integrator.rate_prototype),typeof(dde_f),
                             typeof(integrator.prog),typeof(integrator.cache),
                             typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
-                            typeof(opts)}(
+                            typeof(opts),typeof(saveat_copy)}(
                                 sol, prob, integrator.u, integrator.k, integrator.t,
                                 integrator.dt, dde_f, integrator.uprev, integrator.tprev,
                                 u_cache, fixedpoint_abstol_internal,
@@ -195,7 +204,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 integrator.prog, integrator.cache, integrator.kshortsize,
                                 integrator.just_hit_tstop, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
-                                integrator.u_modified, opts, integrator)
+                                integrator.u_modified, opts, integrator, saveat_copy)
 
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
