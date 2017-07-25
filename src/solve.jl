@@ -347,11 +347,11 @@ function solve!(integrator::DDEIntegrator)
             u_analytic = [integrator.prob.f(Val{:analytic}, t, integrator.sol[1])
                           for t in t_sol]
         else
-            u_analytic = [integrator.prob.f(Val{:analytic}, t,
-                                            integrator.sol[1])[integrator.opts.save_idxs]
+            u_analytic = [@view(integrator.prob.f(
+                Val{:analytic}, t, integrator.sol[1])[integrator.opts.save_idxs])
                           for t in t_sol]
         end
-        errors = Dict{Symbol,recursive_eltype(u_sol)}()
+        errors = Dict{Symbol,eltype(integrator.u)}()
     else
         u_analytic = nothing
         errors = nothing
