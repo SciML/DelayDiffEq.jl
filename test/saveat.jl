@@ -13,6 +13,10 @@ sol = solve!(dde_int)
 
 # save only at a particular time point
 dde_int2 = init(prob, alg; saveat=[25.0, 50.0, 75.0])
+
+## solution of ODE integrator will be reduced
+@test dde_int2.minimal_solution
+
 sol2 = solve!(dde_int2)
 
 ## time steps of solution
@@ -25,8 +29,26 @@ sol2 = solve!(dde_int2)
 ## solution lies on interpolation of full solution above
 @test sol(sol2.t).u == sol2.u
 
+# save only at a particular time point, force full ODE solution
+dde_int2_full = init(prob, alg; saveat=[25.0, 50.0, 75.0], minimal_solution=false)
+
+## solution of ODE integrator will not be reduced
+@test !dde_int2_full.minimal_solution
+
+sol2_full = solve!(dde_int2_full)
+
+## solution of ODE integrator equals full solution above
+@test sol.t == dde_int2_full.sol.t && sol.u == dde_int2_full.sol.u
+
+## solution equals reduced solution above
+@test sol2.t == sol2_full.t && sol2.u == sol2_full.u
+
 # save only at a particular time point (dense interpolation)
 dde_int2_dense = init(prob, alg; saveat=[25.0, 50.0, 75.0], dense=true)
+
+## solution of ODE integrator will not be reduced
+@test !dde_int2_dense.minimal_solution
+
 sol2_dense = solve!(dde_int2_dense)
 
 ## time steps of solution
@@ -43,6 +65,10 @@ sol2_dense = solve!(dde_int2_dense)
 
 # save only at a particular time point and exclude initial time point
 dde_int3 = init(prob, alg; saveat=[25.0, 50.0, 75.0], save_start=false)
+
+## solution of ODE integrator will be reduced
+@test dde_int3.minimal_solution
+
 sol3 = solve!(dde_int3)
 
 ## time steps of solution
