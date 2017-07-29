@@ -14,6 +14,14 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
 
     # update solution of ODE integrator
     savevalues!(integrator.integrator, force_save)
+
+    # delete part of ODE solution that is not required for DDE solution
+    reduce_solution!(integrator,
+                     # function values at later time points might be necessary for
+                     # calculation of next step, thus keep those interpolation data
+                     # note: we always have length(integrator.integrator.sol.t) >= 2 since
+                     # save_everystep=true and save_start=true are applied to ODE integrator
+                     integrator.integrator.sol.t[end-1] - maximum(integrator.prob.lags))
 end
 
 """
@@ -29,6 +37,9 @@ function postamble!(integrator::DDEIntegrator)
 
     # clean up solution of ODE integrator
     OrdinaryDiffEq.postamble!(integrator.integrator)
+
+    # delete part of ODE solution that is not required for DDE solution
+    reduce_solution!(integrator, integrator.integrator.sol.t[end])
 end
 
 """

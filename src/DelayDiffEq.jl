@@ -17,6 +17,7 @@ import OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
                        TrapezoidCache
 
 include("integrator_type.jl")
+include("integrator_utils.jl")
 include("integrator_interface.jl")
 include("history_function.jl")
 include("algorithms.jl")
