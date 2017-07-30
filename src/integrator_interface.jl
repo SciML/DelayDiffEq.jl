@@ -4,29 +4,17 @@
 Update solution of `integrator`, if necessary or forced by `force_save`.
 """
 function savevalues!(integrator::DDEIntegrator, force_save=false)
-    # update ODE integrator to interval [tprev, t] with corresponding values
-    # u(tprev) and u(t), and interpolation data k of this interval
-    integrator.integrator.t = integrator.t
-    integrator.integrator.tprev = integrator.tprev
-
-    # copy u(tprev) since it is overwritten by integrator at the end of apply_step!
-    if typeof(integrator.u) <: AbstractArray
-        recursivecopy!(integrator.integrator.u, integrator.u)
-        recursivecopy!(integrator.integrator.uprev, integrator.uprev)
-    else
-        integrator.integrator.u = integrator.u
-        integrator.integrator.uprev = integrator.uprev
-    end
-
-    # copy interpolation data (fsalfirst overwritten at the end of apply_step!, which also
-    # updates k[1] when using chaches for which k[1] points to fsalfirst)
-    recursivecopy!(integrator.integrator.k, integrator.k)
-
-    # add steps for interpolation to ODE integrator when needed
-    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
+    # update ODE integrator
+    update_ode_integrator!(integrator)
 
     # update solution of ODE integrator
     savevalues!(integrator.integrator, force_save)
+
+    # delete part of ODE solution that is not required for DDE solution
+    reduce_solution!(integrator,
+                     # function values at later time points might be necessary for
+                     # calculation of next step, thus keep those interpolation data
+                     integrator.integrator.tprev - maximum(integrator.prob.lags))
 end
 
 """
@@ -36,19 +24,13 @@ Clean up solution of `integrator`.
 """
 function postamble!(integrator::DDEIntegrator)
     # update ODE integrator
-    integrator.integrator.t = integrator.t
-    if typeof(integrator.u) <: AbstractArray
-        recursivecopy!(integrator.integrator.u, integrator.u)
-    else
-        integrator.integrator.u = integrator.u
-    end
-    recursivecopy!(integrator.integrator.k, integrator.k)
-
-    # add steps for interpolation to ODE integrator when needed
-    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
+    update_ode_integrator!(integrator)
 
     # clean up solution of ODE integrator
     OrdinaryDiffEq.postamble!(integrator.integrator)
+
+    # delete part of ODE solution that is not required for DDE solution
+    reduce_solution!(integrator, integrator.integrator.sol.t[end])
 end
 
 """
@@ -64,14 +46,8 @@ function perform_step!(integrator::DDEIntegrator)
     recursivecopy!(integrator.k_cache, integrator.k)
     integrator.integrator.EEst = integrator.EEst
 
-    # add steps to interpolation data ODE integrator if necessary
-    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
-
     # perform always at least one calculation
     perform_step!(integrator, integrator.cache)
-
-    # shrink interpolation data of ODE problem
-    resize!(integrator.integrator.k, integrator.integrator.kshortsize)
 
     # if dt is greater than the minimal lag, then use a fixed-point iteration
     if integrator.dt > minimum(integrator.prob.lags) && isfinite(integrator.EEst)
@@ -92,6 +68,7 @@ function perform_step!(integrator::DDEIntegrator)
         # in the next iterations when evaluating the history function
         integrator.integrator.t = integrator.t + integrator.dt
         integrator.integrator.tprev = integrator.t
+        integrator.integrator.dt = integrator.dt
         if typeof(integrator.integrator.uprev) <: AbstractArray
             recursivecopy!(integrator.integrator.uprev, integrator.uprev)
         else
@@ -110,17 +87,12 @@ function perform_step!(integrator::DDEIntegrator)
             end
             recursivecopy!(integrator.integrator.k, integrator.k)
 
-            # add steps to interpolation data of ODE integrator if necessary
-            OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
-
             # calculate next step
             perform_step!(integrator, integrator.cache)
 
-            # shrink interpolation data of ODE integrator
-            resize!(integrator.integrator.k, integrator.integrator.kshortsize)
-
             # calculate residuals of fixed-point iteration
-            if typeof(integrator.resid) <: AbstractArray
+            # can be fixed with new @muladd: https://github.com/JuliaDiffEq/DiffEqBase.jl/pull/57
+            if typeof(integrator.u) <: AbstractArray
                 @tight_loop_macros @inbounds for (i, atol, rtol) in
                     zip(eachindex(integrator.u),
                         Iterators.cycle(integrator.fixedpoint_abstol),
@@ -140,7 +112,7 @@ function perform_step!(integrator::DDEIntegrator)
 
             # stop fixed-point iteration when error estimate of integrator or error estimate
             # of fixed-point iteration are not finite
-            if !(isfinite(fixedpointEEst)) || !(isfinite(integrator.EEst))
+            if !isfinite(fixedpointEEst) || !isfinite(integrator.EEst)
                 # assure that integrator is reset to cached values
                 integrator.EEst = max(fixedpointEEst, integrator.EEst)
                 break
@@ -167,6 +139,7 @@ function perform_step!(integrator::DDEIntegrator)
         # u(tprev) and u(t), and interpolation data k of this interval
         integrator.integrator.t = integrator.t
         integrator.integrator.tprev = integrator.tprev
+        integrator.integrator.dt = integrator.integrator.t - integrator.integrator.tprev
         if typeof(integrator.u) <: AbstractArray
             recursivecopy!(integrator.integrator.u, integrator.uprev)
             recursivecopy!(integrator.integrator.uprev, integrator.uprev_cache)

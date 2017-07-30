@@ -13,9 +13,9 @@ u₀ = 1.0
 prob = prob_dde_1delay_scalar_notinplace(u₀)
 sol = solve(prob, alg)
 
-@test sol.errors[:l∞] < 3e-5
-@test sol.errors[:final] < 1.8e-5
-@test sol.errors[:l2] < 1.4e-5
+@test sol.errors[:l∞] < 3.7e-5
+@test sol.errors[:final] < 2.0e-5
+@test sol.errors[:l2] < 1.5e-5
 
 ### Not in-place function with vectorized history function
 
@@ -79,7 +79,7 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
 sol4 = solve(prob, alg4)
 
 @test abs(sol1[end] - sol2[end]) < 5.3e-4
-@test abs(sol1[end] - sol3[end]) < 1.4e-11
+@test abs(sol1[end] - sol3[end]) < 4.2e-8
 @test abs(sol1[end] - sol4[end]) < 2.9e-4
 
 ## Two constant delays
@@ -102,9 +102,9 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol4 = solve(prob, alg4)
 
-@test abs(sol1[end] - sol2[end]) < 1.1e-24
-@test abs(sol1[end] - sol3[end]) < 1.1e-24
-@test abs(sol1[end] - sol4[end]) < 1.2e-24
+@test abs(sol1[end] - sol2[end]) < 2.5e-11
+@test abs(sol1[end] - sol3[end]) < 1.2e-14
+@test abs(sol1[end] - sol4[end]) < 4.5e-14
 
 println("Standard tests complete. Onto idxs tests")
 

@@ -35,5 +35,5 @@ sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
 
 sol3 = appxtrue(sol1, sol2)
 
-@test sol3.errors[:L2] < 1.4e-3
+@test sol3.errors[:L2] < 1.5e-3
 @test sol3.errors[:L∞] < 4.1e-3

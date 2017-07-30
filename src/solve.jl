@@ -1,8 +1,10 @@
 function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
               d_discontinuities=tType[], dtmax=tType(7*minimum(prob.lags)), dt=zero(tType),
-              kwargs...) where {uType,tType,isinplace,
-                                algType<:AbstractMethodOfStepsAlgorithm,lType}
+              saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
+              save_start=true, dense=save_everystep && !(typeof(alg) <: Discrete),
+              minimal_solution=true, kwargs...) where
+    {uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType}
 
     # add lag locations to discontinuities vector
     d_discontinuities = [d_discontinuities; compute_discontinuity_tree(prob.lags, alg,
@@ -11,7 +13,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
     if isconstrained(alg)
-        dtmax = min(dtmax,prob.lags...)
+        dtmax = min(dtmax, prob.lags...)
     end
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
@@ -73,7 +75,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                                        ode_prob,
                                                        OrdinaryDiffEq.alg_order(alg)))
     end
-    integrator.dt = dt
+    integrator.dt = zero(dt)
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
     # in particular important for calculations with units
@@ -120,6 +122,72 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     k_cache = similar(integrator.k)
     k_integrator_cache = similar(integrator.k)
 
+    # create heap of additional time points that will be contained in the solution
+    # exclude the end point because of floating point issues and the starting point since it
+    # is controlled by save_start
+    if typeof(saveat) <: Number
+        saveat_vec = collect(tType,
+                             (prob.tspan[1] + integrator.tdir * abs(saveat)):
+                             integrator.tdir * abs(saveat):
+                             (prob.tspan[end] - integrator.tdir * abs(saveat)))
+    else
+        saveat_vec = collect(tType, Iterators.filter(
+            x -> integrator.tdir * prob.tspan[1] < integrator.tdir * x < integrator.tdir *
+            prob.tspan[end],
+            saveat))
+    end
+
+    if integrator.tdir > 0
+        saveat_internal = binary_minheap(saveat_vec)
+    else
+        saveat_internal = binary_maxheap(saveat_vec)
+    end
+
+    # check if all indices should be returned
+    if !(typeof(save_idxs) <: Void) && collect(save_idxs) == collect(1:length(integrator.u))
+        save_idxs = nothing # prevents indexing of ODE solution and saves memory
+    end
+
+    # separate options of integrator and ODE integrator since ODE integrator always saves
+    # every step and every index (necessary for history function)
+    opts = OrdinaryDiffEq.DEOptions(integrator.opts.maxiters,
+                                    integrator.opts.timeseries_steps, save_everystep,
+                                    integrator.opts.adaptive, integrator.opts.abstol,
+                                    integrator.opts.reltol,
+                                    tTypeNoUnits(integrator.opts.gamma),
+                                    tTypeNoUnits(integrator.opts.qmax),
+                                    tTypeNoUnits(integrator.opts.qmin),
+                                    tType(integrator.opts.dtmax),
+                                    tType(integrator.opts.dtmin),
+                                    integrator.opts.internalnorm, save_idxs,
+                                    integrator.opts.tstops, saveat_internal,
+                                    integrator.opts.d_discontinuities,
+                                    integrator.opts.userdata, integrator.opts.progress,
+                                    integrator.opts.progress_steps,
+                                    integrator.opts.progress_name,
+                                    integrator.opts.progress_message,
+                                    integrator.opts.timeseries_errors,
+                                    integrator.opts.dense_errors,
+                                    tTypeNoUnits(integrator.opts.beta1),
+                                    tTypeNoUnits(integrator.opts.beta2),
+                                    tTypeNoUnits(integrator.opts.qoldinit),
+                                    dense && integrator.opts.dense, save_start,
+                                    integrator.opts.callback, integrator.opts.isoutofdomain,
+                                    integrator.opts.unstable_check,
+                                    integrator.opts.verbose, integrator.opts.calck,
+                                    integrator.opts.force_dtmin,
+                                    integrator.opts.advance_to_tstop,
+                                    integrator.opts.stop_at_next_tstop)
+
+    # need copy of heap of additional time points (nodes will be deleted!) in order to
+    # remove unneeded time points of ODE solution as soon as possible and keep track
+    # of passed time points
+    saveat_copy = deepcopy(opts.saveat)
+
+    # reduction of solution only possible if no dense interpolation required and only
+    # selected time points saved
+    minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep
+
     # create DDE integrator combining the new defined problem function with history
     # information, the improved solution, the parameters of the ODE integrator, and
     # parameters of fixed-point iteration
@@ -131,21 +199,21 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                             typeof(integrator.rate_prototype),typeof(dde_f),
                             typeof(integrator.prog),typeof(integrator.cache),
                             typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
-                            typeof(integrator.opts)}(
-                                sol, prob, u, integrator.k, integrator.t, integrator.dt,
-                                dde_f, uprev, integrator.tprev, uprev_cache, k_cache,
-                                k_integrator_cache, fixedpoint_abstol_internal,
-                                fixedpoint_reltol_internal, resid, fixedpoint_norm,
-                                alg.max_fixedpoint_iters, integrator.alg,
-                                integrator.rate_prototype, integrator.notsaveat_idxs,
-                                integrator.dtcache, integrator.dtchangeable,
-                                integrator.dtpropose, integrator.tdir, integrator.EEst,
-                                integrator.qold, integrator.q11, integrator.iter,
-                                integrator.saveiter, integrator.saveiter_dense,
-                                integrator.prog, integrator.cache, integrator.kshortsize,
+                            typeof(opts),typeof(saveat_copy)}(
+                                sol, prob, u, integrator.k, integrator.t, dt, dde_f, uprev,
+                                integrator.tprev, uprev_cache, k_cache, k_integrator_cache,
+                                fixedpoint_abstol_internal, fixedpoint_reltol_internal,
+                                resid, fixedpoint_norm, alg.max_fixedpoint_iters,
+                                minimal_solution, integrator.alg, integrator.rate_prototype,
+                                integrator.notsaveat_idxs, integrator.dtcache,
+                                integrator.dtchangeable, integrator.dtpropose,
+                                integrator.tdir, integrator.EEst, integrator.qold,
+                                integrator.q11, integrator.iter, integrator.saveiter,
+                                integrator.saveiter_dense, integrator.prog, 
+                                integrator.cache, integrator.kshortsize,
                                 integrator.just_hit_tstop, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
-                                integrator.u_modified, integrator.opts, integrator)
+                                integrator.u_modified, opts, integrator, saveat_copy)
 
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
@@ -180,23 +248,47 @@ function solve!(integrator::DDEIntegrator)
     # clean up solution
     postamble!(integrator)
 
-    # calculate and add errors to solution if analytic solution to problem exists
-    # can not use same mechanism as for ODE problems since analytic solutions for DDE depend
-    # on initial value u0
+    # create array of time points and values that form solution
+    sol_array = build_solution_array(integrator)
+
+    # create interpolation data of solution
+    interp = build_solution_interpolation(integrator, sol_array)
+
+    # calculate analytical solutions to problem if existent
     if has_analytic(integrator.prob.f)
-        u_analytic = [integrator.prob.f(Val{:analytic}, t, integrator.sol[1])
-                      for t in integrator.sol.t]
+        if typeof(integrator.opts.save_idxs) <: Void
+            u_analytic = [integrator.prob.f(Val{:analytic}, t, integrator.sol[1])
+                          for t in sol_array.t]
+        else
+            u_analytic = [@view(integrator.prob.f(
+                Val{:analytic}, t, integrator.sol[1])[integrator.opts.save_idxs])
+                          for t in sol_array.t]
+        end
         errors = Dict{Symbol,eltype(integrator.u)}()
-        sol = build_solution(integrator.sol::AbstractODESolution, u_analytic, errors)
+    else
+        u_analytic = nothing
+        errors = nothing
+    end
+
+    # combine arrays of time points and values, interpolation data, and analytical solution
+    # to solution
+    sol = ODESolution{eltype(sol_array),size(sol_array),typeof(sol_array.u),
+                      typeof(u_analytic),typeof(errors),typeof(sol_array.t),
+                      typeof(interp.ks),typeof(integrator.sol.prob),
+                      typeof(integrator.sol.alg),typeof(interp)}(
+                          sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
+                          integrator.sol.prob, integrator.sol.alg, interp, interp.dense,
+                          integrator.sol.tslocation, integrator.sol.retcode)
+
+    # calculate errors of solution
+    if sol.u_analytic != nothing
         calculate_solution_errors!(sol; fill_uanalytic=false,
                                    timeseries_errors=integrator.opts.timeseries_errors,
                                    dense_errors=integrator.opts.dense_errors)
-        sol.retcode = :Success
-        return sol
-    else
-        integrator.sol.retcode = :Success
-        return integrator.sol
     end
+
+    sol.retcode = :Success
+    return sol
 end
 
 function solve(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
