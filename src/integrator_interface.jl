@@ -55,7 +55,7 @@ function perform_step!(integrator::DDEIntegrator)
         # update cached error estimate of integrator
         integrator.integrator.EEst = integrator.EEst
 
-        # save value u(tprev) and interpolation data of interval [tprev, t] of ODE
+        # save dt, u(tprev) and interpolation data of interval [tprev, t] of ODE
         # integrator since they are overwritten by fixed-point iteration
         if typeof(integrator.uprev_cache) <: AbstractArray
             recursivecopy!(integrator.uprev_cache, integrator.integrator.uprev)
@@ -63,6 +63,7 @@ function perform_step!(integrator::DDEIntegrator)
             integrator.uprev_cache = integrator.integrator.uprev
         end
         recursivecopy!(integrator.k_integrator_cache, integrator.integrator.k)
+        integrator.integrator.dtcache = integrator.integrator.dt
 
         # move ODE integrator to interval [t, t+dt] to use interpolation of ODE integrator
         # in the next iterations when evaluating the history function
@@ -139,7 +140,7 @@ function perform_step!(integrator::DDEIntegrator)
         # u(tprev) and u(t), and interpolation data k of this interval
         integrator.integrator.t = integrator.t
         integrator.integrator.tprev = integrator.tprev
-        integrator.integrator.dt = integrator.integrator.t - integrator.integrator.tprev
+        integrator.integrator.dt = integrator.integrator.dtcache
         if typeof(integrator.u) <: AbstractArray
             recursivecopy!(integrator.integrator.u, integrator.uprev)
             recursivecopy!(integrator.integrator.uprev, integrator.uprev_cache)

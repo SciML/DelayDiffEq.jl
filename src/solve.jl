@@ -75,7 +75,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                                        ode_prob,
                                                        OrdinaryDiffEq.alg_order(alg)))
     end
-    integrator.dt = zero(dt)
+    # assure that ODE integrator always satisfies tprev + dt == t
+    integrator.dt = zero(integrator.dt)
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
     # in particular important for calculations with units
@@ -209,7 +210,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 integrator.dtchangeable, integrator.dtpropose,
                                 integrator.tdir, integrator.EEst, integrator.qold,
                                 integrator.q11, integrator.iter, integrator.saveiter,
-                                integrator.saveiter_dense, integrator.prog, 
+                                integrator.saveiter_dense, integrator.prog,
                                 integrator.cache, integrator.kshortsize,
                                 integrator.just_hit_tstop, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,

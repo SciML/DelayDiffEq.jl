@@ -239,7 +239,7 @@ function update_ode_integrator!(integrator::DDEIntegrator)
     # update time interval of ODE integrator
     integrator.integrator.t = integrator.t
     integrator.integrator.tprev = integrator.tprev
-    integrator.integrator.dt = integrator.integrator.t - integrator.integrator.tprev
+    integrator.integrator.dt = integrator.dt
 
     # copy u(tprev) since it is overwritten by integrator at the end of apply_step!
     if typeof(integrator.u) <: AbstractArray
