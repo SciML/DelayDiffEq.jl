@@ -13,9 +13,9 @@ u₀ = 1.0
 prob = prob_dde_1delay_scalar_notinplace(u₀)
 sol = solve(prob, alg)
 
-@test sol.errors[:l∞] < 4e-5
-@test sol.errors[:final] < 2e-5
-@test sol.errors[:l2] < 2e-5
+@test sol.errors[:l∞] < 3.7e-5
+@test sol.errors[:final] < 2.0e-5
+@test sol.errors[:l2] < 1.5e-5
 
 ### Not in-place function with vectorized history function
 
@@ -29,7 +29,7 @@ sol2 = solve(prob, alg)
 prob = prob_dde_1delay(u₀)
 sol2 = solve(prob, alg)
 
-@test_broken sol.t == sol2.t && sol.u == sol2[1, :]
+@test sol.t == sol2.t && sol.u == sol2[1, :]
 
 ## Two constant delays
 
@@ -38,9 +38,9 @@ sol2 = solve(prob, alg)
 prob = prob_dde_2delays_scalar_notinplace(u₀)
 sol = solve(prob, alg)
 
-@test sol.errors[:l∞] < 2e-6
-@test sol.errors[:final] < 2e-6
-@test sol.errors[:l2] < 2e-6
+@test sol.errors[:l∞] < 1.9e-6
+@test sol.errors[:final] < 1.2e-6
+@test sol.errors[:l2] < 1.1e-6
 
 ### Not in-place function with vectorized history function
 
@@ -52,9 +52,9 @@ sol2 = solve(prob, alg)
 ### In-place function
 
 prob = prob_dde_2delays(u₀)
-sol = solve(prob, alg)
+sol2 = solve(prob, alg)
 
-@test_broken sol.t == sol2.t && sol.u == sol2[1, :]
+@test sol.t == sol2.t && sol.u == sol2[1, :]
 
 # Problems with long time span
 
@@ -78,9 +78,9 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol4 = solve(prob, alg4)
 
-@test abs(sol1[end] - sol2[end]) < 1e-3
-@test abs(sol1[end] - sol3[end]) < 1e-3
-@test abs(sol1[end] - sol4[end]) < 1e-3
+@test abs(sol1[end] - sol2[end]) < 5.3e-4
+@test abs(sol1[end] - sol3[end]) < 4.2e-8
+@test abs(sol1[end] - sol4[end]) < 2.9e-4
 
 ## Two constant delays
 
@@ -102,9 +102,9 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol4 = solve(prob, alg4)
 
-@test abs(sol1[end] - sol2[end]) < 1e-3
-@test abs(sol1[end] - sol3[end]) < 1e-3
-@test abs(sol1[end] - sol4[end]) < 1e-3
+@test abs(sol1[end] - sol2[end]) < 2.5e-11
+@test abs(sol1[end] - sol3[end]) < 1.3e-14
+@test abs(sol1[end] - sol4[end]) < 7.6e-15
 
 println("Standard tests complete. Onto idxs tests")
 

@@ -22,8 +22,8 @@ sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
 
 sol3 = appxtrue(sol1, sol2)
 
-@test sol3.errors[:L2] < 4e-3
-@test sol3.errors[:L∞] < 8e-3
+@test sol3.errors[:L2] < 3.2e-3
+@test sol3.errors[:L∞] < 7.8e-3
 
 # discrete callback
 
@@ -35,5 +35,5 @@ sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
 
 sol3 = appxtrue(sol1, sol2)
 
-@test sol3.errors[:L2] < 3e-2
-@test sol3.errors[:L∞] < 7e-2
+@test sol3.errors[:L2] < 1.5e-3
+@test sol3.errors[:L∞] < 4.1e-3

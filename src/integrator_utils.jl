@@ -229,3 +229,28 @@ function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArra
     end
 end
 
+"""
+    update_ode_integrator!(integrator::DDEIntegrator)
+
+Update ODE integrator of `integrator` to current time interval, values and interpolation
+data of `integrator`.
+"""
+function update_ode_integrator!(integrator::DDEIntegrator)
+    # update time interval of ODE integrator
+    integrator.integrator.t = integrator.t
+    integrator.integrator.tprev = integrator.tprev
+    integrator.integrator.dt = integrator.dt
+
+    # copy u(tprev) since it is overwritten by integrator at the end of apply_step!
+    if typeof(integrator.u) <: AbstractArray
+        recursivecopy!(integrator.integrator.u, integrator.u)
+        recursivecopy!(integrator.integrator.uprev, integrator.uprev)
+    else
+        integrator.integrator.u = integrator.u
+        integrator.integrator.uprev = integrator.uprev
+    end
+
+    # copy interpolation data (fsalfirst overwritten at the end of apply_step!, which also
+    # updates k[1] when using chaches for which k[1] points to fsalfirst)
+    recursivecopy!(integrator.integrator.k, integrator.k)
+end

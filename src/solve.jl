@@ -75,7 +75,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                                        ode_prob,
                                                        OrdinaryDiffEq.alg_order(alg)))
     end
-    integrator.dt = dt
+    # assure that ODE integrator always satisfies tprev + dt == t
+    integrator.dt = zero(integrator.dt)
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
     # in particular important for calculations with units
@@ -103,15 +104,24 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         fixedpoint_reltol_internal = map(uEltypeNoUnits, alg.fixedpoint_reltol)
     end
 
-    # create containers for residuals and to cache u with correct dimensions and types
+    # create separate copies u and uprev, not pointing integrator.u or integrator.uprev,
+    # containers for residuals and to cache uprev with correct dimensions and types
     # in particular for calculations with units residuals have to be unitless
     if typeof(integrator.u) <: AbstractArray
+        u = recursivecopy(integrator.u)
+        uprev = recursivecopy(integrator.uprev)
+        uprev_cache = similar(integrator.u)
         resid = similar(integrator.u, uEltypeNoUnits)
-        u_cache = similar(integrator.u)
     else
+        u = deepcopy(integrator.u)
+        uprev = deepcopy(integrator.uprev)
         resid = one(uEltypeNoUnits)
-        u_cache = oneunit(eltype(uType))
+        uprev_cache = oneunit(eltype(uType))
     end
+
+    # define caches for interpolation data
+    k_cache = similar(integrator.k)
+    k_integrator_cache = similar(integrator.k)
 
     # create heap of additional time points that will be contained in the solution
     # exclude the end point because of floating point issues and the starting point since it
@@ -191,17 +201,17 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                             typeof(integrator.prog),typeof(integrator.cache),
                             typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
                             typeof(opts),typeof(saveat_copy)}(
-                                sol, prob, integrator.u, integrator.k, integrator.t,
-                                integrator.dt, dde_f, integrator.uprev, integrator.tprev,
-                                u_cache, fixedpoint_abstol_internal,
-                                fixedpoint_reltol_internal, resid, fixedpoint_norm,
-                                alg.max_fixedpoint_iters, minimal_solution, integrator.alg,
-                                integrator.rate_prototype, integrator.notsaveat_idxs,
-                                integrator.dtcache, integrator.dtchangeable,
-                                integrator.dtpropose, integrator.tdir, integrator.EEst,
-                                integrator.qold, integrator.q11, integrator.iter,
-                                integrator.saveiter, integrator.saveiter_dense,
-                                integrator.prog, integrator.cache, integrator.kshortsize,
+                                sol, prob, u, integrator.k, integrator.t, dt, dde_f, uprev,
+                                integrator.tprev, uprev_cache, k_cache, k_integrator_cache,
+                                fixedpoint_abstol_internal, fixedpoint_reltol_internal,
+                                resid, fixedpoint_norm, alg.max_fixedpoint_iters,
+                                minimal_solution, integrator.alg, integrator.rate_prototype,
+                                integrator.notsaveat_idxs, integrator.dtcache,
+                                integrator.dtchangeable, integrator.dtpropose,
+                                integrator.tdir, integrator.EEst, integrator.qold,
+                                integrator.q11, integrator.iter, integrator.saveiter,
+                                integrator.saveiter_dense, integrator.prog,
+                                integrator.cache, integrator.kshortsize,
                                 integrator.just_hit_tstop, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
                                 integrator.u_modified, opts, integrator, saveat_copy)
@@ -209,7 +219,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
     initialize!(dde_int)
-    initialize!(integrator.opts.callback, integrator.t, integrator.u, dde_int)
+    initialize!(integrator.opts.callback, integrator.t, u, dde_int)
 
     dde_int
 end
