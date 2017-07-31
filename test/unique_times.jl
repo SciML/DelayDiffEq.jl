@@ -1,4 +1,4 @@
-using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, DiffEqProblemLibrary, Base.Test
+using DelayDiffEq, OrdinaryDiffEq, DiffEqProblemLibrary, Base.Test
 
 prob = prob_dde_1delay_long
 

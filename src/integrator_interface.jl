@@ -38,7 +38,7 @@ end
 
 Calculate next step of `integrator`.
 """
-function perform_step!(integrator::DDEIntegrator)
+@muladd function perform_step!(integrator::DDEIntegrator)
     # cache error estimate of integrator and interpolation data of interval [tprev, t]
     # (maybe with already updated entry k[1] = fsalfirst == fsallast, if k[1] points to
     # fsalfirst) to be able to reset the corresponding variables in case calculation results
@@ -92,21 +92,15 @@ function perform_step!(integrator::DDEIntegrator)
             perform_step!(integrator, integrator.cache)
 
             # calculate residuals of fixed-point iteration
-            # can be fixed with new @muladd: https://github.com/JuliaDiffEq/DiffEqBase.jl/pull/57
             if typeof(integrator.u) <: AbstractArray
-                @tight_loop_macros @inbounds for (i, atol, rtol) in
-                    zip(eachindex(integrator.u),
-                        Iterators.cycle(integrator.fixedpoint_abstol),
-                        Iterators.cycle(integrator.fixedpoint_reltol))
-
-                    integrator.resid[i] = (integrator.u[i] - integrator.integrator.u[i]) /
-                        @muladd(atol + max(abs(integrator.u[i]),
-                                           abs(integrator.integrator.u[i])) * rtol)
-                end
+                @. integrator.resid = (integrator.u - integrator.integrator.u) /
+                    (integrator.fixedpoint_abstol + max(abs(integrator.u),
+                                                        abs(integrator.integrator.u)) *
+                     integrator.fixedpoint_reltol)
             else
                 integrator.resid = (integrator.u - integrator.integrator.u) /
-                    @muladd(integrator.fixedpoint_abstol + max(abs(integrator.u),
-                                                               abs(integrator.integrator.u)) *
+                    (integrator.fixedpoint_abstol + max(abs(integrator.u),
+                                                        abs(integrator.integrator.u)) *
                             integrator.fixedpoint_reltol)
             end
             fixedpointEEst = integrator.fixedpoint_norm(integrator.resid)
