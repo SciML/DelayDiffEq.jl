@@ -202,7 +202,7 @@ Get the time step that `integrator` will take after the current step.
 """
     set_proposed_dt!(integrator::DDEIntegrator, dt)
 
-Set the time step that `integrator` will take after the current step to `dt.
+Set the time step that `integrator` will take after the current step to `dt`.
 """
 @inline set_proposed_dt!(integrator::DDEIntegrator, dt) = (integrator.dtpropose = dt)
 
