@@ -65,7 +65,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # if time step is not set and ODE integrator has adaptive step size,
     # let ODE problem with same parameters and newly created function with history support
     # calculate initial time step
-    if dt == zero(dt) && integrator.opts.adaptive
+    if iszero(dt) && integrator.opts.adaptive
         ode_prob = ODEProblem(dde_f, prob.u0, prob.tspan)
         dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0, prob.tspan[1],
                                                        integrator.tdir, minimum(prob.lags),
@@ -75,7 +75,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                                        ode_prob,
                                                        OrdinaryDiffEq.alg_order(alg)))
     end
-    # assure that ODE integrator always satisfies tprev + dt == t
+    # assure that ODE integrator satisfies tprev + dt == t
     integrator.dt = zero(integrator.dt)
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u

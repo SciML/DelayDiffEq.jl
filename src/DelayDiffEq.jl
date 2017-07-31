@@ -5,11 +5,11 @@ module DelayDiffEq
 using Reexport
 @reexport using DiffEqBase
 
-using OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics
+using OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics, MuladdMacro
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_order,
                        handle_tstop!, ODEIntegrator, savevalues!,
-                       handle_callback_modifiers!, @tight_loop_macros
+                       handle_callback_modifiers!
 
 import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!

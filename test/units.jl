@@ -1,4 +1,4 @@
-using Unitful, DelayDiffEq, DiffEqBase, OrdinaryDiffEq, Base.Test
+using Unitful, DelayDiffEq, OrdinaryDiffEq, Base.Test
 
 lags = [.2u"s"]
 
