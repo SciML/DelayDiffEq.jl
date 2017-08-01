@@ -111,7 +111,7 @@ println("Standard tests complete. Onto idxs tests")
 # Idxs
 
 f = function (t,u,h,du)
-  du[1] = -h(t-.2, Val{0}, 1) + u[1]
+  du[1] = -h(t-0.2, Val{0}, 1) + u[1]
 end
 
 h = function (t,idxs=nothing)
@@ -122,14 +122,14 @@ h = function (t,idxs=nothing)
   end
 end
 
-prob = ConstantLagDDEProblem(f, h, [1.0], lags, (0.0, 100.0))
+prob = ConstantLagDDEProblem(f, h, [1.0], [0.2], (0.0, 100.0))
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 @time sol1 = solve(prob, alg1)
 
 f = function (t,u,h,du)
-  h(du, t-.2)
+  h(du, t-0.2)
   du[1] = -du[1]
   du[1] += u[1]
 end
@@ -144,7 +144,7 @@ h = function (out,t,idxs=nothing)
   out[1] = 0.0
 end
 
-prob = ConstantLagDDEProblem(f, h, [1.0], lags, (0.0, 100.0))
+prob = ConstantLagDDEProblem(f, h, [1.0], [0.2], (0.0, 100.0))
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
