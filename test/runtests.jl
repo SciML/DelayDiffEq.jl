@@ -1,4 +1,3 @@
-using DelayDiffEq, DiffEqBase, OrdinaryDiffEq, DataStructures
 using Base.Test
 
 @time @testset "Discontinuity Tree Test" begin include("discont_tree_test.jl") end
