@@ -102,6 +102,11 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol4 = solve(prob, alg4)
 
+@show sol1.u
+@show sol1.t
+@show sol4.u
+@show sol4.t
+
 @test abs(sol1[end] - sol2[end]) < 2.5e-11
 @test abs(sol1[end] - sol3[end]) < 1.3e-14
 @test abs(sol1[end] - sol4[end]) < 4.5e-14
