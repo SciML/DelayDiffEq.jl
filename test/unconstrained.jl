@@ -104,7 +104,7 @@ sol4 = solve(prob, alg4)
 
 @test abs(sol1[end] - sol2[end]) < 2.5e-11
 @test abs(sol1[end] - sol3[end]) < 1.3e-14
-@test abs(sol1[end] - sol4[end]) < 7.6e-15
+@test abs(sol1[end] - sol4[end]) < 4.5e-14
 
 println("Standard tests complete. Onto idxs tests")
 
