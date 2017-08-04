@@ -18,7 +18,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(t,u,du) or f(t,u) without history function
-    ode_prob = ODEProblem(prob.f, prob.u0, prob.tspan; iip=isinplace)
+    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan)
     integrator = init(ode_prob, alg.alg; dt=1, initialize_integrator=false,
                       d_discontinuities=d_discontinuities, dtmax=dtmax, kwargs...)
 
@@ -154,24 +154,20 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     opts = OrdinaryDiffEq.DEOptions(integrator.opts.maxiters,
                                     integrator.opts.timeseries_steps, save_everystep,
                                     integrator.opts.adaptive, integrator.opts.abstol,
-                                    integrator.opts.reltol,
-                                    tTypeNoUnits(integrator.opts.gamma),
-                                    tTypeNoUnits(integrator.opts.qmax),
-                                    tTypeNoUnits(integrator.opts.qmin),
-                                    tType(integrator.opts.dtmax),
-                                    tType(integrator.opts.dtmin),
-                                    integrator.opts.internalnorm, save_idxs,
-                                    integrator.opts.tstops, saveat_internal,
+                                    integrator.opts.reltol, integrator.opts.gamma,
+                                    integrator.opts.qmax, integrator.opts.qmin,
+                                    integrator.opts.qsteady_min,
+                                    integrator.opts.qsteady_max, integrator.opts.dtmax,
+                                    integrator.opts.dtmin, integrator.opts.internalnorm,
+                                    save_idxs, integrator.opts.tstops, saveat_internal,
                                     integrator.opts.d_discontinuities,
                                     integrator.opts.userdata, integrator.opts.progress,
                                     integrator.opts.progress_steps,
                                     integrator.opts.progress_name,
                                     integrator.opts.progress_message,
                                     integrator.opts.timeseries_errors,
-                                    integrator.opts.dense_errors,
-                                    tTypeNoUnits(integrator.opts.beta1),
-                                    tTypeNoUnits(integrator.opts.beta2),
-                                    tTypeNoUnits(integrator.opts.qoldinit),
+                                    integrator.opts.dense_errors, integrator.opts.beta1,
+                                    integrator.opts.beta2, integrator.opts.qoldinit,
                                     dense && integrator.opts.dense, save_start,
                                     integrator.opts.callback, integrator.opts.isoutofdomain,
                                     integrator.opts.unstable_check,
