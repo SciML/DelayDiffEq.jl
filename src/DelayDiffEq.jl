@@ -3,9 +3,9 @@ __precompile__()
 module DelayDiffEq
 
 using Reexport
-@reexport using DiffEqBase
+@reexport using OrdinaryDiffEq
 
-using OrdinaryDiffEq, DataStructures, RecursiveArrayTools, Combinatorics, MuladdMacro
+using DataStructures, RecursiveArrayTools, Combinatorics, MuladdMacro
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_order,
                        handle_tstop!, ODEIntegrator, savevalues!,

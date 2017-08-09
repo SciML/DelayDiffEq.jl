@@ -1,4 +1,4 @@
-using DelayDiffEq, OrdinaryDiffEq, DiffEqProblemLibrary, DiffEqDevTools,
+using DelayDiffEq, DiffEqProblemLibrary, DiffEqDevTools,
       DiffEqCallbacks, Base.Test
 
 prob = prob_dde_1delay_scalar_notinplace(1.0)

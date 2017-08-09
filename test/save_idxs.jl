@@ -1,4 +1,4 @@
-using DelayDiffEq, OrdinaryDiffEq, Base.Test
+using DelayDiffEq, Base.Test
 
 f = function (t,u,h,du)
     du[1] = - h(t-1/5)[1] + u[1]
