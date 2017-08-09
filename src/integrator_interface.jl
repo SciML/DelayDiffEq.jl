@@ -163,7 +163,7 @@ end
 Set initial values of `integrator`.
 """
 function initialize!(integrator::DDEIntegrator)
-    initialize!(integrator, integrator.cache, integrator.f)
+    initialize!(integrator, integrator.cache)
 
     # interpolation data of integrator and ODE integrator have to be cached
     # when next step is calculated
@@ -200,10 +200,10 @@ Set the time step that `integrator` will take after the current step to `dt`.
 """
 @inline set_proposed_dt!(integrator::DDEIntegrator, dt) = (integrator.dtpropose = dt)
 
-user_cache(integrator::DDEIntegrator) = user_cache(integrator)
+user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
-full_cache(integrator::DDEIntegrator) = chain(u_cache(integrator), du_cache(integrator.cache))
+full_cache(integrator::DDEIntegrator) = chain(user_cache(integrator),u_cache(integrator),du_cache(integrator))
 
 resize!(integrator::DDEIntegrator, i::Int) = resize!(integrator, integrator.cache, i)
 function resize!(integrator::DDEIntegrator, cache, i)
