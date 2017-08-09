@@ -1,4 +1,4 @@
-using DelayDiffEq, OrdinaryDiffEq, DataStructures, Base.Test
+using DelayDiffEq, DataStructures, Base.Test
 
 lags = [1//5, 1//2]
 alg = BS3()

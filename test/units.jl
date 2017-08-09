@@ -1,4 +1,4 @@
-using Unitful, DelayDiffEq, OrdinaryDiffEq, Base.Test
+using Unitful, DelayDiffEq, Base.Test
 
 # Scalar problem, not in-place
 f = function (t,u,h)
