@@ -1,4 +1,4 @@
-mutable struct DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
+mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,
                              residType,tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,
                              ProgressType,CacheType,IType,ProbType,NType,O,tstopsType} <:
                                  AbstractDDEIntegrator
