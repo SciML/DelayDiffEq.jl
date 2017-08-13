@@ -11,6 +11,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absTyp
     dt::tType
     f::F
     uprev::uType
+    uprev2::uType
     tprev::tType
     uprev_cache::uType
     k_cache::ksEltype
@@ -31,12 +32,17 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absTyp
     EEst::tTypeNoUnits
     qold::tTypeNoUnits
     q11::tTypeNoUnits
+    erracc::tTypeNoUnits
+    dtacc::tTypeNoUnits
+    success_iter::Int
     iter::Int
     saveiter::Int
     saveiter_dense::Int
     prog::ProgressType
     cache::CacheType
     kshortsize::Int
+    force_stepfail::Bool
+    last_stepfail::Bool
     just_hit_tstop::Bool
     accept_step::Bool
     isout::Bool
@@ -52,23 +58,24 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEqAlgorithm,uType,tType,absTyp
     function DDEIntegrator{algType,uType,tType,absType,relType,residType,tTypeNoUnits,
                            tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,
                            IType,ProbType,NType,O,tstopsType}(
-                               sol,prob,u,k,t,dt,f,uprev,tprev,uprev_cache,k_cache,
-			       k_integrator_cache,fixedpoint_abstol,fixedpoint_reltol,resid,
-			       fixedpoint_norm,max_fixedpoint_iters,minimal_solution,alg,
-			       rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,
-			       tdir,EEst,qold,q11,iter,saveiter,saveiter_dense,prog,cache,
-			       kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,
-			       u_modified,opts,integrator,saveat) where
+                               sol,prob,u,k,t,dt,f,uprev,uprev2,tprev,uprev_cache,k_cache,
+                               k_integrator_cache,fixedpoint_abstol,fixedpoint_reltol,resid,
+                               fixedpoint_norm,max_fixedpoint_iters,minimal_solution,alg,
+                               rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,
+                               tdir,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,
+                               saveiter_dense,prog,cache,kshortsize,force_stepfail,
+                               last_stepfail,just_hit_tstop,accept_step,isout,reeval_fsal,
+                               u_modified,opts,integrator,saveat) where
         {algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,residType,
          tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,
          ProbType,NType,O,tstopsType}
 
-        new(sol,prob,u,k,t,dt,f,uprev,tprev,uprev_cache,k_cache,k_integrator_cache,
+        new(sol,prob,u,k,t,dt,f,uprev,uprev2,tprev,uprev_cache,k_cache,k_integrator_cache,
             fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,
             minimal_solution,alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,
-	    dtpropose,tdir,EEst,qold,q11,iter,saveiter,saveiter_dense,prog,cache,
-	    kshortsize,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,
-	    integrator,saveat)
+            dtpropose,tdir,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,
+            saveiter_dense,prog,cache,kshortsize,force_stepfail,last_stepfail,
+            just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,integrator,saveat)
     end
 end
 
