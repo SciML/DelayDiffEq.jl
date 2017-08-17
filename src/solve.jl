@@ -33,7 +33,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         interp_f = (t,u) -> prob.f(t,u,interp_h)
     end
 
-    if typeof(alg.alg) <: OrdinaryDiffEqCompositeAlgorithm
+    if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
         interp_data = OrdinaryDiffEq.CompositeInterpolationData(integrator.sol.interp,
                                                                 interp_f)
     else
@@ -41,7 +41,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                                        interp_f)
     end
 
-    if typeof(alg.alg) <: OrdinaryDiffEqCompositeAlgorithm
+    if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
         sol = build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
                              dense=integrator.sol.dense, k=integrator.sol.k,
                              interp=interp_data, alg_choice=integrator.sol.alg_choice,
@@ -73,7 +73,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                                        integrator.opts.reltol,
                                                        integrator.opts.internalnorm,
                                                        ode_prob,
-                                                       OrdinaryDiffEq.alg_order(alg)))
+                                                       OrdinaryDiffEq.alg_order(alg),alg))
     end
     # assure that ODE integrator satisfies tprev + dt == t
     integrator.dt = zero(integrator.dt)
