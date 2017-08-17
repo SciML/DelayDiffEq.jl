@@ -66,7 +66,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
                                saveiter_dense,prog,cache,kshortsize,force_stepfail,
                                last_stepfail,just_hit_tstop,accept_step,isout,reeval_fsal,
                                u_modified,opts,integrator,saveat) where
-        {algType<:OrdinaryDiffEqAlgorithm,uType,tType,absType,relType,residType,
+        {algType,uType,tType,absType,relType,residType,
          tTypeNoUnits,tdirType,ksEltype,SolType,rateType,F,ProgressType,CacheType,IType,
          ProbType,NType,O,tstopsType}
 
