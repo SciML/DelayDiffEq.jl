@@ -1,24 +1,41 @@
 function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
-              d_discontinuities=tType[], dtmax=tType(7*minimum(prob.lags)), dt=zero(tType),
+              d_discontinuities=tType[],
+              dtmax= typeof(prob) <: ConstantLagDDEProblem ?
+              tType(7*minimum(prob.lags)) : tType(7*minimum(prob.constant_lags)),
+              dt=zero(tType),
               saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
               save_start=true, dense=save_everystep && !(typeof(alg) <: Discrete),
               minimal_solution=true, kwargs...) where
-    {uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType}
+    {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
+
+    if typeof(prob) <: ConstantLagDDEProblem
+        #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
+        neutral = false
+        constant_lags = prob.lags
+    else
+        neutral = prob.neutral
+        constant_lags = prob.constant_lags
+    end
 
     # add lag locations to discontinuities vector
-    d_discontinuities = [d_discontinuities; compute_discontinuity_tree(prob.lags, alg,
-                                                                       prob.tspan[1])]
+    d_discontinuities = [d_discontinuities; compute_discontinuity_tree(constant_lags,
+                                                                       alg,
+                                                                       prob.tspan[1],
+                                                                       prob.tspan[2],
+                                                                       neutral)]
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
     if isconstrained(alg)
-        dtmax = min(dtmax, prob.lags...)
+        dtmax = min(dtmax, constant_lags...)
     end
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(t,u,du) or f(t,u) without history function
-    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan)
+    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan,
+                                     mass_matrix = prob.mass_matrix,
+                                     callback = prob.callback)
     integrator = init(ode_prob, alg.alg; dt=1, initialize_integrator=false,
                       d_discontinuities=d_discontinuities, dtmax=dtmax, kwargs...)
 
@@ -68,7 +85,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     if iszero(dt) && integrator.opts.adaptive
         ode_prob = ODEProblem(dde_f, prob.u0, prob.tspan)
         dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0, prob.tspan[1],
-                                                       integrator.tdir, minimum(prob.lags),
+                                                       integrator.tdir,
+                                                       minimum(constant_lags),
                                                        integrator.opts.abstol,
                                                        integrator.opts.reltol,
                                                        integrator.opts.internalnorm,

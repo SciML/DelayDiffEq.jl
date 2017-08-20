@@ -10,11 +10,20 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     # update solution of ODE integrator
     savevalues!(integrator.integrator, force_save)
 
+    if typeof(integrator.sol.prob) <: ConstantLagDDEProblem
+        #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
+        neutral = false
+        constant_lags = integrator.sol.prob.lags
+    else
+        neutral = integrator.sol.prob.neutral
+        constant_lags = integrator.sol.prob.constant_lags
+    end
+
     # delete part of ODE solution that is not required for DDE solution
     reduce_solution!(integrator,
                      # function values at later time points might be necessary for
                      # calculation of next step, thus keep those interpolation data
-                     integrator.integrator.tprev - maximum(integrator.prob.lags))
+                     integrator.integrator.tprev - maximum(constant_lags))
 end
 
 """
@@ -49,8 +58,17 @@ Calculate next step of `integrator`.
     # perform always at least one calculation
     perform_step!(integrator, integrator.cache)
 
+    if typeof(integrator.prob) <: ConstantLagDDEProblem
+        #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
+        neutral = false
+        constant_lags = integrator.prob.lags
+    else
+        neutral = integrator.prob.neutral
+        constant_lags = integrator.prob.constant_lags
+    end
+
     # if dt is greater than the minimal lag, then use a fixed-point iteration
-    if integrator.dt > minimum(integrator.prob.lags) && isfinite(integrator.EEst)
+    if integrator.dt > minimum(constant_lags) && isfinite(integrator.EEst)
 
         # update cached error estimate of integrator
         integrator.integrator.EEst = integrator.EEst
@@ -89,7 +107,7 @@ Calculate next step of `integrator`.
             recursivecopy!(integrator.integrator.k, integrator.k)
 
             # calculate next step
-            perform_step!(integrator, integrator.cache)
+            perform_step!(integrator, integrator.cache, true) # repeat_step=true
 
             # calculate residuals of fixed-point iteration
             if typeof(integrator.u) <: AbstractArray

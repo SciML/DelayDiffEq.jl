@@ -25,7 +25,16 @@ julia> compute_discontinuity_tree([1//2, 1//3], BS3(), 1)
  13//6
 ```
 """
-function compute_discontinuity_tree(lags, alg, start_val)
+function compute_discontinuity_tree(lags, alg, start_val,end_val,neutral)
+  if !neutral
     start_val + unique(vcat((sum.(collect(with_replacement_combinations(lags, i))) for i in
                              1:alg_order(alg))...))
+  else
+  # Find the minimal amount that the tree must be expanded out to cover the
+  # full interval
+  # tspan0 + minlag*mult > tspan1 => mult > (tspan1-tspan0)/minlag
+    mult = round(Int,(end_val-start_val)/minimum(lags),RoundUp)
+    start_val + unique(vcat((sum.(collect(with_replacement_combinations(lags, i))) for i in
+                             1:mult)...))
+  end
 end
