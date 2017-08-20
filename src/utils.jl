@@ -26,6 +26,7 @@ julia> compute_discontinuity_tree([1//2, 1//3], BS3(), 1)
 ```
 """
 function compute_discontinuity_tree(lags, alg, start_val,end_val,neutral)
+  isempty(lags) && return eltype(lags)[] 
   if !neutral
     start_val + unique(vcat((sum.(collect(with_replacement_combinations(lags, i))) for i in
                              1:alg_order(alg))...))

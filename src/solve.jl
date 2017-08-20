@@ -2,7 +2,9 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
               d_discontinuities=tType[],
               dtmax= typeof(prob) <: ConstantLagDDEProblem ?
-              tType(7*minimum(prob.lags)) : tType(7*minimum(prob.constant_lags)),
+              tType(7*minimum(prob.lags)) : isempty(prob.constant_lags) ?
+              dtmax = prob.tspan[2]-prob.tspan[1] :
+              tType(7*minimum(prob.constant_lags)),
               dt=zero(tType),
               saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
               save_start=true, dense=save_everystep && !(typeof(alg) <: Discrete),
@@ -27,7 +29,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
-    if isconstrained(alg)
+    if isconstrained(alg) && !isempty(constant_lags)
         dtmax = min(dtmax, constant_lags...)
     end
 
@@ -85,13 +87,13 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     if iszero(dt) && integrator.opts.adaptive
         ode_prob = ODEProblem(dde_f, prob.u0, prob.tspan)
         dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0, prob.tspan[1],
-                                                       integrator.tdir,
-                                                       minimum(constant_lags),
-                                                       integrator.opts.abstol,
-                                                       integrator.opts.reltol,
-                                                       integrator.opts.internalnorm,
-                                                       ode_prob,
-                                                       OrdinaryDiffEq.alg_order(alg),alg))
+                   integrator.tdir,
+                   isempty(constant_lags) ? dtmax : minimum(constant_lags),
+                   integrator.opts.abstol,
+                   integrator.opts.reltol,
+                   integrator.opts.internalnorm,
+                   ode_prob,
+                   OrdinaryDiffEq.alg_order(alg),alg))
     end
     # assure that ODE integrator satisfies tprev + dt == t
     integrator.dt = zero(integrator.dt)
@@ -290,7 +292,14 @@ function solve!(integrator::DDEIntegrator)
 
     # combine arrays of time points and values, interpolation data, and analytical solution
     # to solution
-    sol = ODESolution{eltype(sol_array),size(sol_array),typeof(sol_array.u),
+
+    if typeof(integrator.prob.u0) <: Tuple
+      N = length((size(ArrayPartition(prob.u0))..., length(sol_array.u)))
+    else
+      N = length((size(integrator.prob.u0)..., length(sol_array.u)))
+    end
+
+    sol = ODESolution{eltype(sol_array),N,typeof(sol_array.u),
                       typeof(u_analytic),typeof(errors),typeof(sol_array.t),
                       typeof(interp.ks),typeof(integrator.sol.prob),
                       typeof(integrator.sol.alg),typeof(interp)}(

@@ -20,7 +20,7 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     end
 
     # delete part of ODE solution that is not required for DDE solution
-    reduce_solution!(integrator,
+    !isempty(constant_lags) && reduce_solution!(integrator,
                      # function values at later time points might be necessary for
                      # calculation of next step, thus keep those interpolation data
                      integrator.integrator.tprev - maximum(constant_lags))
@@ -68,7 +68,8 @@ Calculate next step of `integrator`.
     end
 
     # if dt is greater than the minimal lag, then use a fixed-point iteration
-    if integrator.dt > minimum(constant_lags) && isfinite(integrator.EEst)
+    if isempty(constant_lags) ||
+       (integrator.dt > minimum(constant_lags) && isfinite(integrator.EEst))
 
         # update cached error estimate of integrator
         integrator.integrator.EEst = integrator.EEst
