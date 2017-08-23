@@ -2,7 +2,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
               d_discontinuities=tType[],
               dtmax= typeof(prob) <: ConstantLagDDEProblem ?
-              tType(7*minimum(prob.lags)) : isempty(prob.constant_lags) ?
+              (isempty(prob.lags) ? prob.tspan[2]-prob.tspan[1] : tType(7*minimum(prob.lags))) : isempty(prob.constant_lags) ?
               dtmax = prob.tspan[2]-prob.tspan[1] :
               tType(7*minimum(prob.constant_lags)),
               dt=zero(tType),
