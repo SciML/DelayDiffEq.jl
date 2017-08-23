@@ -11,7 +11,8 @@ sol = solve(prob, alg)
 @test sol.errors[:l2] < 1e-4
 
 prob2 = deepcopy(prob)
-prob2.constant_lags=Rational{Int}[]
+typeof(prob2) <: DDEConstantLagProblem ? prob2.lags=Rational{Int}[] :
+                 prob2.constant_lags=Rational{Int}[]
 sol2 = solve(prob2, alg)
 
 @test sol2.errors[:l∞] < 1e-1
