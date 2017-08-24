@@ -250,7 +250,16 @@ function update_ode_integrator!(integrator::DDEIntegrator)
         integrator.integrator.uprev = integrator.uprev
     end
 
+    # add additional interpolation steps
+    OrdinaryDiffEq.ode_addsteps!(integrator)
+
     # copy interpolation data (fsalfirst overwritten at the end of apply_step!, which also
     # updates k[1] when using chaches for which k[1] points to fsalfirst)
-    recursivecopy!(integrator.integrator.k, integrator.k)
+    recursivecopy!(integrator.integrator.k, view(integrator.k, 1:integrator.kshortsize))
+    @tight_loop_macros for i in integrator.kshortsize+1:length(integrator.k)
+        @inbounds copyat_or_push!(integrator.integrator.k, i, integrator.k[i], Val{false})
+    end
+
+    # remove additional interpolation steps
+    resize!(integrator.k, integrator.kshortsize)
 end

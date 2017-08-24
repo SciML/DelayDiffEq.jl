@@ -9,3 +9,4 @@ using Base.Test
 @time @testset "Units" begin include("units.jl") end
 @time @testset "Unique Times" begin include("unique_times.jl") end
 @time @testset "Residual Control" begin include("residual_control.jl") end
+@time @testset "Lazy Interpolants" begin include("lazy_interpolants.jl") end

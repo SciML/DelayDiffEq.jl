@@ -55,6 +55,9 @@ Calculate next step of `integrator`.
     recursivecopy!(integrator.k_cache, integrator.k)
     integrator.integrator.EEst = integrator.EEst
 
+    # add additional interpolation steps
+    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
+
     # perform always at least one calculation
     perform_step!(integrator, integrator.cache)
 
@@ -81,7 +84,8 @@ Calculate next step of `integrator`.
         else
             integrator.uprev_cache = integrator.integrator.uprev
         end
-        recursivecopy!(integrator.k_integrator_cache, integrator.integrator.k)
+        recursivecopy!(integrator.k_integrator_cache,
+                       view(integrator.integrator.k, 1:integrator.kshortsize))
         integrator.integrator.dtcache = integrator.integrator.dt
 
         # move ODE integrator to interval [t, t+dt] to use interpolation of ODE integrator
@@ -105,6 +109,10 @@ Calculate next step of `integrator`.
             else
                 integrator.integrator.u = integrator.u
             end
+
+            # force update of additional interpolation steps
+            OrdinaryDiffEq.ode_addsteps!(integrator, integrator.f,
+                                         Val{false}, Val{true}, Val{true})
             recursivecopy!(integrator.integrator.k, integrator.k)
 
             # calculate next step
@@ -161,8 +169,15 @@ Calculate next step of `integrator`.
             integrator.integrator.u = integrator.uprev
             integrator.integrator.uprev = integrator.uprev_cache
         end
-        recursivecopy!(integrator.integrator.k, integrator.k_integrator_cache)
+        recursivecopy!(view(integrator.integrator.k, 1:integrator.kshortsize),
+                       integrator.k_integrator_cache)
+
+        # remove additional interpolation steps
+        resize!(integrator.k, integrator.kshortsize)
     end
+
+    # remove additional interpolation steps
+    resize!(integrator.integrator.k, integrator.kshortsize)
 
     # if error estimate of integrator is not a finite number reset it to last cached error
     # estimate or 2, and reset interpolation data of integrator to interpolation data of
