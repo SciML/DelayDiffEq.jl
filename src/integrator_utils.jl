@@ -253,4 +253,7 @@ function update_ode_integrator!(integrator::DDEIntegrator)
     # copy interpolation data (fsalfirst overwritten at the end of apply_step!, which also
     # updates k[1] when using chaches for which k[1] points to fsalfirst)
     recursivecopy!(integrator.integrator.k, integrator.k)
+
+    # add additional interpolation steps
+    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
 end

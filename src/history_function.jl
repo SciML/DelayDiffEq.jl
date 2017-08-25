@@ -6,7 +6,7 @@ interface for retrieving values at any time point with varying accuracy.
 
 Before the initial time point of solution `sol` values are calculated by history function
 `h`, for time points in the time span of `sol` interpolated values of `sol` are returned,
-and after the final time point of `sol` an inter- or extrapolation of the current state 
+and after the final time point of `sol` an inter- or extrapolation of the current state
 of integrator `integrator` is retrieved.
 """
 struct HistoryFunction{F1,F2,F3} <: Function
