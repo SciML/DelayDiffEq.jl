@@ -21,5 +21,4 @@ for (alg, name) in zip(algs, names)
     println("testing $name...")
     step_alg = MethodOfSteps(alg)
     sol = solve(prob, step_alg)
-    @time solve(prob, step_alg)
 end

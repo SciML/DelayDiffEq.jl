@@ -124,7 +124,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         fixedpoint_reltol_internal = map(uEltypeNoUnits, alg.fixedpoint_reltol)
     end
 
-    # create separate copies u and uprev, not pointing integrator.u or integrator.uprev,
+    # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
     # containers for residuals and to cache uprev with correct dimensions and types
     # in particular for calculations with units residuals have to be unitless
     if typeof(integrator.u) <: AbstractArray
@@ -137,6 +137,17 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         uprev = deepcopy(integrator.uprev)
         resid = one(uEltypeNoUnits)
         uprev_cache = oneunit(eltype(uType))
+    end
+
+    # create uprev2 in same way as in OrdinaryDiffEq
+    if integrator.uprev === integrator.uprev2
+        uprev2 = uprev
+    else
+        if uType <: Array
+            uprev2 = copy(uprev)
+        else
+            uprev2 = deepcopy(uprev)
+        end
     end
 
     # define caches for interpolation data
@@ -169,45 +180,15 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         save_idxs = nothing # prevents indexing of ODE solution and saves memory
     end
 
-    # new cache required for methods that wrap derivatives of f such as Rosenbrock
-    # create uprev2 in same way as in OrdinaryDiffEq
-    if integrator.uprev === integrator.uprev2
-        uprev2 = uprev
-    else
-        if uType <: Array
-            uprev2 = copy(uprev)
-        else
-            uprev2 = deepcopy(uprev)
-        end
-    end
-    dde_cache = OrdinaryDiffEq.alg_cache(alg.alg, u, integrator.rate_prototype,
-                                         uEltypeNoUnits, tTypeNoUnits, uprev, uprev2, dde_f,
-                                         integrator.t, dt, integrator.opts.reltol,
-                                         Val{isinplace})
-
-    # create solution of DDE integrator with interpolation that uses new cache
+    # new cache with updated u, uprev, uprev2, and function f
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
-        dde_interp_data = OrdinaryDiffEq.CompositeInterpolationData(
-            dde_f, interp_data.timeseries, interp_data.ts, interp_data.ks,
-            interp_data.alg_choice, interp_data.notsaveat_idxs, interp_data.dense,
-            dde_cache)
+      caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
+                                               prob.tspan[1], dt),
+                   integrator.cache.caches, alg.alg.algs)
+      dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
-        dde_interp_data = OrdinaryDiffEq.InterpolationData(
-            dde_f, interp_data.timeseries, interp_data.ts, interp_data.ks,
-            interp_data.notsaveat_idxs, interp_data.dense, dde_cache)
-    end
-
-    if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
-        dde_sol = build_solution(prob, integrator.sol.alg, integrator.sol.t,
-                                 integrator.sol.u, dense=integrator.sol.dense,
-                                 k=integrator.sol.k, interp=dde_interp_data,
-                                 alg_choice=integrator.sol.alg_choice,
-                                 calculate_error = false)
-    else
-        dde_sol = build_solution(prob, integrator.sol.alg, integrator.sol.t,
-                                 integrator.sol.u, dense=integrator.sol.dense,
-                                 k=integrator.sol.k, interp=dde_interp_data,
-                                 calculate_error = false)
+      dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
+                                     prob.tspan[1], dt)
     end
 
     # separate options of integrator and ODE integrator since ODE integrator always saves
@@ -254,12 +235,12 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
-                            typeof(integrator.tdir),typeof(integrator.k),typeof(dde_sol),
+                            typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
                             typeof(integrator.rate_prototype),typeof(dde_f),
                             typeof(integrator.prog),typeof(dde_cache),
                             typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
                             typeof(opts),typeof(saveat_copy)}(
-                                dde_sol, prob, u, integrator.k, integrator.t, dt, dde_f,
+                                sol, prob, u, integrator.k, integrator.t, dt, dde_f,
                                 uprev, uprev2, integrator.tprev, uprev_cache,
                                 k_cache, k_integrator_cache, fixedpoint_abstol_internal,
                                 fixedpoint_reltol_internal, resid, fixedpoint_norm,
