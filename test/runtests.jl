@@ -11,3 +11,4 @@ using Base.Test
 @time @testset "Residual Control" begin include("residual_control.jl") end
 @time @testset "Lazy Interpolants" begin include("lazy_interpolants.jl") end
 @time @testset "SDIRK Integrators" begin include("sdirk_integrators.jl") end
+@time @testset "Rosenbrock Integrators" begin include("rosenbrock_integrators.jl") end
