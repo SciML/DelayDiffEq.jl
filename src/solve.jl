@@ -124,7 +124,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         fixedpoint_reltol_internal = map(uEltypeNoUnits, alg.fixedpoint_reltol)
     end
 
-    # create separate copies u and uprev, not pointing integrator.u or integrator.uprev,
+    # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
     # containers for residuals and to cache uprev with correct dimensions and types
     # in particular for calculations with units residuals have to be unitless
     if typeof(integrator.u) <: AbstractArray
@@ -137,6 +137,17 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         uprev = deepcopy(integrator.uprev)
         resid = one(uEltypeNoUnits)
         uprev_cache = oneunit(eltype(uType))
+    end
+
+    # create uprev2 in same way as in OrdinaryDiffEq
+    if integrator.uprev === integrator.uprev2
+        uprev2 = uprev
+    else
+        if uType <: Array
+            uprev2 = copy(uprev)
+        else
+            uprev2 = deepcopy(uprev)
+        end
     end
 
     # define caches for interpolation data
@@ -167,6 +178,17 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # check if all indices should be returned
     if !(typeof(save_idxs) <: Void) && collect(save_idxs) == collect(1:length(integrator.u))
         save_idxs = nothing # prevents indexing of ODE solution and saves memory
+    end
+
+    # new cache with updated u, uprev, uprev2, and function f
+    if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
+      caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
+                                               prob.tspan[1], dt),
+                   integrator.cache.caches, alg.alg.algs)
+      dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
+    else
+      dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
+                                     prob.tspan[1], dt)
     end
 
     # separate options of integrator and ODE integrator since ODE integrator always saves
@@ -207,7 +229,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep
 
     # create DDE integrator combining the new defined problem function with history
-    # information, the improved solution, the parameters of the ODE integrator, and
+    # information, the new solution, the parameters of the ODE integrator, and
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
     dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,
@@ -215,12 +237,12 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
                             typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
                             typeof(integrator.rate_prototype),typeof(dde_f),
-                            typeof(integrator.prog),typeof(integrator.cache),
+                            typeof(integrator.prog),typeof(dde_cache),
                             typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
                             typeof(opts),typeof(saveat_copy)}(
-                                sol, prob, u, integrator.k, integrator.t, dt, dde_f, uprev,
-                                integrator.uprev2, integrator.tprev, uprev_cache, k_cache,
-                                k_integrator_cache, fixedpoint_abstol_internal,
+                                sol, prob, u, integrator.k, integrator.t, dt, dde_f,
+                                uprev, uprev2, integrator.tprev, uprev_cache,
+                                k_cache, k_integrator_cache, fixedpoint_abstol_internal,
                                 fixedpoint_reltol_internal, resid, fixedpoint_norm,
                                 alg.max_fixedpoint_iters, minimal_solution, integrator.alg,
                                 integrator.rate_prototype, integrator.notsaveat_idxs,
@@ -229,7 +251,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 integrator.qold, integrator.q11, integrator.erracc,
                                 integrator.dtacc, integrator.success_iter, integrator.iter,
                                 integrator.saveiter, integrator.saveiter_dense,
-                                integrator.prog, integrator.cache, integrator.kshortsize,
+                                integrator.prog, dde_cache, integrator.kshortsize,
                                 integrator.force_stepfail, integrator.just_hit_tstop,
                                 integrator.last_stepfail, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
