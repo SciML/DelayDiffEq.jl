@@ -86,15 +86,14 @@ function build_solution_array(integrator::DDEIntegrator)
             if typeof(integrator.opts.save_idxs) <: Void
                 u = integrator.sol.u
             else
-                u = [@view(u[integrator.opts.save_idxs]) for u in integrator.sol.u]
+                u = [u[integrator.opts.save_idxs] for u in integrator.sol.u]
             end
         else # remove initial time point
-            t = @view integrator.sol.t[2:end]
+            t = integrator.sol.t[2:end]
             if typeof(integrator.opts.save_idxs) <: Void
-                u = @view integrator.sol.u[2:end]
+                u = integrator.sol.u[2:end]
             else
-                u = [@view(u[integrator.opts.save_idxs]) for u in
-                     Iterators.drop(integrator.sol.u, 1)]
+                u = [u[integrator.opts.save_idxs] for u in @view(integrator.sol.u[2:end])]
             end
         end
     else
@@ -106,7 +105,11 @@ function build_solution_array(integrator::DDEIntegrator)
         n += saveat_length
         integrator.opts.save_start || (n -= 1)
         t = Vector{typeof(integrator.t)}(n)
-        u = Vector{typeof(integrator.u)}(n)
+        if typeof(integrator.opts.save_idxs) <: Void
+          u = Vector{typeof(integrator.u)}(n)
+        else
+          u = Vector{typeof(integrator.u[integrator.opts.save_idxs])}(n)
+        end
 
         # output initial time point if desired
         write_idx = 1 # next index of solution to write to
@@ -115,7 +118,7 @@ function build_solution_array(integrator::DDEIntegrator)
             if typeof(integrator.opts.save_idxs) <: Void
                 u[1] = integrator.sol.u[1]
             else
-                u[1] = @view integrator.sol.u[1][integrator.opts.save_idxs]
+                u[1] = integrator.sol.u[1][integrator.opts.save_idxs]
             end
             write_idx = 2
         end
@@ -142,8 +145,7 @@ function build_solution_array(integrator::DDEIntegrator)
                     if typeof(integrator.opts.save_idxs) <: Void
                         u[write_idx] = integrator.sol.u[sol_idx]
                     else
-                        u[write_idx] =
-                            @view integrator.sol.u[sol_idx][integrator.opts.save_idxs]
+                        u[write_idx] = integrator.sol.u[sol_idx][integrator.opts.save_idxs]
                     end
 
                     sol_idx += 1
@@ -159,7 +161,7 @@ function build_solution_array(integrator::DDEIntegrator)
                 copy!(u, write_idx, integrator.sol.u, sol_idx, sol_length - sol_idx)
             else
                 copy!(u, write_idx,
-                      (@view(u[integrator.opts.save_indxs]) for u in integrator.sol.u),
+                      (u[integrator.opts.save_indxs] for u in integrator.sol.u),
                       sol_idx, sol_length - sol_idx)
             end
 
@@ -180,7 +182,7 @@ function build_solution_array(integrator::DDEIntegrator)
         if typeof(integrator.opts.save_idxs) <: Void
             u[end] = integrator.sol.u[end]
         else
-            u[end] = @view integrator.sol.u[end][integrator.opts.save_idxs]
+            u[end] = integrator.sol.u[end][integrator.opts.save_idxs]
         end
     end
 
@@ -200,18 +202,18 @@ function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArra
         else # update interpolation data if only a subset of indices is returned
             if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
                 OrdinaryDiffEq.CompositeInterpolationData(
-                    integrator.sol.interp.f, [@view(u[integrator.opts.save_idxs]) for u in
+                    integrator.sol.interp.f, [u[integrator.opts.save_idxs] for u in
                                               integrator.sol.interp.timeseries],
-                    integrator.sol.interp.ts, [[@view(k[integrator.opts.save_idxs]) for k in
-                                                ks] for ks in integrator.sol.interp.ks],
+                    integrator.sol.interp.ts, [[k[integrator.opts.save_idxs] for k in ks]
+                                               for ks in integrator.sol.interp.ks],
                     integrator.sol.interp.alg_choice, integrator.sol.interp.notsaveat_idxs,
                     true, integrator.sol.interp.cache)
             else
                 OrdinaryDiffEq.InterpolationData(
-                    integrator.sol.interp.f, [@view(u[integrator.opts.save_idxs]) for u in
+                    integrator.sol.interp.f, [u[integrator.opts.save_idxs] for u in
                                               integrator.sol.interp.timeseries],
-                    integrator.sol.interp.ts, [[@view(k[integrator.opts.save_idxs]) for k in
-                                                ks] for ks in integrator.sol.interp.ks],
+                    integrator.sol.interp.ts, [[k[integrator.opts.save_idxs] for k in ks]
+                                               for ks in integrator.sol.interp.ks],
                     integrator.sol.interp.notsaveat_idxs, true,
                     integrator.sol.interp.cache)
             end
