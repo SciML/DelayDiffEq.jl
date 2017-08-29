@@ -18,7 +18,7 @@ names = ["GenericImplicitEuler", "GenericTrapezoid",
          "Kvaerno5", "KenCarp5"]
 
 for (alg, name) in zip(algs, names)
-    println("testing $name...")
+    print("testing ", name, "... ")
     step_alg = MethodOfSteps(alg)
     solve(prob, step_alg)
     @time solve(prob, step_alg)
