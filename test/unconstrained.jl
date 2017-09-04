@@ -103,8 +103,8 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
 sol4 = solve(prob, alg4)
 
 @test abs(sol1[end] - sol2[end]) < 2.5e-11
-@test abs(sol1[end] - sol3[end]) < 1.3e-13
-@test abs(sol1[end] - sol4[end]) < 4.5e-13
+@test abs(sol1[end] - sol3[end]) < 1.3e-14
+@test abs(sol1[end] - sol4[end]) < 1.2e-13
 
 println("Standard tests complete. Onto idxs tests")
 

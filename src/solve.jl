@@ -97,6 +97,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
     # assure that ODE integrator satisfies tprev + dt == t
     integrator.dt = zero(integrator.dt)
+    integrator.dtcache = zero(integrator.dt)
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
     # in particular important for calculations with units
@@ -130,13 +131,11 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     if typeof(integrator.u) <: AbstractArray
         u = recursivecopy(integrator.u)
         uprev = recursivecopy(integrator.uprev)
-        uprev_cache = similar(integrator.u)
         resid = similar(integrator.u, uEltypeNoUnits)
     else
         u = deepcopy(integrator.u)
         uprev = deepcopy(integrator.uprev)
         resid = one(uEltypeNoUnits)
-        uprev_cache = oneunit(eltype(uType))
     end
 
     # create uprev2 in same way as in OrdinaryDiffEq
@@ -149,10 +148,6 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
             uprev2 = deepcopy(uprev)
         end
     end
-
-    # define caches for interpolation data
-    k_cache = similar(integrator.k)
-    k_integrator_cache = similar(integrator.k)
 
     # create heap of additional time points that will be contained in the solution
     # exclude the end point because of floating point issues and the starting point since it
@@ -182,14 +177,15 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # new cache with updated u, uprev, uprev2, and function f
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
-      caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
-                                               prob.tspan[1], dt),
-                   integrator.cache.caches, alg.alg.algs)
-      dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
+        caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
+                                                 prob.tspan[1], dt),
+                     integrator.cache.caches, alg.alg.algs)
+        dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
-      dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
-                                     prob.tspan[1], dt)
+        dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
+                                       prob.tspan[1], dt)
     end
+
 
     # separate options of integrator and ODE integrator since ODE integrator always saves
     # every step and every index (necessary for history function)
@@ -219,14 +215,21 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                     integrator.opts.advance_to_tstop,
                                     integrator.opts.stop_at_next_tstop)
 
+    # reduction of solution only possible if no dense interpolation required and only
+    # selected time points saved, and all constant and no dependent lags are given
+    # WARNING: can impact quality of solution if not all constant lags specified
+    # TODO: also disable if dependent lags specified
+    minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep &&
+        !isempty(constant_lags)
+
     # need copy of heap of additional time points (nodes will be deleted!) in order to
     # remove unneeded time points of ODE solution as soon as possible and keep track
     # of passed time points
-    saveat_copy = deepcopy(opts.saveat)
-
-    # reduction of solution only possible if no dense interpolation required and only
-    # selected time points saved
-    minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep
+    if minimal_solution
+        saveat_copy = deepcopy(opts.saveat)
+    else
+        saveat_copy = nothing
+    end
 
     # create DDE integrator combining the new defined problem function with history
     # information, the new solution, the parameters of the ODE integrator, and
@@ -241,15 +244,15 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                             typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
                             typeof(opts),typeof(saveat_copy)}(
                                 sol, prob, u, integrator.k, integrator.t, dt, dde_f,
-                                uprev, uprev2, integrator.tprev, uprev_cache,
-                                k_cache, k_integrator_cache, fixedpoint_abstol_internal,
-                                fixedpoint_reltol_internal, resid, fixedpoint_norm,
-                                alg.max_fixedpoint_iters, minimal_solution, integrator.alg,
-                                integrator.rate_prototype, integrator.notsaveat_idxs,
-                                integrator.dtcache, integrator.dtchangeable,
-                                integrator.dtpropose, integrator.tdir, integrator.EEst,
-                                integrator.qold, integrator.q11, integrator.erracc,
-                                integrator.dtacc, integrator.success_iter, integrator.iter,
+                                uprev, uprev2, integrator.tprev, 1, 1,
+                                fixedpoint_abstol_internal, fixedpoint_reltol_internal,
+                                resid, fixedpoint_norm, alg.max_fixedpoint_iters,
+                                integrator.alg, integrator.rate_prototype,
+                                integrator.notsaveat_idxs, integrator.dtcache,
+                                integrator.dtchangeable, integrator.dtpropose,
+                                integrator.tdir, integrator.EEst, integrator.qold,
+                                integrator.q11, integrator.erracc, integrator.dtacc,
+                                integrator.success_iter, integrator.iter,
                                 integrator.saveiter, integrator.saveiter_dense,
                                 integrator.prog, dde_cache, integrator.kshortsize,
                                 integrator.force_stepfail, integrator.just_hit_tstop,
@@ -271,6 +274,10 @@ function solve!(integrator::DDEIntegrator)
         while integrator.tdir * integrator.t < integrator.tdir * top(integrator.opts.tstops)
             # apply step or adapt step size
             loopheader!(integrator)
+
+            # abort integration following same criteria as for ODEs:
+            # maxiters exceeded, dt <= dtmin, integration unstable
+            OrdinaryDiffEq.@ode_exit_conditions
 
             # calculate next step
             perform_step!(integrator)
@@ -314,7 +321,6 @@ function solve!(integrator::DDEIntegrator)
 
     # combine arrays of time points and values, interpolation data, and analytical solution
     # to solution
-
     if typeof(integrator.prob.u0) <: Tuple
       N = length((size(ArrayPartition(prob.u0))..., length(sol_array.u)))
     else

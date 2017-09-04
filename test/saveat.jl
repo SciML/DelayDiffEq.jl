@@ -15,7 +15,7 @@ sol = solve!(dde_int)
 dde_int2 = init(prob, alg; saveat=[25.0, 50.0, 75.0])
 
 ## solution of ODE integrator will be reduced
-@test dde_int2.minimal_solution
+@test dde_int2.saveat != nothing
 
 sol2 = solve!(dde_int2)
 
@@ -33,7 +33,7 @@ sol2 = solve!(dde_int2)
 dde_int2_full = init(prob, alg; saveat=[25.0, 50.0, 75.0], minimal_solution=false)
 
 ## solution of ODE integrator will not be reduced
-@test !dde_int2_full.minimal_solution
+@test dde_int2_full.saveat == nothing
 
 sol2_full = solve!(dde_int2_full)
 
@@ -47,7 +47,7 @@ sol2_full = solve!(dde_int2_full)
 dde_int2_dense = init(prob, alg; saveat=[25.0, 50.0, 75.0], dense=true)
 
 ## solution of ODE integrator will not be reduced
-@test !dde_int2_dense.minimal_solution
+@test dde_int2_dense.saveat == nothing
 
 sol2_dense = solve!(dde_int2_dense)
 
@@ -67,7 +67,7 @@ sol2_dense = solve!(dde_int2_dense)
 dde_int3 = init(prob, alg; saveat=[25.0, 50.0, 75.0], save_start=false)
 
 ## solution of ODE integrator will be reduced
-@test dde_int3.minimal_solution
+@test dde_int3.saveat != nothing
 
 sol3 = solve!(dde_int3)
 
