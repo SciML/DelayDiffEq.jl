@@ -1,38 +1,4 @@
 """
-    hermite_interpolant(t, integrator::DEIntegrator, idxs, deriv)
-
-Calculate Hermite interpolation of derivative `deriv` at time `t` and indices `idxs`
-for `integrator`.
-"""
-function hermite_interpolant(t, integrator::DEIntegrator, idxs, deriv)
-    [hermite_interpolant(τ, integrator, idxs, deriv) for τ in t]
-end
-
-function hermite_interpolant(t::Number, integrator::DEIntegrator, idxs, deriv)
-    Θ = (t - integrator.tprev)/integrator.dt
-    OrdinaryDiffEq.hermite_interpolant(Θ, integrator.dt, integrator.uprev,
-                                       integrator.u, integrator.k, integrator.cache,
-                                       idxs, deriv)
-end
-
-"""
-    hermite_interpolant!(val, t, integrator::DEIntegrator, idxs, deriv)
-
-Calculate Hermite interpolation of derivative `deriv` at time `t` and indices `idxs`
-for `integrator`, and save result in `val` if `val` is not `nothing`.
-"""
-function hermite_interpolant!(val, t, integrator::DEIntegrator, idxs, deriv)
-    [hermite_interpolant!(val, τ, integrator, idxs, deriv) for τ in t]
-end
-
-function hermite_interpolant!(val, t::Number, integrator::DEIntegrator, idxs, deriv)
-    Θ = (t - integrator.tprev)/integrator.dt
-    OrdinaryDiffEq.hermite_interpolant!(val, Θ, integrator.dt, integrator.uprev,
-                                       integrator.u, integrator.k, integrator.cache,
-                                       idxs, deriv)
-end
-
-"""
     constant_extrapolant(t, integrator::DEIntegrator, idxs, deriv)
 
 Calculate constant extrapolation of derivative `deriv` at time `t` and indices `idxs`

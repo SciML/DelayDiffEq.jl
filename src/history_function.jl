@@ -35,13 +35,7 @@ function (f::HistoryFunction)(t, deriv::Type=Val{0}, idxs=nothing)
     # handle extrapolations in initial time step (otherwise dt = 0 should not occur)
     integrator.dt == 0 && return constant_extrapolation(t, integrator, idxs, deriv)
 
-    if typeof(integrator.alg) <: Union{Vern6,Vern7,Vern8,Vern9} &&
-        length(integrator.k) == integrator.kshortsize
-        # use Hermite interpolant as fallback to avoid implicit calculation
-        return hermite_interpolant(t, integrator, idxs, deriv)
-    else
-        return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
-    end
+    return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
 end
 
 function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
@@ -64,11 +58,5 @@ function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
     # handle extrapolations in initial time step (otherwise dt = 0 should not occur)
     integrator.dt == 0 && return constant_extrapolation!(val, t, integrator, idxs, deriv)
 
-    if typeof(integrator.alg) <: Union{Vern6,Vern7,Vern8,Vern9} &&
-        length(integrator.k) == integrator.kshortsize
-        # use Hermite interpolant as fallback to avoid implicit calculation
-        return hermite_interpolant!(val, t, integrator, idxs, deriv)
-    else
-        return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
-    end
+    return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
 end
