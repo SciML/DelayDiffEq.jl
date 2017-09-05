@@ -5,11 +5,12 @@ module DelayDiffEq
 using Reexport
 @reexport using OrdinaryDiffEq
 
-using DataStructures, RecursiveArrayTools, Combinatorics, MuladdMacro, ForwardDiff, NLsolve
+using DataStructures, RecursiveArrayTools, MuladdMacro, ForwardDiff, NLsolve, Roots
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_order,
                        handle_tstop!, ODEIntegrator, savevalues!, postamble!,
-                       handle_callback_modifiers!, reeval_internals_due_to_modification!
+                       handle_callback_modifiers!, reeval_internals_due_to_modification!,
+                       handle_discontinuities!, find_callback_time, apply_callback!
 
 import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!
@@ -17,6 +18,7 @@ import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, 
 import OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
                        TrapezoidCache
 
+include("discontinuity_type.jl")
 include("integrator_type.jl")
 include("integrator_utils.jl")
 include("integrator_interface.jl")
@@ -28,6 +30,6 @@ include("alg_utils.jl")
 include("solve.jl")
 include("utils.jl")
 
-export MethodOfSteps
+export Discontinuity, MethodOfSteps
 
 end # module

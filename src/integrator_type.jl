@@ -19,6 +19,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
     resid::residType # This would have to resize for resizing DDE to work
     fixedpoint_norm::NType
     max_fixedpoint_iters::Int
+    tracked_discontinuities::Vector{Discontinuity{tType}}
     alg::algType
     rate_prototype::rateType
     notsaveat_idxs::Vector{Int}
@@ -57,21 +58,21 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
                            IType,ProbType,NType,O,tstopsType}(
                                sol,prob,u,k,t,dt,f,uprev,uprev2,tprev,prev_idx,prev2_idx,
                                fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,
-                               max_fixedpoint_iters,alg,rate_prototype,notsaveat_idxs,
-                               dtcache,dtchangeable,dtpropose,tdir,EEst,qold,q11,erracc,
-                               dtacc,success_iter,iter,saveiter,saveiter_dense,prog,cache,
-                               kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
-                               accept_step,isout,reeval_fsal,u_modified,opts,integrator,
-                               saveat) where
+                               max_fixedpoint_iters,tracked_discontinuities,alg,
+                               rate_prototype,notsaveat_idxs,dtcache,dtchangeable,dtpropose,
+                               tdir,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,
+                               saveiter_dense,prog,cache,kshortsize,force_stepfail,
+                               last_stepfail,just_hit_tstop,accept_step,isout,reeval_fsal,
+                               u_modified,opts,integrator,saveat) where
         {algType,uType,tType,absType,relType,residType,tTypeNoUnits,tdirType,ksEltype,
          SolType,rateType,F,ProgressType,CacheType,IType,ProbType,NType,O,tstopsType}
 
         new(sol,prob,u,k,t,dt,f,uprev,uprev2,tprev,prev_idx,prev2_idx,fixedpoint_abstol,
-            fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,alg,rate_prototype,
-            notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,EEst,qold,q11,erracc,dtacc,
-            success_iter,iter,saveiter,saveiter_dense,prog,cache,kshortsize,force_stepfail,
-            last_stepfail,just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,
-            integrator,saveat)
+            fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,
+            tracked_discontinuities,alg,rate_prototype,notsaveat_idxs,dtcache,dtchangeable,
+            dtpropose,tdir,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,
+            saveiter_dense,prog,cache,kshortsize,force_stepfail,last_stepfail,
+            just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,integrator,saveat)
     end
 end
 

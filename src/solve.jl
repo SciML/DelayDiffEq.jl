@@ -1,6 +1,6 @@
 function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
-              d_discontinuities=tType[],
+              d_discontinuities::Vector{Discontinuity{tType}}=Discontinuity{tType}[],
               dtmax= typeof(prob) <: ConstantLagDDEProblem ?
               (isempty(prob.lags) ? prob.tspan[2]-prob.tspan[1] : tType(7*minimum(prob.lags))) : isempty(prob.constant_lags) ?
               dtmax = prob.tspan[2]-prob.tspan[1] :
@@ -8,24 +8,58 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               dt=zero(tType),
               saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
               save_start=true, dense=save_everystep && !(typeof(alg) <: Discrete),
-              minimal_solution=true, kwargs...) where
+              minimal_solution=true, discontinuity_interp_points::Int=10,
+              discontinuity_atol=tType(1//Int64(10)^12), discontinuity_rtol=0,
+              initial_order=prob.h(prob.tspan[1]) == prob.u0 ? 1 : 0,
+              callback=nothing, kwargs...) where
     {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
 
     if typeof(prob) <: ConstantLagDDEProblem
         #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
         neutral = false
         constant_lags = prob.lags
+        dependent_lags = nothing
     else
         neutral = prob.neutral
         constant_lags = prob.constant_lags
+        dependent_lags = prob.dependent_lags
     end
 
-    # add lag locations to discontinuities vector
-    d_discontinuities = [d_discontinuities; compute_discontinuity_tree(constant_lags,
-                                                                       alg,
-                                                                       prob.tspan[1],
-                                                                       prob.tspan[2],
-                                                                       neutral)]
+    # filter provided discontinuities
+    filter!(x -> prob.tspan[1] < x < prob.tspan[2] && x.order <= alg_order(alg),
+            d_discontinuities)
+
+    # add discontinuities propagated from initial discontinuity
+    maxlag = prob.tspan[2] - prob.tspan[1]
+    if initial_order < alg_order(alg)
+        d_discontinuities_internal = unique(
+            Discontinuity{tType}[d_discontinuities;
+                                 (Discontinuity(prob.tspan[1] + lag, initial_order + 1)
+                                  for lag in constant_lags if lag < maxlag)...])
+    else
+        d_discontinuities_internal = unique(d_discontinuities)
+    end
+
+    # create array of tracked discontinuities
+    # used to find propagated discontinuities with callbacks and to keep track of all
+    # passed discontinuities
+    if initial_order < alg_order(alg)
+        tracked_discontinuities = [Discontinuity(prob.tspan[1], initial_order)]
+    else
+        tracked_discontinuities = Discontinuity{tType}[]
+    end
+
+    # create additional callback to track dependent delays
+    if !(typeof(dependent_lags) <: Void) && !isempty(dependent_lags)
+        discontinuity_callback = DiscontinuityCallback(dependent_lags,
+                                                       tracked_discontinuities,
+                                                       discontinuity_interp_points,
+                                                       discontinuity_atol,
+                                                       discontinuity_rtol)
+        callbacks = CallbackSet(callback, discontinuity_callback)
+    else
+        callbacks = callback
+    end
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
@@ -39,7 +73,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                      mass_matrix = prob.mass_matrix,
                                      callback = prob.callback)
     integrator = init(ode_prob, alg.alg; dt=1, initialize_integrator=false,
-                      d_discontinuities=d_discontinuities, dtmax=dtmax, kwargs...)
+                      d_discontinuities=d_discontinuities_internal, dtmax=dtmax,
+                      callback=callbacks, kwargs...)
 
     # create new solution based on this integrator with an interpolation function of the
     # expected form f(t,u,du) or f(t,u) which already includes information about the
@@ -247,12 +282,12 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 uprev, uprev2, integrator.tprev, 1, 1,
                                 fixedpoint_abstol_internal, fixedpoint_reltol_internal,
                                 resid, fixedpoint_norm, alg.max_fixedpoint_iters,
-                                integrator.alg, integrator.rate_prototype,
-                                integrator.notsaveat_idxs, integrator.dtcache,
-                                integrator.dtchangeable, integrator.dtpropose,
-                                integrator.tdir, integrator.EEst, integrator.qold,
-                                integrator.q11, integrator.erracc, integrator.dtacc,
-                                integrator.success_iter, integrator.iter,
+                                tracked_discontinuities, integrator.alg,
+                                integrator.rate_prototype,integrator.notsaveat_idxs,
+                                integrator.dtcache, integrator.dtchangeable,
+                                integrator.dtpropose, integrator.tdir, integrator.EEst,
+                                integrator.qold, integrator.q11, integrator.erracc,
+                                integrator.dtacc, integrator.success_iter, integrator.iter,
                                 integrator.saveiter, integrator.saveiter_dense,
                                 integrator.prog, dde_cache, integrator.kshortsize,
                                 integrator.force_stepfail, integrator.just_hit_tstop,
