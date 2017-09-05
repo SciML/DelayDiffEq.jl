@@ -15,21 +15,18 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     end
 
     # update solution
-    savevalues!(integrator.integrator, force_save)
-
-    # copy additional interpolation steps back from solution to reduced ODE integrator
-    # last entry of solution always equals last time point of integration
-    if length(integrator.sol.k[end]) > length(integrator.integrator.k)
-        @inbounds for i in integrator.kshortsize+1:length(integrator.sol.k[end])
-            copyat_or_push!(integrator.integrator.k, i, integrator.sol.k[end][i])
-        end
-    end
+    savevalues!(integrator.integrator, force_save, false) # reduce_size = false
 
     # update prev2_idx to indices of tprev and u(tprev) in solution
+    # allows reset of ODE integrator (and hence history function) to the last
+    # successful time step after failed steps
     integrator.prev2_idx = integrator.prev_idx
 
     # cache dt of interval [tprev, t] of ODE integrator since it can only be retrieved by
     # a possibly incorrect subtraction
+    # NOTE: does not interfere with usual use of dtcache for non-adaptive methods since ODE
+    # integrator is only used for inter- and extrapolation of future values and saving of
+    # the solution but does not affect the size of time steps
     integrator.integrator.dtcache = integrator.integrator.dt
 
     # reduce ODE solution
@@ -50,6 +47,9 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     end
 
     # prevent reset of ODE integrator to cached values in the calculation of the next step
+    # NOTE: does not interfere with usual use of accept_step since ODE integrator is only
+    # used for inter- and extrapolation of future values and saving of the solution but does
+    # not affect whether time steps are accepted
     integrator.integrator.accept_step = true
 end
 
@@ -97,6 +97,9 @@ Calculate next step of `integrator`.
 
     # reset boolean which indicates whether history function was evaluated at a time point
     # past the final point of the current solution
+    # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
+    # inter- and extrapolation of future values and saving of the solution but does not
+    # affect whether time steps are accepted
     integrator.integrator.isout = false
 
     # perform always at least one calculation

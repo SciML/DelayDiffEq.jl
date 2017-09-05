@@ -28,8 +28,6 @@ include("alg_utils.jl")
 include("solve.jl")
 include("utils.jl")
 
-export HistoryFunction
-
 export MethodOfSteps
 
 end # module
