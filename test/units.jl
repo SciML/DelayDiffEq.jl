@@ -1,12 +1,12 @@
 using Unitful, DelayDiffEq, Base.Test
 
 # Scalar problem, not in-place
-f = function (t,u,h)
-    out = (-h(t-0.2u"s") + u) / 1.0u"s"
+function f_units(t,u,h)
+    out = (-h_units(t-0.2u"s") + u) / 1.0u"s"
 end
-h = (t) -> 0.0u"N"
+h_units(t) = 0.0u"N"
 
-prob = ConstantLagDDEProblem(f, h, 1.0u"N", [0.2u"s"], (0.0u"s", 100.0u"s"))
+prob = ConstantLagDDEProblem(f_units, h_units, 1.0u"N", [0.2u"s"], (0.0u"s", 100.0u"s"))
 
 # Unconstrained algorithm without units
 alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
@@ -43,12 +43,12 @@ sol2 = solve(prob, alg)
 @test sol.t == sol2.t && sol.u == sol2.u
 
 # Vector problem, in-place
-f = function (t,u,h,du)
-    du[1] = (-h(t-0.2u"s")[1] + u[1]) / 1.0u"s"
+function f_units(t,u,h,du)
+    du[1] = (-h_units(t-0.2u"s")[1] + u[1]) / 1.0u"s"
 end
-h = (t) -> [0.0u"N"]
+h_units(t) = [0.0u"N"]
 
-prob = ConstantLagDDEProblem(f, h, [1.0u"N"], [0.2u"s"], (0.0u"s", 100.0u"s"))
+prob = ConstantLagDDEProblem(f_units, h_units, [1.0u"N"], [0.2u"s"], (0.0u"s", 100.0u"s"))
 
 # Unconstrained algorithm without units
 alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
