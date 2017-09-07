@@ -295,18 +295,20 @@ function handle_discontinuities!(integrator::DDEIntegrator)
 
     # remove all discontinuities close to the current time point as well and
     # calculate minimal order of these discontinuities
-    while !isempty(integrator.opts.d_discontinuities) &&
-        abs(top(integrator.opts.d_discontinuities).t - integrator.t) < 10eps(integrator.t)
+    if typeof(integrator.t) <: AbstractFloat # does not work for units!
+        while !isempty(integrator.opts.d_discontinuities) &&
+            abs(top(integrator.opts.d_discontinuities).t - integrator.t) < 10eps(integrator.t)
 
-        d2 = pop!(integrator.opts.d_discontinuities)
-        order = min(order, d2.order)
-    end
+            d2 = pop!(integrator.opts.d_discontinuities)
+            order = min(order, d2.order)
+        end
 
-    # also remove all corresponding time stops
-    while !isempty(integrator.opts.tstops) &&
-        abs(top(integrator.opts.tstops) - integrator.t) < 10eps(integrator.t)
+        # also remove all corresponding time stops
+        while !isempty(integrator.opts.tstops) &&
+            abs(top(integrator.opts.tstops) - integrator.t) < 10eps(integrator.t)
 
-        pop!(integrator.opts.tstops)
+            pop!(integrator.opts.tstops)
+        end
     end
 
     # add discontinuities of next order to integrator

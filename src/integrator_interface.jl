@@ -5,13 +5,15 @@ Update solution of `integrator`, if necessary or forced by `force_save`.
 """
 function savevalues!(integrator::DDEIntegrator, force_save=false)
     # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
-    if integrator.integrator.t != integrator.t
-        if abs(integrator.t - integrator.integrator.t) >= 10eps(integrator.t)
-            error("unexpected time discrepancy detected")
-        end
+    if typeof(integrator.t) <: AbstractFloat # does not work for units!
+        if integrator.integrator.t != integrator.t
+            if abs(integrator.t - integrator.integrator.t) >= 10eps(integrator.t)
+                error("unexpected time discrepancy detected")
+            end
 
-        integrator.integrator.t = integrator.t
-        integrator.integrator.dt = integrator.integrator.t - integrator.integrator.tprev
+            integrator.integrator.t = integrator.t
+            integrator.integrator.dt = integrator.integrator.t - integrator.integrator.tprev
+        end
     end
 
     # update solution

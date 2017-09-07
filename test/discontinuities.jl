@@ -15,16 +15,15 @@ a = Discontinuity(1, 3)
 @test a > 0
 @test a < 2
 @test a == 1
-@test a + 1.5 == 2.5
-@test [a] - [2.0] == [-1.0]
 
 b = Discontinuity(2.0, 2)
 
 @test !(a > b)
 @test a < b
+@test a != b
 
 c = Discontinuity(1.0, 2)
 
-@test !(a > c)
+@test a > c
 @test !(a < c)
 @test a != c
