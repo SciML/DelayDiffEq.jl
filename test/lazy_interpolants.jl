@@ -1,7 +1,7 @@
 using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
 # in-place problem
-prob = prob_dde_1delay(1.0)
+prob = prob_dde_1delay
 
 # Vern7
 sol = solve(prob, MethodOfSteps(Vern7()))
@@ -18,7 +18,7 @@ sol2 = solve(prob, MethodOfSteps(Vern9()))
 @test sol2.errors[:l2] < 6.2e-4
 
 # not in-place problem
-prob = prob_dde_1delay_scalar_notinplace(1.0)
+prob = prob_dde_1delay_scalar_notinplace
 
 # Vern7
 sol_scalar = solve(prob, MethodOfSteps(Vern7()))

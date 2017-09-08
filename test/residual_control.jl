@@ -3,7 +3,7 @@ using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 alg = MethodOfSteps(RK4(); constrained=false)
 u₀ = 1.0
 
-prob = prob_dde_1delay_scalar_notinplace(u₀)
+prob = prob_dde_1delay_scalar_notinplace
 sol = solve(prob, alg)
 
 @test sol.errors[:l∞] < 1e-4
