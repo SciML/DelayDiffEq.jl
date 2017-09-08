@@ -101,7 +101,7 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol4 = solve(prob, alg4)
 
-@test abs(sol1[end] - sol2[end]) < 2.5e-11
+@test abs(sol1[end] - sol2[end]) < 2.6e-11
 @test abs(sol1[end] - sol3[end]) < 1.3e-13
 @test abs(sol1[end] - sol4[end]) < 4.5e-13
 
@@ -132,14 +132,8 @@ function f(t,u,h,du)
   du[1] = -du[1]
   du[1] += u[1]
 end
-function h(t,idxs=nothing)
-  if typeof(idxs) <: Void
-    return [0.0]
-  else
-    return 0.0
-  end
-end
-function h(out,t,idxs=nothing)
+
+function h(out::AbstractArray,t,idxs=nothing)
   out[1] = 0.0
 end
 
