@@ -5,70 +5,68 @@ Remove time points of ODE solution of `integrator` up to time `tmax` that are no
 for calculation of DDE solution.
 """
 @inline function reduce_solution!(integrator::DDEIntegrator, tmax)
-    if integrator.minimal_solution
-        if integrator.saveiter < integrator.integrator.saveiter
-            # last time point of ODE solution that is known to be required for DDE solution
-            @inbounds t_sol_prev = integrator.integrator.sol.t[integrator.saveiter]
-            # next time point of ODE solution that might be required for DDE solution
-            @inbounds t_sol = integrator.integrator.sol.t[integrator.saveiter + 1]
+    if integrator.saveiter < integrator.prev_idx
+        # last time point of ODE solution that is known to be required for DDE solution
+        @inbounds t_sol_prev = integrator.integrator.sol.t[integrator.saveiter]
+        # next time point of ODE solution that might be required for DDE solution
+        @inbounds t_sol = integrator.integrator.sol.t[integrator.saveiter + 1]
 
-            @inbounds while t_sol < tmax && integrator.saveiter <
-                integrator.integrator.saveiter
+        @inbounds while t_sol < tmax && integrator.saveiter < integrator.prev_idx &&
+            # do not handle time point if it is required for interpolation of tmax
+            (integrator.saveiter + 2 > integrator.integrator.saveiter ||
+             tmax >= integrator.integrator.sol.t[integrator.saveiter + 2])
 
-                needed = false
+            needed = false
 
-                while !isempty(integrator.saveat) && top(integrator.saveat) <= t_sol
-                    # do not remove time point if it is upper bound of a required
-                    # interpolation interval
-                    if t_sol_prev < top(integrator.saveat)
-                        needed = true
-                    end
-
-                    # remove passed time points
-                    pop!(integrator.saveat)
+            while !isempty(integrator.saveat) && top(integrator.saveat) <= t_sol
+                # do not remove time point if it is upper bound of a required
+                # interpolation interval
+                if t_sol_prev < top(integrator.saveat)
+                    needed = true
                 end
 
-                # do not remove time point if it is lower bound of a required interpolation
-                # interval
-                needed = needed || (!isempty(integrator.saveat) &&
-                                    integrator.saveiter + 1 <
-                                    integrator.integrator.saveiter &&
-                                    t_sol < top(integrator.saveat) <
-                                    integrator.integrator.sol.t[integrator.saveiter + 2])
-
-                if !needed
-                    # delete not required time point, function value, and interpolation data
-                    deleteat!(integrator.integrator.sol.t, integrator.saveiter + 1)
-                    deleteat!(integrator.integrator.sol.u, integrator.saveiter + 1)
-                    deleteat!(integrator.integrator.sol.k, integrator.saveiter + 1)
-
-                    # correct other arrays
-                    pop!(integrator.integrator.notsaveat_idxs)
-                    if typeof(integrator.integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
-                        deleteat!(integrator.integrator.alg_choice, integrator.saveiter + 1)
-                    end
-
-                    # update counter of saved time points
-                    integrator.integrator.saveiter -= 1
-                    integrator.integrator.saveiter_dense -= 1
-
-                    # update time point of loop
-                    t_sol = integrator.integrator.sol.t[integrator.saveiter + 1]
-                else
-                    # increase counter of time points that are required for DDE solution
-                    integrator.saveiter += 1
-
-                    # update time points of loop
-                    t_sol_prev = t_sol
-                    t_sol = integrator.integrator.sol.t[integrator.saveiter + 1]
-                end
+                # remove passed time points
+                pop!(integrator.saveat)
             end
-        end
-    else
-        # do not reduce ODE solution and only remove passed time points up to time tmax
-        # this ensures that no time points after tmax are added to the DDE solution
-        while !isempty(integrator.saveat) && top(integrator.saveat) <= tmax
-            pop!(integrator.saveat)
+
+            # do not remove time point if it is lower bound of a required interpolation
+            # interval
+            if !needed && integrator.saveiter + 1 < integrator.integrator.saveiter
+                t_sol_next = integrator.integrator.sol.t[integrator.saveiter + 2]
+
+                needed = !isempty(integrator.saveat) && top(integrator.saveat) < t_sol_next
+            end
+
+            if !needed
+                # delete not required time point, function value, and interpolation data
+                deleteat!(integrator.integrator.sol.t, integrator.saveiter + 1)
+                deleteat!(integrator.integrator.sol.u, integrator.saveiter + 1)
+                deleteat!(integrator.integrator.sol.k, integrator.saveiter + 1)
+
+                # correct other arrays
+                pop!(integrator.integrator.notsaveat_idxs)
+                if typeof(integrator.integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
+                    deleteat!(integrator.integrator.alg_choice, integrator.saveiter + 1)
+                end
+
+                # update counter of saved time points
+                integrator.integrator.saveiter -= 1
+                integrator.integrator.saveiter_dense -= 1
+
+                # update indices of tprev and u(tprev), and t and u(t) in solution
+                integrator.prev_idx -= 1
+                integrator.prev2_idx -= 1
+
+                # update time point of loop
+                t_sol = integrator.integrator.sol.t[integrator.saveiter + 1]
+            else
+                # increase counter of time points that are required for DDE solution
+                integrator.saveiter += 1
+
+                # update time points of loop
+                t_sol_prev = t_sol
+                t_sol = integrator.integrator.sol.t[integrator.saveiter + 1]
+            end
         end
     end
 end
@@ -98,7 +96,9 @@ function build_solution_array(integrator::DDEIntegrator)
         end
     else
         # calculate number of additional time points of solution
-        saveat_length = length(integrator.opts.saveat) - length(integrator.saveat)
+        saveat_length = count(
+            x -> integrator.tdir * x ≤ integrator.tdir * integrator.sol.t[end],
+            integrator.opts.saveat.valtree)
 
         # create vectors of time points and corresponding values which form final solution
         n = integrator.opts.save_everystep ? length(integrator.sol.t) : 2
@@ -232,30 +232,46 @@ function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArra
 end
 
 """
-    update_ode_integrator!(integrator::DDEIntegrator)
+    advance_ode_integrator!(integrator::DDEIntegrator)
 
-Update ODE integrator of `integrator` to current time interval, values and interpolation
-data of `integrator`.
+Advance ODE integrator of `integrator` to next time interval, values and complete
+interpolation data of `integrator`.
 """
-function update_ode_integrator!(integrator::DDEIntegrator)
-    # update time interval of ODE integrator
-    integrator.integrator.t = integrator.t
-    integrator.integrator.tprev = integrator.tprev
-    integrator.integrator.dt = integrator.dt
+function advance_ode_integrator!(integrator::DDEIntegrator)
+    # algorithm only works if current time of DDE integrator equals final time point
+    # of solution
+    integrator.t != integrator.sol.t[end] && error("cannot advance ODE integrator")
 
-    # copy u(tprev) since it is overwritten by integrator at the end of apply_step!
-    if typeof(integrator.u) <: AbstractArray
-        recursivecopy!(integrator.integrator.u, integrator.u)
-        recursivecopy!(integrator.integrator.uprev, integrator.uprev)
+    # complete interpolation data of DDE integrator for time interval [t, t+dt]
+    # and copy it to ODE integrator
+    # has to be done before updates to ODE integrator, otherwise history function
+    # is incorrect
+    if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
+        OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+                                     integrator.u, integrator.dt, integrator.f,
+                                     integrator.cache.caches[integrator.cache.current],
+                                     Val{false}, Val{true}, Val{true})
     else
-        integrator.integrator.u = integrator.u
-        integrator.integrator.uprev = integrator.uprev
+        OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+                                     integrator.u, integrator.dt, integrator.f,
+                                     integrator.cache, Val{false}, Val{true},
+                                     Val{true})
     end
-
-    # copy interpolation data (fsalfirst overwritten at the end of apply_step!, which also
-    # updates k[1] when using chaches for which k[1] points to fsalfirst)
     recursivecopy!(integrator.integrator.k, integrator.k)
 
-    # add additional interpolation steps
-    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
+    # move ODE integrator to interval [t, t+dt]
+    integrator.integrator.t = integrator.t + integrator.dt
+    integrator.integrator.tprev = integrator.t
+    integrator.integrator.dt = integrator.dt
+    if typeof(integrator.integrator.u) <: AbstractArray
+        recursivecopy!(integrator.integrator.u, integrator.u)
+    else
+        integrator.integrator.u = integrator.u
+    end
+
+    # u(t) is not modified hence we do not have to copy it
+    integrator.integrator.uprev = integrator.sol.u[end]
+
+    # update prev_idx to index of t and u(t) in solution
+    integrator.prev_idx = length(integrator.sol.t)
 end

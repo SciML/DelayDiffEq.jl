@@ -9,7 +9,7 @@ Before the initial time point of solution `sol` values are calculated by history
 and after the final time point of `sol` an inter- or extrapolation of the current state
 of integrator `integrator` is retrieved.
 """
-struct HistoryFunction{F1,F2,F3} <: Function
+struct HistoryFunction{F1,F2,F3<:ODEIntegrator} <: Function
     h::F1
     sol::F2
     integrator::F3
@@ -24,9 +24,21 @@ function (f::HistoryFunction)(t, deriv::Type=Val{0}, idxs=nothing)
         end
     elseif t <= f.sol.t[end] # Put equals back
         return f.sol.interp(t, idxs, deriv)
-    else
-        return OrdinaryDiffEq.current_interpolant(t, f.integrator, idxs, deriv)
     end
+
+    integrator = f.integrator
+
+    # set boolean that indicates that history function was evaluated at time point past the
+    # final time point of the current solution
+    # NOTE: does not interfere with usual use of isout since this integrator is only used
+    # for inter- and extrapolation of future values and saving of the solution but does not
+    # affect whether time steps are accepted
+    integrator.isout = true
+
+    # handle extrapolations in initial time step (otherwise dt = 0 should not occur)
+    integrator.dt == 0 && return constant_extrapolation(t, integrator, idxs, deriv)
+
+    return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
 end
 
 function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
@@ -38,7 +50,19 @@ function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
         end
     elseif t <= f.sol.t[end] # Put equals back
         return f.sol.interp(val, t, idxs, deriv)
-    else
-        return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
     end
+
+    integrator = f.integrator
+
+    # set boolean that indicates that history function was evaluated at time point past the
+    # final time point of the current solution
+    # NOTE: does not interfere with usual use of isout since this integrator is only used
+    # for inter- and extrapolation of future values and saving of the solution but does not
+    # affect whether time steps are accepted
+    integrator.isout = true
+
+    # handle extrapolations in initial time step (otherwise dt = 0 should not occur)
+    integrator.dt == 0 && return constant_extrapolation!(val, t, integrator, idxs, deriv)
+
+    return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
 end
