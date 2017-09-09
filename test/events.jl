@@ -1,20 +1,13 @@
 using DelayDiffEq, DiffEqProblemLibrary, DiffEqDevTools,
       DiffEqCallbacks, Base.Test
 
-prob = prob_dde_1delay_scalar_notinplace(1.0)
+prob = prob_dde_1delay_scalar_notinplace
 alg = MethodOfSteps(Tsit5(); constrained=false)
 
 # continuous callback
 
-condition = function (t,u,integrator) # Event when event_f(t,u,k) == 0
-    t - 2.60
-end
-
-affect! = function (integrator)
-    integrator.u = -integrator.u
-end
-
-cb = ContinuousCallback(condition, affect!)
+cb = ContinuousCallback((t, u, integrator) -> t - 2.60, # Event when event_f(t,u,k) == 0
+                        integrator -> (integrator.u = - integrator.u))
 
 sol1 = solve(prob, alg, callback=cb)
 

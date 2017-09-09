@@ -1,6 +1,6 @@
 using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
-prob = prob_dde_1delay(1.0)
+prob = prob_dde_1delay
 
 # ODE algorithms
 algs = [GenericImplicitEuler(), GenericTrapezoid(),

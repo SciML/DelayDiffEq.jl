@@ -1,9 +1,8 @@
 using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
 alg = MethodOfSteps(RK4(); constrained=false)
-u₀ = 1.0
 
-prob = prob_dde_1delay_scalar_notinplace(u₀)
+prob = prob_dde_1delay_scalar_notinplace
 sol = solve(prob, alg)
 
 @test sol.errors[:l∞] < 5.6e-5
@@ -11,8 +10,7 @@ sol = solve(prob, alg)
 @test sol.errors[:l2] < 2.0e-5
 
 prob2 = deepcopy(prob)
-typeof(prob2) <: ConstantLagDDEProblem ? prob2.lags=Rational{Int}[] :
-                 prob2.constant_lags=Rational{Int}[]
+prob2.constant_lags = Float64[]
 sol2 = solve(prob2, alg)
 
 @test sol2.errors[:l∞] < 1.1e-4
@@ -27,10 +25,9 @@ sol3 = solve(prob2, alg, abstol=1e-9,reltol=1e-6)
 
 sol4 = solve(prob2, alg, abstol=1e-13,reltol=1e-13)
 
-@test sol4.errors[:l∞] < 1.3e-10
-# relaxed tests to prevent floating point issues
-@test sol4.errors[:final] < 2.0e-12 # 2.0e-15
-@test sol4.errors[:l2] < 1.5e-10 # 1.5e-11
+@test sol4.errors[:l∞] < 6.3e-11
+@test sol4.errors[:final] < 1.1e-11
+@test sol4.errors[:l2] < 9.1e-12
 
 ######## Now show that non-residual control is worse
 

@@ -4,13 +4,12 @@ using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 # independent of problem structure
 
 alg = MethodOfSteps(BS3(); constrained=true)
-u₀ = 1.0
 
 # Single constant delay
 
 ## Not in-place function with scalar history function
 
-prob = prob_dde_1delay_scalar_notinplace(u₀)
+prob = prob_dde_1delay_scalar_notinplace
 dde_int = init(prob, alg; dt=0.1)
 sol = solve!(dde_int)
 
@@ -20,7 +19,7 @@ sol = solve!(dde_int)
 
 ## Not in-place function with vectorized history function
 
-prob = prob_dde_1delay_notinplace(u₀)
+prob = prob_dde_1delay_notinplace
 dde_int = init(prob, alg; dt=0.1)
 sol2 = solve!(dde_int)
 
@@ -28,7 +27,7 @@ sol2 = solve!(dde_int)
 
 ## In-place function
 
-prob = prob_dde_1delay(u₀)
+prob = prob_dde_1delay
 dde_int = init(prob, alg; dt=0.1)
 sol2 = solve!(dde_int)
 
@@ -38,7 +37,7 @@ sol2 = solve!(dde_int)
 
 ## Not in-place function with scalar history function
 
-prob = prob_dde_2delays_scalar_notinplace(u₀)
+prob = prob_dde_2delays_scalar_notinplace
 dde_int = init(prob, alg; dt=0.1)
 sol = solve!(dde_int)
 
@@ -48,7 +47,7 @@ sol = solve!(dde_int)
 
 ## Not in-place function with vectorized history function
 
-prob = prob_dde_2delays_notinplace(u₀)
+prob = prob_dde_2delays_notinplace
 dde_int = init(prob, alg; dt=0.1)
 sol2 = solve!(dde_int)
 
@@ -56,7 +55,7 @@ sol2 = solve!(dde_int)
 
 ## In-place function
 
-prob = prob_dde_2delays(u₀)
+prob = prob_dde_2delays
 dde_int = init(prob, alg; dt=0.1)
 sol2 = solve!(dde_int)
 

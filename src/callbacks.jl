@@ -14,8 +14,8 @@ function handle_callback_modifiers!(integrator::DDEIntegrator)
     end
 
     discontinuity_tree = compute_discontinuity_tree(constant_lags, integrator.alg,
-                                                    integrator.t, integrator.prob.tspan[2],
-                                                    neutral)
+                                                    integrator.t,
+                                                    integrator.sol.prob.tspan[2], neutral)
     push!(integrator.opts.d_discontinuities, discontinuity_tree...)
     push!(integrator.opts.tstops, discontinuity_tree...)
 end

@@ -1,8 +1,8 @@
 using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
 ## simple problems
-prob_inplace = prob_dde_1delay(1.0)
-prob_notinplace = prob_dde_1delay_scalar_notinplace(1.0)
+prob_inplace = prob_dde_1delay
+prob_notinplace = prob_dde_1delay_scalar_notinplace
 
 # Vern6
 sol = solve(prob_inplace, MethodOfSteps(Vern6()))
@@ -49,18 +49,17 @@ sol2 = solve(prob_notinplace, MethodOfSteps(Vern9()))
 
 @test sol.t == sol2.t && sol[1, :] == sol2.u
 
-# TODO: uncomment if DiffEqProblemLibrary is updated
-# # model of Mackey and Glass
-# # prob = prob_dde_mackey
+# model of Mackey and Glass
+prob = prob_dde_mackey
 
-# # Vern6
-# sol = solve(prob, MethodOfSteps(Vern6()))
+# Vern6
+sol = solve(prob, MethodOfSteps(Vern6()))
 
-# # Vern7
-# sol = solve(prob, MethodOfSteps(Vern7()))
+# Vern7
+sol = solve(prob, MethodOfSteps(Vern7()))
 
-# # Vern8
-# sol = solve(prob, MethodOfSteps(Vern8()))
+# Vern8
+sol = solve(prob, MethodOfSteps(Vern8()))
 
-# # Vern9
-# sol = solve(prob, MethodOfSteps(Vern9()))
+# Vern9
+sol = solve(prob, MethodOfSteps(Vern9()))

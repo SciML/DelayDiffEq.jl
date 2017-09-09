@@ -239,15 +239,13 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
                             typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
-                            typeof(integrator.rate_prototype),typeof(dde_f),
-                            typeof(integrator.prog),typeof(dde_cache),
-                            typeof(integrator),typeof(prob),typeof(fixedpoint_norm),
-                            typeof(opts),typeof(saveat_copy)}(
-                                sol, prob, u, integrator.k, integrator.t, dt, dde_f,
-                                uprev, uprev2, integrator.tprev, 1, 1,
-                                fixedpoint_abstol_internal, fixedpoint_reltol_internal,
-                                resid, fixedpoint_norm, alg.max_fixedpoint_iters,
-                                integrator.alg, integrator.rate_prototype,
+                            typeof(dde_f),typeof(integrator.prog),typeof(dde_cache),
+                            typeof(integrator),typeof(fixedpoint_norm),typeof(opts),
+                            typeof(saveat_copy),fsal_typeof(integrator)}(
+                                sol, u, integrator.k, integrator.t, dt, dde_f, uprev,
+                                uprev2, integrator.tprev, 1, 1, fixedpoint_abstol_internal,
+                                fixedpoint_reltol_internal, resid, fixedpoint_norm,
+                                alg.max_fixedpoint_iters, saveat_copy, integrator.alg,
                                 integrator.notsaveat_idxs, integrator.dtcache,
                                 integrator.dtchangeable, integrator.dtpropose,
                                 integrator.tdir, integrator.EEst, integrator.qold,
@@ -258,7 +256,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 integrator.force_stepfail, integrator.just_hit_tstop,
                                 integrator.last_stepfail, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
-                                integrator.u_modified, opts, integrator, saveat_copy)
+                                integrator.u_modified, opts, integrator)
 
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
@@ -303,13 +301,15 @@ function solve!(integrator::DDEIntegrator)
     # create interpolation data of solution
     interp = build_solution_interpolation(integrator, sol_array)
 
+    # obtain DDE problem
+    prob = integrator.sol.prob
+
     # calculate analytical solutions to problem if existent
-    if has_analytic(integrator.prob.f)
+    if has_analytic(prob.f)
         if typeof(integrator.opts.save_idxs) <: Void
-            u_analytic = [integrator.prob.f(Val{:analytic}, t, integrator.sol[1])
-                          for t in sol_array.t]
+            u_analytic = [prob.f(Val{:analytic}, t, integrator.sol[1]) for t in sol_array.t]
         else
-            u_analytic = [@view(integrator.prob.f(
+            u_analytic = [@view(prob.f(
                 Val{:analytic}, t, integrator.sol[1])[integrator.opts.save_idxs])
                           for t in sol_array.t]
         end
@@ -321,18 +321,18 @@ function solve!(integrator::DDEIntegrator)
 
     # combine arrays of time points and values, interpolation data, and analytical solution
     # to solution
-    if typeof(integrator.prob.u0) <: Tuple
+    if typeof(prob.u0) <: Tuple
       N = length((size(ArrayPartition(prob.u0))..., length(sol_array.u)))
     else
-      N = length((size(integrator.prob.u0)..., length(sol_array.u)))
+      N = length((size(prob.u0)..., length(sol_array.u)))
     end
 
     sol = ODESolution{eltype(sol_array),N,typeof(sol_array.u),
                       typeof(u_analytic),typeof(errors),typeof(sol_array.t),
-                      typeof(interp.ks),typeof(integrator.sol.prob),
+                      typeof(interp.ks),typeof(prob),
                       typeof(integrator.sol.alg),typeof(interp)}(
                           sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
-                          integrator.sol.prob, integrator.sol.alg, interp, interp.dense,
+                          prob, integrator.sol.alg, interp, interp.dense,
                           integrator.sol.tslocation, integrator.sol.retcode)
 
     # calculate errors of solution
