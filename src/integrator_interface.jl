@@ -34,11 +34,11 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     # reduce ODE solution
     if !(typeof(integrator.saveat) <: Void)
         # obtain constant lags
-        if typeof(integrator.prob) <: ConstantLagDDEProblem
+        if typeof(integrator.sol.prob) <: ConstantLagDDEProblem
             #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
-            constant_lags = integrator.prob.lags
+            constant_lags = integrator.sol.prob.lags
         else
-            constant_lags = integrator.prob.constant_lags
+            constant_lags = integrator.sol.prob.constant_lags
         end
 
         # delete part of ODE solution that is not required for DDE solution

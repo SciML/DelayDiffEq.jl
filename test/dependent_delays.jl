@@ -2,7 +2,7 @@ using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
 alg = MethodOfSteps(BS3())
 
-dde_int = init(prob_dde_1delay(1.0), alg)
+dde_int = init(prob_dde_1delay, alg)
 
 sol = solve!(dde_int)
 
@@ -11,7 +11,8 @@ sol = solve!(dde_int)
 @test sol.errors[:l2] < 1.5e-5
 
 # constant delay specified as function
-prob2 = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), [], [(t, u) -> 1])
+prob2 = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), [],
+                   [(t, u) -> 1])
 
 dde_int2 = init(prob2, alg)
 sol2 = solve!(dde_int2)

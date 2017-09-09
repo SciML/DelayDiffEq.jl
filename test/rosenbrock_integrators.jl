@@ -1,6 +1,6 @@
 using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
-prob = prob_dde_1delay(1.0)
+prob = prob_dde_1delay
 
 # ODE algorithms
 algs = [Rosenbrock23(), Rosenbrock32(), ROS3P(), Rodas3(),

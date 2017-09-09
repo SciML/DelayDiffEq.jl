@@ -1,6 +1,6 @@
 using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
-dde_int = init(prob_dde_2delays(1.0), MethodOfSteps(BS3()))
+dde_int = init(prob_dde_2delays, MethodOfSteps(BS3()))
 
 @test dde_int.tracked_discontinuities == [Discontinuity(0., 0)]
 

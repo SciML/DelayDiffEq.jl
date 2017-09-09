@@ -326,20 +326,20 @@ Discontinuities caused by constant delays are immediately calculated, and discon
 """
 function add_next_discontinuities!(integrator, order, t=integrator.t)
     # obtain delays
-    if typeof(integrator.prob) <: ConstantLagDDEProblem
+    if typeof(integrator.sol.prob) <: ConstantLagDDEProblem
         #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
         neutral = false
-        constant_lags = integrator.prob.lags
+        constant_lags = integrator.sol.prob.lags
     else
-        neutral = integrator.prob.neutral
-        constant_lags = integrator.prob.constant_lags
+        neutral = integrator.sol.prob.neutral
+        constant_lags = integrator.sol.prob.constant_lags
     end
 
     # only track discontinuities up to order of the applied method
     order >= alg_order(integrator.alg) && !neutral && return nothing
 
     # discontinuities caused by constant lags
-    maxlag = integrator.prob.tspan[2] - t
+    maxlag = integrator.sol.prob.tspan[2] - t
     for lag in constant_lags
         if lag < maxlag
             # calculate discontinuity and add it to heap of discontinuities and time stops

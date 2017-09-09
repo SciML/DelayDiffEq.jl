@@ -4,13 +4,12 @@ using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 # independent of problem structure
 
 alg = MethodOfSteps(BS3(); constrained=false)
-u₀ = 1.0
 
 ## Single constant delay
 
 ### Not in-place function with scalar history function
 
-prob = prob_dde_1delay_scalar_notinplace(u₀)
+prob = prob_dde_1delay_scalar_notinplace
 sol = solve(prob, alg)
 
 @test sol.errors[:l∞] < 3.7e-5
@@ -19,14 +18,14 @@ sol = solve(prob, alg)
 
 ### Not in-place function with vectorized history function
 
-prob = prob_dde_1delay_notinplace(u₀)
+prob = prob_dde_1delay_notinplace
 sol2 = solve(prob, alg)
 
 @test sol.t == sol2.t && sol.u == sol2[1, :]
 
 ### In-place function
 
-prob = prob_dde_1delay(u₀)
+prob = prob_dde_1delay
 sol2 = solve(prob, alg)
 
 @test sol.t == sol2.t && sol.u == sol2[1, :]
@@ -35,7 +34,7 @@ sol2 = solve(prob, alg)
 
 ### Not in-place function with scalar history function
 
-prob = prob_dde_2delays_scalar_notinplace(u₀)
+prob = prob_dde_2delays_scalar_notinplace
 sol = solve(prob, alg)
 
 @test sol.errors[:l∞] < 1.9e-6
@@ -44,14 +43,14 @@ sol = solve(prob, alg)
 
 ### Not in-place function with vectorized history function
 
-prob = prob_dde_2delays_notinplace(u₀)
+prob = prob_dde_2delays_notinplace
 sol2 = solve(prob, alg)
 
 @test sol.t == sol2.t && sol.u == sol2[1, :]
 
 ### In-place function
 
-prob = prob_dde_2delays(u₀)
+prob = prob_dde_2delays
 sol2 = solve(prob, alg)
 
 @test sol.t == sol2.t && sol.u == sol2[1, :]
@@ -102,10 +101,10 @@ alg4 = MethodOfSteps(DP5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
 sol4 = solve(prob, alg4)
 
-@test abs(sol1[end] - sol2[end]) < 2.5e-11
 # relaxed tests to prevent floating point issues
-@test abs(sol1[end] - sol3[end]) < 1.3e-13 # 1.3e-14
-@test abs(sol1[end] - sol4[end]) < 1.2e-12 # 1.2e-13
+@test abs(sol1[end] - sol2[end]) < 2.6e-11 # 2.4e-11
+@test abs(sol1[end] - sol3[end]) < 8.6e-13 # 8.6e-15
+@test abs(sol1[end] - sol4[end]) < 4.9e-13 # 4.9e-15
 
 println("Standard tests complete. Onto idxs tests")
 
@@ -123,7 +122,7 @@ function h(t,idxs=nothing)
   end
 end
 
-prob = ConstantLagDDEProblem(f, h, [1.0], [0.2], (0.0, 100.0))
+prob = DDEProblem(f, h, [1.0], (0.0, 100.), [0.2])
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
@@ -139,7 +138,7 @@ function h(out::AbstractArray,t,idxs=nothing)
   out[1] = 0.0
 end
 
-prob = ConstantLagDDEProblem(f, h, [1.0], [0.2], (0.0, 100.0))
+prob = DDEProblem(f, h, [1.0], (0.0, 100.0), [0.2])
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
