@@ -9,7 +9,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
               save_start=true, dense=save_everystep && !(typeof(alg) <: Discrete),
               minimal_solution=true, discontinuity_interp_points::Int=10,
-              discontinuity_atol=tType(1//Int64(10)^12), discontinuity_rtol=0,
+              discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
               initial_order=prob.h(prob.tspan[1]) == prob.u0 ? 1 : 0,
               callback=nothing, kwargs...) where
     {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
@@ -54,8 +54,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         discontinuity_callback = DiscontinuityCallback(dependent_lags,
                                                        tracked_discontinuities,
                                                        discontinuity_interp_points,
-                                                       discontinuity_atol,
-                                                       discontinuity_rtol)
+                                                       discontinuity_abstol,
+                                                       discontinuity_reltol)
         callbacks = CallbackSet(callback, discontinuity_callback)
     else
         callbacks = callback
@@ -253,9 +253,9 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # reduction of solution only possible if no dense interpolation required and only
     # selected time points saved, and all constant and no dependent lags are given
     # WARNING: can impact quality of solution if not all constant lags specified
-    # TODO: also disable if dependent lags specified
     minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep &&
-        !isempty(constant_lags)
+        !isempty(constant_lags) &&
+        (typeof(dependent_lags) <: Void || isempty(dependent_lags))
 
     # need copy of heap of additional time points (nodes will be deleted!) in order to
     # remove unneeded time points of ODE solution as soon as possible and keep track

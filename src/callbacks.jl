@@ -39,13 +39,13 @@ struct DiscontinuityCallback{F,D<:Discontinuity,A,R} <: AbstractContinuousCallba
     lags::F
     discontinuities::Vector{D}
     interp_points::Int
-    atol::A
-    rtol::R
+    abstol::A
+    reltol::R
 end
 
 """
     DiscontinuityCallback(lags, discontinuities::Vector{<:Discontinuity};
-                          [interp_points::Int=10, atol=1e-12, rtol=0])
+                          [interp_points::Int=10, abstol=1e-12, reltol=0])
 
 Callback that tracks `discontinuities` that are propagated by dependent `lags` of the form
 `(t, u) -> lag(t, u)`.
@@ -55,12 +55,12 @@ different signs of functions ``f(t) = T + lag(t, u(t)) - t``, where ``T`` is tim
 previous discontinuity and ``t`` is contained in the current time interval. This shows that
 the current time interval contains propagated discontinuities of which the exact time point
 is then determined by a root finding algorithm. The sign at the lower bound of the time
-interval, i.e. at `tprev`, is set to 0 with absolute tolerance `atol` and relative
-tolerance `rtol`.
+interval, i.e. at `tprev`, is set to 0 with absolute tolerance `abstol` and relative
+tolerance `reltol`.
 """
 function DiscontinuityCallback(lags, discontinuities::Vector{<:Discontinuity};
-                               interp_points::Int=10, atol=1e-12, rtol=0)
-    DiscontinuityCallback(lags, discontinuities, interp_points, atol, rtol)
+                               interp_points::Int=10, abstol=1e-12, reltol=0)
+    DiscontinuityCallback(lags, discontinuities, interp_points, abstol, reltol)
 end
 
 # do not initialize discontinuity callback
@@ -78,14 +78,6 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
     end
     Θs = linspace(0, one(integrator.t), callback.interp_points)
 
-    # use temporary array of mutable caches in calculation of interpolants
-    if typeof(integrator.cache) <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
-        idxs_internal = eachindex(integrator.cache.tmp)
-        tmp = integrator.cache.tmp
-    else
-        idxs_internal = nothing
-    end
-
     for lag in callback.lags
         # define function f that calculates T + lag(t, u(t)) - t, where t = tprev + Θ*dt is
         # a time point in the time interval of the current step and T ≤ tprev is the time
@@ -93,9 +85,11 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
         # hence roots t of this function for fixed T are propagated discontinuities
         function f(Θ, T)
             if typeof(integrator.cache) <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
-                OrdinaryDiffEq.ode_interpolant!(tmp, Θ, integrator, idxs_internal, Val{0})
+                # use temporary array of mutable caches in calculation of interpolants
+                tmp = integrator.cache.tmp
+                OrdinaryDiffEq.ode_interpolant!(tmp, Θ, integrator, nothing, Val{0})
             else
-                tmp = OrdinaryDiffEq.ode_interpolant(Θ, integrator, idxs_internal, Val{0})
+                tmp = OrdinaryDiffEq.ode_interpolant(Θ, integrator, nothing, Val{0})
             end
             t = integrator.tprev + Θ*integrator.dt
             T + lag(t, tmp) - t
@@ -109,7 +103,7 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
             # use start and end point of last time interval to check for discontinuities
             previous_condition = T + lag(integrator.tprev, integrator.uprev) -
                 integrator.tprev
-            if isapprox(previous_condition, 0, rtol=callback.rtol, atol=callback.atol)
+            if isapprox(previous_condition, 0, rtol=callback.reltol, atol=callback.abstol)
                 prev_sign = 0
             else
                 prev_sign = cmp(previous_condition, 0)
