@@ -15,5 +15,5 @@
 
     push!(integrator.opts.d_discontinuities,
           compute_discontinuity_tree(constant_lags, integrator.alg,
-                                     integrator.t,integrator.prob.tspan[2],neutral)...)
+                                     integrator.t,integrator.sol.prob.tspan[2],neutral)...)
 end

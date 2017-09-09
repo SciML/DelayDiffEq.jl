@@ -61,13 +61,13 @@ Calculate next step of `integrator`.
     # perform always at least one calculation
     perform_step!(integrator, integrator.cache)
 
-    if typeof(integrator.prob) <: ConstantLagDDEProblem
+    if typeof(integrator.sol.prob) <: ConstantLagDDEProblem
         #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
         neutral = false
-        constant_lags = integrator.prob.lags
+        constant_lags = integrator.sol.prob.lags
     else
-        neutral = integrator.prob.neutral
-        constant_lags = integrator.prob.constant_lags
+        neutral = integrator.sol.prob.neutral
+        constant_lags = integrator.sol.prob.constant_lags
     end
 
     # if dt is greater than the minimal lag, then use a fixed-point iteration

@@ -41,6 +41,21 @@ function compute_discontinuity_tree(lags, alg, start_val,end_val,neutral)
 end
 
 """
+    fsal_typeof(integrator::ODEIntegrator)
+
+Return type of FSAL of `integrator`.
+"""
+function fsal_typeof(integrator::ODEIntegrator{<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,
+                                               uType,tType,tTypeNoUnits,tdirType,ksEltype,
+                                               SolType,F,ProgressType,CacheType,O,
+                                               FSALType}) where {uType,tType,tTypeNoUnits,
+                                                                 tdirType,ksEltype,SolType,
+                                                                 F,ProgressType,CacheType,O,
+                                                                 FSALType}
+    return FSALType
+end
+
+"""
     build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt)
 
 Create cache for algorithm `alg` from existing cache `cache` with updated `u`, `uprev`,
