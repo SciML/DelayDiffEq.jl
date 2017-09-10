@@ -263,7 +263,7 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
     integrator.integrator.t = integrator.t + integrator.dt
     integrator.integrator.tprev = integrator.t
     integrator.integrator.dt = integrator.dt
-    if typeof(integrator.integrator.u) <: AbstractArray
+    if isinplace(integrator.sol.prob)
         recursivecopy!(integrator.integrator.u, integrator.u)
     else
         integrator.integrator.u = integrator.u
@@ -274,4 +274,100 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
 
     # update prev_idx to index of t and u(t) in solution
     integrator.prev_idx = length(integrator.sol.t)
+end
+
+#=
+Dealing with discontinuities
+
+If we hit a discontinuity (this is checked in `apply_step!`), then we remove the
+discontinuity, additional discontinuities at the current time point (if present), and
+maybe also discontinuities and time stops coming shortly after the current time point
+in `handle_discontinuities!`. The order of the discontinuity at the current time point is
+defined as the lowest order of all these discontinuities.
+
+If the problem is not neutral, we will only add additional discontinuities if this order is
+below the order of the algorithm in `add_next_discontinuities!`. If we add discontinuities,
+we add discontinuities of the next order caused by constant lags (these we can calculate
+explicitly and just add them to `d_discontinuities` and `tstops`) and we add the current
+discontinuity to `tracked_discontinuities` which is the array of old discontinuities that
+are checked by a `DiscontinuityCallback` (if existent).
+=#
+
+"""
+    handle_discontinuities!(integrator::DDEIntegrator)
+
+Handle discontinuities at the current time point of `integrator`.
+"""
+function handle_discontinuities!(integrator::DDEIntegrator)
+    # remove all discontinuities at current time point and calculate minimal order
+    # of these discontinuities
+    d = pop!(integrator.opts.d_discontinuities)
+    order = d.order
+    while !isempty(integrator.opts.d_discontinuities) &&
+        top(integrator.opts.d_discontinuities) == integrator.t
+
+        d2 = pop!(integrator.opts.d_discontinuities)
+        order = min(order, d2.order)
+    end
+
+    # remove all discontinuities close to the current time point as well and
+    # calculate minimal order of these discontinuities
+    if typeof(integrator.t) <: AbstractFloat # does not work for units!
+        while !isempty(integrator.opts.d_discontinuities) &&
+            abs(top(integrator.opts.d_discontinuities).t - integrator.t) < 10eps(integrator.t)
+
+            d2 = pop!(integrator.opts.d_discontinuities)
+            order = min(order, d2.order)
+        end
+
+        # also remove all corresponding time stops
+        while !isempty(integrator.opts.tstops) &&
+            abs(top(integrator.opts.tstops) - integrator.t) < 10eps(integrator.t)
+
+            pop!(integrator.opts.tstops)
+        end
+    end
+
+    # add discontinuities of next order to integrator
+    add_next_discontinuities!(integrator, order)
+end
+
+"""
+    add_next_discontinuities!(integrator::DDEIntegrator, order, [t=integrator.t])
+
+Add discontinuities of next order that are propagated from discontinuity of order `order`
+at time `t` in `integrator`, but only up to order of the applied method if the problem
+is not neutral.
+
+Discontinuities caused by constant delays are immediately calculated, and discontinuities caused by dependent delays are tracked by a callback.
+"""
+function add_next_discontinuities!(integrator, order, t=integrator.t)
+    # obtain delays
+    if typeof(integrator.sol.prob) <: ConstantLagDDEProblem
+        #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
+        neutral = false
+        constant_lags = integrator.sol.prob.lags
+    else
+        neutral = integrator.sol.prob.neutral
+        constant_lags = integrator.sol.prob.constant_lags
+    end
+
+    # only track discontinuities up to order of the applied method
+    order >= alg_order(integrator.alg) && !neutral && return nothing
+
+    # discontinuities caused by constant lags
+    maxlag = integrator.sol.prob.tspan[2] - t
+    for lag in constant_lags
+        if lag < maxlag
+            # calculate discontinuity and add it to heap of discontinuities and time stops
+            d = Discontinuity(t + lag, order + 1)
+            push!(integrator.opts.d_discontinuities, d)
+            push!(integrator.opts.tstops, d.t)
+        end
+    end
+
+    if order < alg_order(integrator.alg) || neutral
+        # track propagated discontinuities with callback
+        push!(integrator.tracked_discontinuities, Discontinuity(t, order))
+    end
 end
