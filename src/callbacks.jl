@@ -24,7 +24,7 @@ function reeval_internals_due_to_modification!(integrator::DDEIntegrator)
     # move ODE integrator to new time interval of DDE integrator
     integrator.integrator.t = integrator.t
     integrator.integrator.dt = integrator.dt
-    if typeof(integrator.integrator.u) <: AbstractArray
+    if isinplace(integrator.sol.prob)
         recursivecopy!(integrator.integrator.u, integrator.u)
     else
         integrator.integrator.u = integrator.u

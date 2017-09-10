@@ -263,7 +263,7 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
     integrator.integrator.t = integrator.t + integrator.dt
     integrator.integrator.tprev = integrator.t
     integrator.integrator.dt = integrator.dt
-    if typeof(integrator.integrator.u) <: AbstractArray
+    if isinplace(integrator.sol.prob)
         recursivecopy!(integrator.integrator.u, integrator.u)
     else
         integrator.integrator.u = integrator.u
@@ -275,6 +275,23 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
     # update prev_idx to index of t and u(t) in solution
     integrator.prev_idx = length(integrator.sol.t)
 end
+
+#=
+Dealing with discontinuities
+
+If we hit a discontinuity (this is checked in `apply_step!`), then we remove the
+discontinuity, additional discontinuities at the current time point (if present), and
+maybe also discontinuities and time stops coming shortly after the current time point
+in `handle_discontinuities!`. The order of the discontinuity at the current time point is
+defined as the lowest order of all these discontinuities.
+
+If the problem is not neutral, we will only add additional discontinuities if this order is
+below the order of the algorithm in `add_next_discontinuities!`. If we add discontinuities,
+we add discontinuities of the next order caused by constant lags (these we can calculate
+explicitly and just add them to `d_discontinuities` and `tstops`) and we add the current
+discontinuity to `tracked_discontinuities` which is the array of old discontinuities that
+are checked by a `DiscontinuityCallback` (if existent).
+=#
 
 """
     handle_discontinuities!(integrator::DDEIntegrator)

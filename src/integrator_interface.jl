@@ -77,7 +77,7 @@ Calculate next step of `integrator`.
 @muladd function perform_step!(integrator::DDEIntegrator)
     # reset ODE integrator to cached values if last step failed
     if !integrator.integrator.accept_step
-        if typeof(integrator.u) <: AbstractArray
+        if isinplace(integrator.sol.prob)
             recursivecopy!(integrator.integrator.u, integrator.sol.u[end])
         else
             integrator.integrator.u = integrator.sol.u[end]
@@ -120,17 +120,16 @@ Calculate next step of `integrator`.
             perform_step!(integrator, integrator.cache, true) # repeat_step=true
 
             # calculate residuals of fixed-point iteration
-            # TODO: replace with updated calculate_residuals
-            if typeof(integrator.u) <: AbstractArray
-                @. integrator.resid = (integrator.u - integrator.integrator.u) /
-                    (integrator.fixedpoint_abstol + max(abs(integrator.u),
-                                                        abs(integrator.integrator.u)) *
-                     integrator.fixedpoint_reltol)
+            if isinplace(integrator.sol.prob)
+                OrdinaryDiffEq.calculate_residuals!(integrator.resid,
+                                                    integrator.integrator.u,
+                                                    integrator.u,
+                                                    integrator.fixedpoint_abstol,
+                                                    integrator.fixedpoint_reltol)
             else
-                integrator.resid = (integrator.u - integrator.integrator.u) /
-                    (integrator.fixedpoint_abstol + max(abs(integrator.u),
-                                                        abs(integrator.integrator.u)) *
-                            integrator.fixedpoint_reltol)
+                integrator.resid = OrdinaryDiffEq.calculate_residuals(
+                    integrator.integrator.u, integrator.u, integrator.fixedpoint_abstol,
+                    integrator.fixedpoint_reltol)
             end
 
             # update error estimate of integrator with a combined error
@@ -158,7 +157,7 @@ Calculate next step of `integrator`.
             recursivecopy!(integrator.integrator.k, integrator.k)
 
             # update value u(t+dt)
-            if typeof(integrator.u) <: AbstractArray
+            if isinplace(integrator.sol.prob)
                 recursivecopy!(integrator.integrator.u, integrator.u)
             else
                 integrator.integrator.u = integrator.u
