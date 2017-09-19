@@ -55,7 +55,7 @@ assign_expr(::Val{:phi1}, ::Type, ::Type{<:OrdinaryDiffEq.NorsettEulerCache}) =
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.TimeDerivativeWrapper}, ::Type) where name =
     :($name = OrdinaryDiffEq.TimeDerivativeWrapper(f, u))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.UDerivativeWrapper}, ::Type) where name =
-    :($name = OrdinaryDiffEq.UDerivativeWrapper(f, getfield(cache, t)))
+    :($name = OrdinaryDiffEq.UDerivativeWrapper(f, t))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.TimeGradientWrapper}, ::Type) where name =
     :($name = OrdinaryDiffEq.TimeGradientWrapper(
         OrdinaryDiffEq.VectorF(f, size(u)),

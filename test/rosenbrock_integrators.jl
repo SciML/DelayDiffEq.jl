@@ -1,6 +1,7 @@
 using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 
 prob = prob_dde_1delay
+prob_scalar = prob_dde_1delay_scalar_notinplace
 
 # ODE algorithms
 algs = [Rosenbrock23(), Rosenbrock32(), ROS3P(), Rodas3(),
@@ -16,4 +17,7 @@ for (alg, name) in zip(algs, names)
     step_alg = MethodOfSteps(alg)
     solve(prob, step_alg)
     @time solve(prob, step_alg)
+
+    # test not in-place method
+    solve(prob_scalar, step_alg)
 end
