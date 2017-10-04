@@ -23,8 +23,8 @@ sol2 = solve!(dde_int2)
 @test sol2.t == [0.0, 25.0, 50.0, 75.0, 100.0]
 
 ## solution of ODE integrator is reduced:
-## [0.0, ≈23.92, ≈25.25, ≈49.85, ≈51.08, ≈74.52, ≈75.76, 100.0]
-@test dde_int2.sol.t ≈ [0.0, 23.92, 25.25, 49.85, 51.08, 74.52, 75.76, 100.0] atol=8.1e-3
+## [0.0, ≈24.67, ≈25.89, ≈49.23, ≈50.47, ≈73.91, ≈75.14, 100.0]
+@test dde_int2.sol.t ≈ [0.0, 24.67, 25.89, 49.23, 50.47, 73.91, 75.14, 100.0] atol=1.1e-2
 
 ## solution lies on interpolation of full solution above
 @test sol(sol2.t).u == sol2.u

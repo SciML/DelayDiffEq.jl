@@ -285,12 +285,13 @@ maybe also discontinuities and time stops coming shortly after the current time 
 in `handle_discontinuities!`. The order of the discontinuity at the current time point is
 defined as the lowest order of all these discontinuities.
 
-If the problem is not neutral, we will only add additional discontinuities if this order is
-below the order of the algorithm in `add_next_discontinuities!`. If we add discontinuities,
-we add discontinuities of the next order caused by constant lags (these we can calculate
-explicitly and just add them to `d_discontinuities` and `tstops`) and we add the current
-discontinuity to `tracked_discontinuities` which is the array of old discontinuities that
-are checked by a `DiscontinuityCallback` (if existent).
+If the problem is not neutral, we will only add additional discontinuities if
+this order is less or equal to the order of the algorithm in
+`add_next_discontinuities!`. If we add discontinuities, we add discontinuities
+of the next order caused by constant lags (these we can calculate explicitly and
+just add them to `d_discontinuities` and `tstops`) and we add the current
+discontinuity to `tracked_discontinuities` which is the array of old
+discontinuities that are checked by a `DiscontinuityCallback` (if existent).
 =#
 
 """
@@ -336,13 +337,14 @@ function handle_discontinuities!(integrator::DDEIntegrator)
 end
 
 """
-    add_next_discontinuities!(integrator::DDEIntegrator, order, [t=integrator.t])
+    add_next_discontinuities!(integrator::DDEIntegrator, order[, t=integrator.t])
 
-Add discontinuities of next order that are propagated from discontinuity of order `order`
-at time `t` in `integrator`, but only up to order of the applied method if the problem
-is not neutral.
+Add discontinuities of next order that are propagated from discontinuity of
+order `order` at time `t` in `integrator`, but only if `order` is less or equal
+than the order of the applied method or the problem is neutral.
 
-Discontinuities caused by constant delays are immediately calculated, and discontinuities caused by dependent delays are tracked by a callback.
+Discontinuities caused by constant delays are immediately calculated, and
+discontinuities caused by dependent delays are tracked by a callback.
 """
 function add_next_discontinuities!(integrator, order, t=integrator.t)
     # obtain delays
@@ -356,7 +358,7 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
     end
 
     # only track discontinuities up to order of the applied method
-    order >= alg_order(integrator.alg) && !neutral && return nothing
+    order > alg_order(integrator.alg) && !neutral && return nothing
 
     # discontinuities caused by constant lags
     maxlag = integrator.sol.prob.tspan[2] - t
@@ -369,8 +371,6 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
         end
     end
 
-    if order < alg_order(integrator.alg) || neutral
-        # track propagated discontinuities with callback
-        push!(integrator.tracked_discontinuities, Discontinuity(t, order))
-    end
+    # track propagated discontinuities with callback
+    push!(integrator.tracked_discontinuities, Discontinuity(t, order))
 end

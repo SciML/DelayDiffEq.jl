@@ -6,9 +6,9 @@ dde_int = init(prob_dde_1delay, alg)
 
 sol = solve!(dde_int)
 
-@test sol.errors[:l∞] < 3.7e-5
-@test sol.errors[:final] < 2.0e-5
-@test sol.errors[:l2] < 1.5e-5
+@test sol.errors[:l∞] < 3.0e-5
+@test sol.errors[:final] < 2.1e-5
+@test sol.errors[:l2] < 1.2e-5
 
 # constant delay specified as function
 prob2 = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), [],
@@ -19,21 +19,23 @@ sol2 = solve!(dde_int2)
 
 @test dde_int.tracked_discontinuities == dde_int2.tracked_discontinuities
 
-@test sol2.errors[:l∞] < 3.1e-5
-@test sol2.errors[:final] < 1.9e-5
-@test sol2.errors[:l2] < 1.3e-5
+# worse than results above with constant delays specified as scalars
+@test sol2.errors[:l∞] < 4.2e-5
+@test sol2.errors[:final] < 2.2e-5
+@test sol2.errors[:l2] < 1.7e-5
 
+# simple convergence tests
 sol3 = solve(prob2, alg, abstol=1e-9, reltol=1e-6)
 
-@test sol3.errors[:l∞] < 7.7e-8
-@test sol3.errors[:final] < 4.7e-8
+@test sol3.errors[:l∞] < 7.5e-8
+@test sol3.errors[:final] < 4.6e-8
 @test sol3.errors[:l2] < 3.9e-8
 
 sol4 = solve(prob2, alg, abstol=1e-13, reltol=1e-13)
 
-@test sol4.errors[:l∞] < 7.3e-11
+@test sol4.errors[:l∞] < 6.9e-11
 @test sol4.errors[:final] < 1.1e-11
-@test sol4.errors[:l2] < 6.8e-12
+@test sol4.errors[:l2] < 6.7e-12
 
 # without any delays specified is worse
 prob3 = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), [])

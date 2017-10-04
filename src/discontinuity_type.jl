@@ -1,7 +1,8 @@
 """
     Discontinuity(t, order::Int)
 
-Object of discontinuity of order `order` at time `t`.
+Object of discontinuity of order `order` at time `t`, i.e. discontinuity of
+`order`th derivative at time `t`.
 """
 struct Discontinuity{tType}
     t::tType
