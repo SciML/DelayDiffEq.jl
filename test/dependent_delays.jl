@@ -35,7 +35,7 @@ sol4 = solve(prob2, alg, abstol=1e-13, reltol=1e-13)
 
 @test sol4.errors[:l∞] < 6.9e-11
 @test sol4.errors[:final] < 1.1e-11
-@test sol4.errors[:l2] < 6.7e-12
+@test sol4.errors[:l2] < 6.8e-12 # 6.7e-12, relaxed for Win32
 
 # without any delays specified is worse
 prob3 = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), [])
