@@ -36,9 +36,11 @@ function (f::HistoryFunction)(t, deriv::Type=Val{0}, idxs=nothing)
     integrator.isout = true
 
     # handle extrapolations at initial time point
-    f.sol.t[end] == integrator.sol.prob.tspan[1] && return constant_extrapolant(t, integrator, idxs, deriv)
-
-    return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
+    if integrator.t == integrator.sol.prob.tspan[1]
+        return constant_extrapolant(t, integrator, idxs, deriv)
+    else
+        return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
+    end
 end
 
 function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
@@ -62,7 +64,9 @@ function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
     integrator.isout = true
 
     # handle extrapolations at initial time point
-    f.sol.t[end] == integrator.sol.prob.tspan[1] && return constant_extrapolant!(val, t, integrator, idxs, deriv)
-
-    return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
+    if integrator.t == integrator.sol.prob.tspan[1]
+        return constant_extrapolant!(val, t, integrator, idxs, deriv)
+    else
+        return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
+    end
 end

@@ -44,7 +44,7 @@ function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs, T
     elseif idxs == nothing
         @. val = integrator.u
     else
-        @views @. out = integrator.u[idxs]
+        @views @. val = integrator.u[idxs]
     end
 end
 
@@ -58,6 +58,6 @@ function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs, T
     elseif idxs == nothing
         val .= zero(integrator.u)./oneunit(t)
     else
-        @views val .= zero(integrator.u)./oneunit(t)
+        @views val .= zero(integrator.u[idxs])./oneunit(t)
     end
 end

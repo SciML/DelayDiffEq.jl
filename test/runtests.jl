@@ -1,6 +1,7 @@
 using Base.Test
 
 @time @testset "Discontinuity Tests" begin include("discontinuities.jl") end
+@time @testset "HistoryFunction Tests" begin include("history_function.jl") end
 @time @testset "Constrained Timestep" begin include("constrained.jl") end
 @time @testset "Unconstrained Timestep" begin include("unconstrained.jl") end
 @time @testset "Dependent Delay Tests" begin include("dependent_delays.jl") end
