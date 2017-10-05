@@ -6,7 +6,7 @@ prob = prob_dde_1delay_scalar_notinplace
 sol = solve(prob, alg)
 
 @test sol.errors[:l∞] < 5.6e-5
-@test sol.errors[:final] < 1.9e-6
+@test sol.errors[:final] < 1.8e-6
 @test sol.errors[:l2] < 2.0e-5
 
 prob2 = deepcopy(prob)

@@ -31,7 +31,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # add discontinuities propagated from initial discontinuity
     maxlag = prob.tspan[2] - prob.tspan[1]
-    if initial_order < alg_order(alg)
+    if initial_order ≤ alg_order(alg)
         d_discontinuities_internal = unique(
             Discontinuity{tType}[d_discontinuities;
                                  (Discontinuity(prob.tspan[1] + lag, initial_order + 1)
@@ -43,7 +43,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # create array of tracked discontinuities
     # used to find propagated discontinuities with callbacks and to keep track of all
     # passed discontinuities
-    if initial_order < alg_order(alg)
+    if initial_order ≤ alg_order(alg)
         tracked_discontinuities = [Discontinuity(prob.tspan[1], initial_order)]
     else
         tracked_discontinuities = Discontinuity{tType}[]

@@ -14,8 +14,8 @@ dde_int = init(prob, alg; dt=0.1)
 sol = solve!(dde_int)
 
 @test sol.errors[:l∞] < 3e-5
-@test sol.errors[:final] < 1.8e-5
-@test sol.errors[:l2] < 1.4e-5
+@test sol.errors[:final] < 2.1e-5
+@test sol.errors[:l2] < 1.3e-5
 
 ## Not in-place function with vectorized history function
 

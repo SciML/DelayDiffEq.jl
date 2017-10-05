@@ -8,8 +8,8 @@ prob_notinplace = prob_dde_1delay_scalar_notinplace
 sol = solve(prob_inplace, MethodOfSteps(Vern6()))
 
 @test sol.errors[:l∞] < 8.7e-4
-@test sol.errors[:final] < 7.4e-6
-@test sol.errors[:l2] < 5.4e-4
+@test sol.errors[:final] < 7.5e-6
+@test sol.errors[:l2] < 5.3e-4
 
 sol2 = solve(prob_notinplace, MethodOfSteps(Vern6()))
 
@@ -19,7 +19,7 @@ sol2 = solve(prob_notinplace, MethodOfSteps(Vern6()))
 sol = solve(prob_inplace, MethodOfSteps(Vern7()))
 
 @test sol.errors[:l∞] < 4.0e-4
-@test sol.errors[:final] < 1.7e-5
+@test sol.errors[:final] < 3.5e-7
 @test sol.errors[:l2] < 1.9e-4
 
 sol2 = solve(prob_notinplace, MethodOfSteps(Vern7()))
