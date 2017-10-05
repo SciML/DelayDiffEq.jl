@@ -35,10 +35,12 @@ function (f::HistoryFunction)(t, deriv::Type=Val{0}, idxs=nothing)
     # affect whether time steps are accepted
     integrator.isout = true
 
-    # handle extrapolations in initial time step (otherwise dt = 0 should not occur)
-    integrator.dt == 0 && return constant_extrapolation(t, integrator, idxs, deriv)
-
-    return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
+    # handle extrapolations at initial time point
+    if integrator.t == integrator.sol.prob.tspan[1]
+        return constant_extrapolant(t, integrator, idxs, deriv)
+    else
+        return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
+    end
 end
 
 function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
@@ -61,8 +63,10 @@ function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
     # affect whether time steps are accepted
     integrator.isout = true
 
-    # handle extrapolations in initial time step (otherwise dt = 0 should not occur)
-    integrator.dt == 0 && return constant_extrapolation!(val, t, integrator, idxs, deriv)
-
-    return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
+    # handle extrapolations at initial time point
+    if integrator.t == integrator.sol.prob.tspan[1]
+        return constant_extrapolant!(val, t, integrator, idxs, deriv)
+    else
+        return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
+    end
 end
