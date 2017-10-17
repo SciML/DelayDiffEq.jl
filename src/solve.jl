@@ -296,8 +296,34 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
-    initialize!(dde_int)
-    initialize!(integrator.opts.callback, integrator.t, u, dde_int)
+
+    if initialize_integrator
+      integrator.u_modified = true
+
+      initialize!(integrator.opts.callback, integrator.t, u, dde_int)
+
+      # if the user modifies u, we need to fix previous values before initializing
+      # FSAL in order for the starting derivatives to be correct
+      if integrator.u_modified
+        if alg_extrapolates(integrator.alg)
+          if isinplace(integrator.sol.prob)
+            recursivecopy!(integrator.uprev2,integrator.uprev)
+          else
+            integrator.uprev2 = integrator.uprev
+          end
+        end
+        if isinplace(integrator.sol.prob)
+          recursivecopy!(integrator.uprev,integrator.u)
+        else
+          integrator.uprev = integrator.u
+        end
+      end
+
+      initialize!(dde_int)
+    end
+
+
+
 
     dde_int
 end
