@@ -317,6 +317,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         else
           integrator.uprev = integrator.u
         end
+        integrator.u_modified = false
       end
 
       initialize!(dde_int)
