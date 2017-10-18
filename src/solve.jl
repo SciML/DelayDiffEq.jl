@@ -55,7 +55,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                                        tracked_discontinuities,
                                                        discontinuity_interp_points,
                                                        discontinuity_abstol,
-                                                       discontinuity_reltol)
+                                                       discontinuity_reltol,
+                                                       initialize!)
         callbacks = CallbackSet(callback, discontinuity_callback)
     else
         callbacks = callback
@@ -297,31 +298,37 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
 
-    if initialize_integrator
-      integrator.u_modified = true
+    u_modified = initialize!(integrator.opts.callback,dde_int.t,u,dde_int)
 
-      initialize!(integrator.opts.callback, integrator.t, u, dde_int)
-
-      # if the user modifies u, we need to fix previous values before initializing
-      # FSAL in order for the starting derivatives to be correct
-      if integrator.u_modified
-        if alg_extrapolates(integrator.alg)
-          if isinplace(integrator.sol.prob)
-            recursivecopy!(integrator.uprev2,integrator.uprev)
-          else
-            integrator.uprev2 = integrator.uprev
-          end
+    # if the user modifies u, we need to fix previous values before initializing
+    # FSAL in order for the starting derivatives to be correct
+    if u_modified
+        if alg_extrapolates(dde_int.alg)
+            if isinplace(dde_int.sol.prob)
+                recursivecopy!(dde_int.uprev2,dde_int.uprev)
+            else
+                dde_int.uprev2 = dde_int.uprev
+            end
         end
-        if isinplace(integrator.sol.prob)
-          recursivecopy!(integrator.uprev,integrator.u)
+        if isinplace(dde_int.sol.prob)
+            recursivecopy!(dde_int.uprev,dde_int.u)
         else
-          integrator.uprev = integrator.u
+            dde_int.uprev = dde_int.u
         end
-        integrator.u_modified = false
-      end
 
-      initialize!(dde_int)
+        # update heap of discontinuities
+        # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
+        push!(dde_int.opts.d_discontinuities, Discontinuity(dde_int.t, 0))
+
+        # reset this as it is now handled so the integrators should proceed as normal
+        reeval_internals_due_to_modification!(dde_int,Val{false})
+
+        if initialize_save && any((c)->c.save_positions[2],callbacks_internal)
+            savevalues!(dde_int,true)
+        end
     end
+
+    initialize!(dde_int)
 
 
 

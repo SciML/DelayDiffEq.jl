@@ -12,14 +12,17 @@ end
 
 Recalculate interpolation data and update ODE integrator after changes by callbacks.
 """
-function reeval_internals_due_to_modification!(integrator::DDEIntegrator)
+function reeval_internals_due_to_modification!(integrator::DDEIntegrator,
+            x::Type{Val{not_initialization}} = Val{true}) where not_initialization
+
     # update interpolation data of DDE integrator using old interpolation data
     # of ODE integrator in evaluation of history function that was calculated in
     # `perform_step!`
-    OrdinaryDiffEq.ode_addsteps!(integrator, integrator.f, Val{true}, Val{true}, Val{true})
-
-    # copy interpolation data to ODE integrator
-    recursivecopy!(integrator.integrator.k, integrator.k)
+    if not_initialization
+        OrdinaryDiffEq.ode_addsteps!(integrator, integrator.f, Val{true}, Val{true}, Val{true})
+        # copy interpolation data to ODE integrator
+        recursivecopy!(integrator.integrator.k, integrator.k)
+    end
 
     # move ODE integrator to new time interval of DDE integrator
     integrator.integrator.t = integrator.t
@@ -35,12 +38,13 @@ end
 
 # track propagated discontinuities for dependent delays
 
-struct DiscontinuityCallback{F,D<:Discontinuity,A,R} <: AbstractContinuousCallback
+struct DiscontinuityCallback{F,D<:Discontinuity,A,R,I} <: AbstractContinuousCallback
     lags::F
     discontinuities::Vector{D}
     interp_points::Int
     abstol::A
     reltol::R
+    initialize::I
 end
 
 """
@@ -60,11 +64,12 @@ tolerance `reltol`.
 """
 function DiscontinuityCallback(lags, discontinuities::Vector{<:Discontinuity};
                                interp_points::Int=10, abstol=1e-12, reltol=0)
-    DiscontinuityCallback(lags, discontinuities, interp_points, abstol, reltol)
+    DiscontinuityCallback(lags, discontinuities, interp_points, abstol,
+                          reltol, initialize!)
 end
 
 # do not initialize discontinuity callback
-initialize!(t, u, integrator::DEIntegrator, c::DiscontinuityCallback) = nothing
+initialize!(c::DiscontinuityCallback, t, u, integrator::DEIntegrator) = nothing
 
 # find time of first discontinuity in the current time interval (if existent)
 function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCallback)
