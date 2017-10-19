@@ -298,22 +298,26 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
 
+    integrator.u_modified = true
+
     u_modified = initialize!(integrator.opts.callback,dde_int.t,u,dde_int)
 
     # if the user modifies u, we need to fix previous values before initializing
     # FSAL in order for the starting derivatives to be correct
     if u_modified
+
+        if isinplace(dde_int.sol.prob)
+            recursivecopy!(dde_int.uprev,dde_int.u)
+        else
+            dde_int.uprev = dde_int.u
+        end
+
         if alg_extrapolates(dde_int.alg)
             if isinplace(dde_int.sol.prob)
                 recursivecopy!(dde_int.uprev2,dde_int.uprev)
             else
                 dde_int.uprev2 = dde_int.uprev
             end
-        end
-        if isinplace(dde_int.sol.prob)
-            recursivecopy!(dde_int.uprev,dde_int.u)
-        else
-            dde_int.uprev = dde_int.u
         end
 
         # update heap of discontinuities
@@ -323,15 +327,14 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         # reset this as it is now handled so the integrators should proceed as normal
         reeval_internals_due_to_modification!(dde_int,Val{false})
 
-        if initialize_save && any((c)->c.save_positions[2],callbacks_internal)
-            savevalues!(dde_int,true)
+        if initialize_save &&
+          (any((c)->c.save_positions[2],integrator.opts.callback.discrete_callbacks) ||
+          any((c)->c.save_positions[2],integrator.opts.callback.continuous_callbacks))
+          savevalues!(dde_int,true)
         end
     end
 
     initialize!(dde_int)
-
-
-
 
     dde_int
 end
