@@ -11,6 +11,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               minimal_solution=true, discontinuity_interp_points::Int=10,
               discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
               initial_order=prob.h(prob.tspan[1]) == prob.u0 ? 1 : 0,
+              initialize_save = true,
               callback=nothing, kwargs...) where
     {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
 
@@ -306,14 +307,14 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # FSAL in order for the starting derivatives to be correct
     if u_modified
 
-        if isinplace(dde_int.sol.prob)
+        if isinplace
             recursivecopy!(dde_int.uprev,dde_int.u)
         else
             dde_int.uprev = dde_int.u
         end
 
         if alg_extrapolates(dde_int.alg)
-            if isinplace(dde_int.sol.prob)
+            if isinplace
                 recursivecopy!(dde_int.uprev2,dde_int.uprev)
             else
                 dde_int.uprev2 = dde_int.uprev
