@@ -7,7 +7,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               tType(7*minimum(prob.constant_lags)),
               dt=zero(tType),
               saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
-              save_start=true, dense=save_everystep && !(typeof(alg) <: Discrete),
+              save_start=true, save_end = true,
+              dense=save_everystep && !(typeof(alg) <: Discrete),
               minimal_solution=true, discontinuity_interp_points::Int=10,
               discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
               initial_order=prob.h(prob.tspan[1]) == prob.u0 ? 1 : 0,
@@ -244,7 +245,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                     integrator.opts.timeseries_errors,
                                     integrator.opts.dense_errors, integrator.opts.beta1,
                                     integrator.opts.beta2, integrator.opts.qoldinit,
-                                    dense && integrator.opts.dense, save_start,
+                                    dense && integrator.opts.dense, save_start, save_end,
                                     integrator.opts.callback, integrator.opts.isoutofdomain,
                                     integrator.opts.unstable_check,
                                     integrator.opts.verbose, integrator.opts.calck,
@@ -334,6 +335,9 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
           savevalues!(dde_int,true)
         end
     end
+
+    # reset this as it is now handled so the integrators should proceed as normal
+    dde_int.u_modified = false
 
     initialize!(dde_int)
 
