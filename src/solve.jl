@@ -300,7 +300,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
 
-    integrator.u_modified = true
+    dde_int.u_modified = true
 
     u_modified = initialize!(integrator.opts.callback,dde_int.t,u,dde_int)
 
