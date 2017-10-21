@@ -420,7 +420,7 @@ function solve!(integrator::DDEIntegrator)
                                    dense_errors=integrator.opts.dense_errors)
     end
 
-    sol.retcode = :Success
+    integrator.sol = solution_new_retcode(integrator.sol,:Success)
     return sol
 end
 
