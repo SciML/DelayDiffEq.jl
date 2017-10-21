@@ -69,7 +69,7 @@ function DiscontinuityCallback(lags, discontinuities::Vector{<:Discontinuity};
 end
 
 # do not initialize discontinuity callback
-initialize!(c::DiscontinuityCallback, t, u, integrator::DEIntegrator) = nothing
+initialize!(c::DiscontinuityCallback, t, u, integrator::DEIntegrator) = (integrator.u_modified = false)
 
 # find time of first discontinuity in the current time interval (if existent)
 function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCallback)

@@ -314,7 +314,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
             dde_int.uprev = dde_int.u
         end
 
-        if alg_extrapolates(dde_int.alg)
+        if OrdinaryDiffEq.alg_extrapolates(dde_int.alg)
             if isinplace
                 recursivecopy!(dde_int.uprev2,dde_int.uprev)
             else
