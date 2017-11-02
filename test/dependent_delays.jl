@@ -19,6 +19,16 @@ sol2 = solve!(dde_int2)
 
 @test dde_int.tracked_discontinuities == dde_int2.tracked_discontinuities
 
+# with nothing
+prob2_nothing = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), nothing,
+                   [(t, u) -> 1])
+
+dde_int2_nothing = init(prob2_nothing, alg)
+sol2_nothing = solve!(dde_int2_nothing)
+
+@test dde_int.tracked_discontinuities == dde_int2_nothing.tracked_discontinuities
+@test sol2.u == sol2_nothing.u && sol2.t == sol2_nothing.t
+
 # worse than results above with constant delays specified as scalars
 @test sol2.errors[:l∞] < 4.2e-5
 @test sol2.errors[:final] < 2.2e-5
