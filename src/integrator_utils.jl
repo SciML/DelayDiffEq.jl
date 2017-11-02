@@ -356,12 +356,14 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
 
     # discontinuities caused by constant lags
     maxlag = integrator.sol.prob.tspan[2] - t
-    for lag in constant_lags
-        if lag < maxlag
-            # calculate discontinuity and add it to heap of discontinuities and time stops
-            d = Discontinuity(t + lag, order + 1)
-            push!(integrator.opts.d_discontinuities, d)
-            push!(integrator.opts.tstops, d.t)
+    if constant_lags != nothing
+        for lag in constant_lags
+            if lag < maxlag
+                # calculate discontinuity and add it to heap of discontinuities and time stops
+                d = Discontinuity(t + lag, order + 1)
+                push!(integrator.opts.d_discontinuities, d)
+                push!(integrator.opts.tstops, d.t)
+            end
         end
     end
 
