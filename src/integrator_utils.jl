@@ -348,14 +348,8 @@ discontinuities caused by dependent delays are tracked by a callback.
 """
 function add_next_discontinuities!(integrator, order, t=integrator.t)
     # obtain delays
-    if typeof(integrator.sol.prob) <: ConstantLagDDEProblem
-        #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
-        neutral = false
-        constant_lags = integrator.sol.prob.lags
-    else
-        neutral = integrator.sol.prob.neutral
-        constant_lags = integrator.sol.prob.constant_lags
-    end
+    neutral = integrator.sol.prob.neutral
+    constant_lags = integrator.sol.prob.constant_lags
 
     # only track discontinuities up to order of the applied method
     order > alg_order(integrator.alg) && !neutral && return nothing

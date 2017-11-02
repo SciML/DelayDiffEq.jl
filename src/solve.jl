@@ -1,10 +1,8 @@
 function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
               d_discontinuities::Vector{Discontinuity{tType}}=Discontinuity{tType}[],
-              dtmax= typeof(prob) <: ConstantLagDDEProblem ?
-              (isempty(prob.lags) ? prob.tspan[2]-prob.tspan[1] : tType(7*minimum(prob.lags))) : isempty(prob.constant_lags) ?
-              dtmax = prob.tspan[2]-prob.tspan[1] :
-              tType(7*minimum(prob.constant_lags)),
+              dtmax = (prob.constant_lags == nothing || isempty(prob.constant_lags)) ?
+              prob.tspan[2]-prob.tspan[1] : tType(7*minimum(prob.constant_lags)),
               dt=zero(tType),
               saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
               save_start=true, save_end = true,
@@ -16,16 +14,9 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               callback=nothing, kwargs...) where
     {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
 
-    if typeof(prob) <: ConstantLagDDEProblem
-        #warn("ConstantLagDDEProblem is deprecated. Use DDEProblem instead.")
-        neutral = false
-        constant_lags = prob.lags
-        dependent_lags = nothing
-    else
-        neutral = prob.neutral
-        constant_lags = prob.constant_lags
-        dependent_lags = prob.dependent_lags
-    end
+    neutral = prob.neutral
+    constant_lags = prob.constant_lags
+    dependent_lags = prob.dependent_lags
 
     # filter provided discontinuities
     filter!(x -> prob.tspan[1] < x < prob.tspan[2] && x.order <= alg_order(alg),
@@ -34,10 +25,14 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # add discontinuities propagated from initial discontinuity
     maxlag = prob.tspan[2] - prob.tspan[1]
     if initial_order ≤ alg_order(alg)
+        if constant_lags != nothing && !isempty(constant_lags)
         d_discontinuities_internal = unique(
             Discontinuity{tType}[d_discontinuities;
                                  (Discontinuity(prob.tspan[1] + lag, initial_order + 1)
                                   for lag in constant_lags if lag < maxlag)...])
+        else
+            d_discontinuities_internal = d_discontinuities
+        end
     else
         d_discontinuities_internal = unique(d_discontinuities)
     end
@@ -66,7 +61,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
-    if isconstrained(alg) && !isempty(constant_lags)
+    if isconstrained(alg) && constant_lags != nothing && !isempty(constant_lags)
         dtmax = min(dtmax, constant_lags...)
     end
 
@@ -126,7 +121,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         ode_prob = ODEProblem(dde_f, prob.u0, prob.tspan)
         dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0, prob.tspan[1],
                    integrator.tdir,
-                   isempty(constant_lags) ? dtmax : minimum(constant_lags),
+                   (constant_lags == nothing || isempty(constant_lags)) ? dtmax : minimum(constant_lags),
                    integrator.opts.abstol,
                    integrator.opts.reltol,
                    integrator.opts.internalnorm,
@@ -257,7 +252,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # selected time points saved, and all constant and no dependent lags are given
     # WARNING: can impact quality of solution if not all constant lags specified
     minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep &&
-        !isempty(constant_lags) &&
+        constant_lags != nothing && !isempty(constant_lags) &&
         (typeof(dependent_lags) <: Void || isempty(dependent_lags))
 
     # need copy of heap of additional time points (nodes will be deleted!) in order to
