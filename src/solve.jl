@@ -329,6 +329,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
           any((c)->c.save_positions[2],integrator.opts.callback.continuous_callbacks))
           savevalues!(dde_int,true)
         end
+
+        auto_dt_reset(dde_int)
     end
 
     # reset this as it is now handled so the integrators should proceed as normal
