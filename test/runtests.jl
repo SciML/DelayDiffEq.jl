@@ -9,6 +9,7 @@ using Base.Test
 @time @testset "Save_idxs Test" begin include("save_idxs.jl") end
 @time @testset "Events" begin include("events.jl") end
 @time @testset "Units" begin include("units.jl") end
+@time @testset "Reinit" begin include("reinit.jl") end
 @time @testset "Unique Times" begin include("unique_times.jl") end
 @time @testset "Residual Control" begin include("residual_control.jl") end
 @time @testset "Lazy Interpolants" begin include("lazy_interpolants.jl") end
