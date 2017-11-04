@@ -68,19 +68,11 @@ assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},
 
 # update implicit RHS
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name =
-    :($name = OrdinaryDiffEq.ImplicitRHS(
-        f,
-        getfield(cache, :tmp),
-        t, t, t,
-        getfield(cache, :dual_cache)))
+    :($name = OrdinaryDiffEq.ImplicitRHS(f, cache.tmp, t, t, t, cache.dual_cache))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS_Scalar}, ::Type) where name =
     :($name = OrdinaryDiffEq.ImplicitRHS_Scalar(f, zero(u), t, t, t))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF}, ::Type) where name =
-    :($name = OrdinaryDiffEq.RHS_IIF(
-        f,
-        getfield(cache, :tmp),
-        t, t, getfield(cache, $(Meta.quot(name))).a,
-        getfield(cache, :dual_cache)))
+    :($name = OrdinaryDiffEq.RHS_IIF(f, cache.tmp, t, t, cache.tmp, cache.dual_cache))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF_Scalar}, ::Type) where name =
     :($name = OrdinaryDiffEq.RHS_IIF_Scalar(f, zero(u), t, t,
                                             getfield(cache, $(Meta.quot(name))).a))
