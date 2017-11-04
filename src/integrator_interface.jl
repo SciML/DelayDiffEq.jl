@@ -360,6 +360,9 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator,u0 = integrator.sol.prob.u
 end
 
 function DiffEqBase.auto_dt_reset!(dde_int::DDEIntegrator)
-    OrdinaryDiffEq.auto_dt_reset(dde_int)
+    dde_int.dt = OrdinaryDiffEq.ode_determine_initdt(dde_int.u,dde_int.t,
+    dde_int.tdir,dde_int.opts.dtmax,dde_int.opts.abstol,dde_int.opts.reltol,
+    dde_int.opts.internalnorm,dde_int.sol.prob,alg_order(dde_int.alg),
+    dde_int.alg)
     dde_int.integrator.dt = dde_int.dt
 end
