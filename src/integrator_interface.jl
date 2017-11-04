@@ -284,8 +284,11 @@ end
 DiffEqBase.has_reinit(integrator::DDEIntegrator) = true
 function DiffEqBase.reinit!(integrator::DDEIntegrator,u0 = integrator.sol.prob.u0;
   t0 = integrator.sol.prob.tspan[1], tf = integrator.sol.prob.tspan[2],
-  erase_sol = true, tstops = nothing, saveat = nothing,
-  reset_dt = (dde_int.dtcache != zero(dde_int.dt)) && dde_int.opts.adaptive)
+  tstops = integrator.opts.tstops_cache,
+  saveat = integrator.opts.saveat_cache,
+  d_discontinuities = integrator.opts.d_discontinuities_cache,
+  reset_dt = (integrator.dtcache != zero(integrator.dt)) && integrator.opts.adaptive,
+  erase_sol = true,  reinit_callbacks = true)
 
   if isinplace(integrator.sol.prob)
     recursivecopy!(integrator.u,u0)
@@ -306,22 +309,9 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator,u0 = integrator.sol.prob.u
   integrator.t = t0
   integrator.tprev = t0
 
-  # Get rid of tstops states
-  while !isempty(integrator.opts.tstops)
-    pop!(integrator.opts.tstops)
-  end
-  push!(integrator.opts.tstops,tf)
-  if tstops != nothing
-    push!(integrator.opts.tstops,tstops)
-  end
-
-  # Get rid of saveat states
-  while !isempty(integrator.opts.saveat)
-    pop!(integrator.opts.saveat)
-  end
-  if saveat != nothing
-    push!(integrator.opts.saveat,saveat)
-  end
+  tstops_internal, saveat_internal, d_discontinuities_internal =
+    OrdinaryDiffEq.tstop_saveat_disc_handling(tstops,saveat,d_discontinuities,
+    integrator.tdir,(t0,tf),typeof(integrator.t))
 
   if erase_sol
     if integrator.opts.save_start
@@ -351,18 +341,24 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator,u0 = integrator.sol.prob.u
   integrator.dtacc = typeof(integrator.dtacc)(1)
 
   if reset_dt
-      auto_dt_reset!(dde_int)
+      auto_dt_reset!(integrator)
+  end
+
+  if reinit_callbacks
+      initialize_callbacks!(integrator)
   end
 
   reinit!(integrator.integrator,u0;t0=t0,tf=tf,erase_sol=true,tstops=tstops,
-          saveat=saveat,reinit_cache = false)
+          saveat=saveat,reinit_cache = false, reset_dt = false,
+          reinit_callbacks = false)
   initialize!(integrator)
 end
 
 function DiffEqBase.auto_dt_reset!(dde_int::DDEIntegrator)
+    ode_prob = ODEProblem(dde_int.f, dde_int.sol.prob.u0, dde_int.sol.prob.tspan)
     dde_int.dt = OrdinaryDiffEq.ode_determine_initdt(dde_int.u,dde_int.t,
     dde_int.tdir,dde_int.opts.dtmax,dde_int.opts.abstol,dde_int.opts.reltol,
-    dde_int.opts.internalnorm,dde_int.sol.prob,alg_order(dde_int.alg),
+    dde_int.opts.internalnorm,ode_prob,alg_order(dde_int.alg),
     dde_int.alg)
     dde_int.integrator.dt = dde_int.dt
 end
