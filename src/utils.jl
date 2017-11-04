@@ -37,14 +37,6 @@ Hereby u, uprev, uprev2, and function f are updated, if required.
 assign_expr(::Val{name}, ::Type, ::Type) where {name} =
     :($name = getfield(cache, $(Meta.quot(name))))
 
-# update uhold
-assign_expr(::Val{:uhold}, ::Type,
-            ::Type{<:Union{OrdinaryDiffEq.GenericImplicitEulerCache,
-                           OrdinaryDiffEq.GenericTrapezoidCache,
-                           OrdinaryDiffEq.GenericIIF1Cache,
-                           OrdinaryDiffEq.GenericIIF2Cache}}) =
-                               :(uhold = vec(u))
-
 # update matrix exponential
 assign_expr(::Val{:expA}, ::Type, ::Type) =
     :(A = f.f1; expA = expm(A*dt))
@@ -75,39 +67,28 @@ assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},
                                                      ForwardDiff.Chunk{$N}()))
 
 # update implicit RHS
-function assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name
-    nameq = Meta.quot(name)
+assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name =
     :($name = OrdinaryDiffEq.ImplicitRHS(
         f,
-        getfield(cache, $nameq).tmp,
+        getfield(cache, :tmp),
         t, t, t,
-        getfield(cache, $nameq).dual_cache))
-end
+        getfield(cache, :dual_cache)))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS_Scalar}, ::Type) where name =
-    :($name = OrdinaryDiffEq.ImplicitRHS_Scalar(
-        f,
-        getfield(cache, $(Meta.quot(name))).tmp,
-        t, t, t))
-function assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF}, ::Type) where name
-    nameq = Meta.quot(name)
+    :($name = OrdinaryDiffEq.ImplicitRHS_Scalar(f, zero(u), t, t, t))
+assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF}, ::Type) where name =
     :($name = OrdinaryDiffEq.RHS_IIF(
         f,
-        getfield(cache, $nameq).tmp,
-        t, t,
-        getfield(cache, $nameq).dual_cache,
-        getfield(cache, $nameq).a))
-end
-function assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF_Scalar},
-                     ::Type) where name
-    nameq = Meta.quot(name)
-    :($name = OrdinaryDiffEq.RHS_IIF_Scalar(
-        f,
-        t, t,
-        getfield(cache, $nameq).tmp,
-        getfield(cache, $nameq).a))
-end
+        getfield(cache, :tmp),
+        t, t, getfield(cache, $(Meta.quot(name))).a,
+        getfield(cache, :dual_cache)))
+assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF_Scalar}, ::Type) where name =
+    :($name = OrdinaryDiffEq.RHS_IIF_Scalar(f, zero(u), t, t,
+                                            getfield(cache, $(Meta.quot(name))).a))
 
 # create new NLsolve differentiable function
 assign_expr(::Val{name}, ::Type{<:NLsolve.DifferentiableMultivariateFunction},
-            ::Type) where name =
+            ::Type{<:OrdinaryDiffEq.OrdinaryDiffEqMutableCache}) where name =
+                :($name = alg.nlsolve(Val{:init},rhs,u))
+assign_expr(::Val{name}, ::Type{<:NLsolve.DifferentiableMultivariateFunction},
+            ::Type{<:OrdinaryDiffEq.OrdinaryDiffEqConstantCache}) where name =
                 :($name = alg.nlsolve(Val{:init},rhs,uhold))
