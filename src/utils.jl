@@ -79,14 +79,14 @@ function assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) 
     nameq = Meta.quot(name)
     :($name = OrdinaryDiffEq.ImplicitRHS(
         f,
-        getfield(cache, $nameq).C,
+        getfield(cache, $nameq).tmp,
         t, t, t,
         getfield(cache, $nameq).dual_cache))
 end
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS_Scalar}, ::Type) where name =
     :($name = OrdinaryDiffEq.ImplicitRHS_Scalar(
         f,
-        getfield(cache, $(Meta.quot(name))).C,
+        getfield(cache, $(Meta.quot(name))).tmp,
         t, t, t))
 function assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF}, ::Type) where name
     nameq = Meta.quot(name)
