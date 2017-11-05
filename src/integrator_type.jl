@@ -29,7 +29,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
     qold::tTypeNoUnits
     q11::tTypeNoUnits
     erracc::tTypeNoUnits
-    dtacc::tTypeNoUnits
+    dtacc::tType
     success_iter::Int
     iter::Int
     saveiter::Int
