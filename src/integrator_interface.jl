@@ -280,3 +280,127 @@ Stop further calculations of `integrator`.
 function terminate!(integrator::DDEIntegrator)
     integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
 end
+
+# DDE integrator can be reinitialized
+has_reinit(integrator::DDEIntegrator) = true
+
+"""
+    reinit!(integrator::DDEIntegrator[, u0 = integrator.sol.prob.u0;
+            t0 = integrator.sol.prob.tspan[1],
+            tf = integrator.sol.prob.tspan[2],
+            erase_sol = true,
+            kwargs...])
+
+Reinitialize `integrator` with (optionally) different initial state `u0`, different
+integration interval from `t0` to `tf`, and erased solution if `erase_sol = true`.
+"""
+function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
+                 t0 = integrator.sol.prob.tspan[1],
+                 tf = integrator.sol.prob.tspan[2],
+                 erase_sol = true,
+                 tstops = integrator.opts.tstops_cache,
+                 saveat = integrator.opts.saveat_cache,
+                 d_discontinuities = integrator.opts.d_discontinuities_cache,
+                 initial_order = integrator.sol.prob.h(t0) == u0 ? 1 : 0,
+                 reset_dt = iszero(integrator.dtcache) && integrator.opts.adaptive,
+                 reinit_callbacks = true, initialize_save = true,
+                 reinit_cache = true)
+    # reinit ODE integrator
+    reinit!(integrator.integrator, u0; t0 = t0, tf = tf, erase_sol = erase_sol,
+            reset_dt = false, reinit_callbacks = false, reinit_cache = false)
+    integrator.integrator.dt = zero(integrator.dt)
+    integrator.integrator.dtcache = zero(integrator.dt)
+
+    # reinit initial values of DDE integrator
+    if isinplace(integrator.sol.prob)
+        recursivecopy!(integrator.u, u0)
+        recursivecopy!(integrator.uprev, integrator.u)
+    else
+        integrator.u = u0
+        integrator.uprev = integrator.u
+    end
+
+    integrator.u_modified = false
+
+    if OrdinaryDiffEq.alg_extrapolates(integrator.alg)
+        if isinplace(integrator.sol.prob)
+            recursivecopy!(integrator.uprev2, integrator.uprev)
+        else
+            integrator.uprev2 = integrator.uprev
+        end
+    end
+
+    integrator.t = t0
+    integrator.tprev = t0
+
+    # reinit time stops, time points at which solution is saved, and discontinuities
+    integrator.opts.tstops, integrator.opts.saveat, integrator.opts.d_discontinuities =
+        tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
+                                   (t0,tf), initial_order, alg_order(integrator.alg),
+                                   integrator.sol.prob.constant_lags, typeof(integrator.t))
+
+    # copy time points at which solution is saved if solution should be
+    # reduced during integration
+    if integrator.saveat != nothing
+        integrator.saveat = deepcopy(integrator.opts.saveat)
+    end
+
+    if erase_sol
+        # erase array of tracked discontinuities
+        if initial_order ≤ alg_order(integrator.alg)
+            resize!(integrator.tracked_discontinuities, 1)
+            integrator.tracked_discontinuities[1] = Discontinuity(t0, initial_order)
+        else
+            resize!(integrator.tracked_discontinuities, 0)
+        end
+
+        # reset solution counters
+        integrator.saveiter = 1
+        integrator.prev_idx = 1
+        integrator.prev2_idx = 1
+    end
+
+    # reset integration counters
+    integrator.iter = 0
+    integrator.success_iter = 0
+
+    # full re-initialize the PI in timestepping
+    integrator.qold = integrator.opts.qoldinit
+    integrator.q11 = one(integrator.t)
+    integrator.erracc = one(integrator.erracc)
+    integrator.dtacc = one(integrator.dtacc)
+
+    if reset_dt
+        auto_dt_reset!(integrator)
+    end
+
+    if reinit_callbacks
+        initialize_callbacks!(integrator, initialize_save)
+    end
+
+    if reinit_cache
+        initialize!(integrator)
+    end
+end
+
+"""
+    auto_dt_reset!(dde_int::DDEIntegrator)
+
+Automatically determine initial time step of `dde_int`.
+"""
+function auto_dt_reset!(dde_int::DDEIntegrator)
+    # determine maximal time step
+    constant_lags = dde_int.sol.prob.constant_lags
+    dtmax = (constant_lags == nothing || isempty(constant_lags)) ? dde_int.opts.dtmax :
+        minimum(constant_lags)
+
+    # determine initial time step
+    ode_prob = ODEProblem(dde_int.f, dde_int.sol.prob.u0, dde_int.sol.prob.tspan)
+    dde_int.dt = OrdinaryDiffEq.ode_determine_initdt(dde_int.u, dde_int.t, dde_int.tdir,
+                                                     dtmax, dde_int.opts.abstol,
+                                                     dde_int.opts.reltol,
+                                                     dde_int.opts.internalnorm,
+                                                     ode_prob,
+                                                     OrdinaryDiffEq.alg_order(dde_int.alg),
+                                                     dde_int.alg)
+end

@@ -3,61 +3,20 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               d_discontinuities::Vector{Discontinuity{tType}}=Discontinuity{tType}[],
               dtmax = (prob.constant_lags == nothing || isempty(prob.constant_lags)) ?
               prob.tspan[2]-prob.tspan[1] : tType(7*minimum(prob.constant_lags)),
-              dt=zero(tType),
-              saveat=tType[], save_idxs=nothing, save_everystep=isempty(saveat),
+              dt=zero(tType), saveat=tType[], tstops = tType[],
+              save_idxs=nothing, save_everystep=isempty(saveat),
               save_start=true, save_end = true,
               dense=save_everystep && !(typeof(alg) <: Discrete),
               minimal_solution=true, discontinuity_interp_points::Int=10,
               discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
               initial_order=prob.h(prob.tspan[1]) == prob.u0 ? 1 : 0,
-              initialize_save = true,
+              initialize_integrator = true, initialize_save = true,
               callback=nothing, kwargs...) where
     {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
 
     neutral = prob.neutral
     constant_lags = prob.constant_lags
     dependent_lags = prob.dependent_lags
-
-    # filter provided discontinuities
-    filter!(x -> prob.tspan[1] < x < prob.tspan[2] && x.order <= alg_order(alg),
-            d_discontinuities)
-
-    # add discontinuities propagated from initial discontinuity
-    maxlag = prob.tspan[2] - prob.tspan[1]
-    if initial_order ≤ alg_order(alg)
-        if constant_lags != nothing && !isempty(constant_lags)
-        d_discontinuities_internal = unique(
-            Discontinuity{tType}[d_discontinuities;
-                                 (Discontinuity(prob.tspan[1] + lag, initial_order + 1)
-                                  for lag in constant_lags if lag < maxlag)...])
-        else
-            d_discontinuities_internal = d_discontinuities
-        end
-    else
-        d_discontinuities_internal = unique(d_discontinuities)
-    end
-
-    # create array of tracked discontinuities
-    # used to find propagated discontinuities with callbacks and to keep track of all
-    # passed discontinuities
-    if initial_order ≤ alg_order(alg)
-        tracked_discontinuities = [Discontinuity(prob.tspan[1], initial_order)]
-    else
-        tracked_discontinuities = Discontinuity{tType}[]
-    end
-
-    # create additional callback to track dependent delays
-    if !(typeof(dependent_lags) <: Void) && !isempty(dependent_lags)
-        discontinuity_callback = DiscontinuityCallback(dependent_lags,
-                                                       tracked_discontinuities,
-                                                       discontinuity_interp_points,
-                                                       discontinuity_abstol,
-                                                       discontinuity_reltol,
-                                                       initialize!)
-        callbacks = CallbackSet(callback, discontinuity_callback)
-    else
-        callbacks = callback
-    end
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
@@ -68,11 +27,13 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(t,u,du) or f(t,u) without history function
     ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan,
-                                     mass_matrix = prob.mass_matrix,
-                                     callback = prob.callback)
-    integrator = init(ode_prob, alg.alg; dt=1, initialize_integrator=false,
-                      d_discontinuities=d_discontinuities_internal, dtmax=dtmax,
-                      callback=callbacks, kwargs...)
+                                     mass_matrix = prob.mass_matrix)
+    integrator = init(ode_prob, alg.alg; initialize_integrator=false,
+                      dt=one(tType), dtmax=dtmax, kwargs...)
+
+    # ensure that ODE integrator satisfies tprev + dt == t
+    integrator.dt = zero(integrator.dt)
+    integrator.dtcache = zero(integrator.dt)
 
     # create new solution based on this integrator with an interpolation function of the
     # expected form f(t,u,du) or f(t,u) which already includes information about the
@@ -113,24 +74,6 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     else
         dde_f = (t,u) -> prob.f(t,u,dde_h)
     end
-
-    # if time step is not set and ODE integrator has adaptive step size,
-    # let ODE problem with same parameters and newly created function with history support
-    # calculate initial time step
-    if iszero(dt) && integrator.opts.adaptive
-        ode_prob = ODEProblem(dde_f, prob.u0, prob.tspan)
-        dt = tType(OrdinaryDiffEq.ode_determine_initdt(prob.u0, prob.tspan[1],
-                   integrator.tdir,
-                   (constant_lags == nothing || isempty(constant_lags)) ? dtmax : minimum(constant_lags),
-                   integrator.opts.abstol,
-                   integrator.opts.reltol,
-                   integrator.opts.internalnorm,
-                   ode_prob,
-                   OrdinaryDiffEq.alg_order(alg),alg))
-    end
-    # assure that ODE integrator satisfies tprev + dt == t
-    integrator.dt = zero(integrator.dt)
-    integrator.dtcache = zero(integrator.dt)
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
     # in particular important for calculations with units
@@ -182,27 +125,6 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         end
     end
 
-    # create heap of additional time points that will be contained in the solution
-    # exclude the end point because of floating point issues and the starting point since it
-    # is controlled by save_start
-    if typeof(saveat) <: Number
-        saveat_vec = collect(tType,
-                             (prob.tspan[1] + integrator.tdir * abs(saveat)):
-                             integrator.tdir * abs(saveat):
-                             (prob.tspan[end] - integrator.tdir * abs(saveat)))
-    else
-        saveat_vec = collect(tType, Iterators.filter(
-            x -> integrator.tdir * prob.tspan[1] < integrator.tdir * x < integrator.tdir *
-            prob.tspan[end],
-            saveat))
-    end
-
-    if integrator.tdir > 0
-        saveat_internal = binary_minheap(saveat_vec)
-    else
-        saveat_internal = binary_maxheap(saveat_vec)
-    end
-
     # check if all indices should be returned
     if !(typeof(save_idxs) <: Void) && collect(save_idxs) == collect(1:length(integrator.u))
         save_idxs = nothing # prevents indexing of ODE solution and saves memory
@@ -219,6 +141,34 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                        prob.tspan[1], dt)
     end
 
+    # filter provided discontinuities
+    filter!(x -> x.order ≤ alg_order(alg) + 1, d_discontinuities)
+
+    # retrieve time stops, time points at which solutions is saved, and discontinuities
+    tstops_internal, saveat_internal, d_discontinuities_internal =
+        tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir, prob.tspan, initial_order, alg_order(alg), constant_lags, tType)
+
+    # create array of tracked discontinuities
+    # used to find propagated discontinuities with callbacks and to keep track of all
+    # passed discontinuities
+    if initial_order ≤ alg_order(alg)
+        tracked_discontinuities = [Discontinuity(prob.tspan[1], initial_order)]
+    else
+        tracked_discontinuities = Discontinuity{tType}[]
+    end
+
+    # create additional callback to track dependent delays
+    if !(typeof(dependent_lags) <: Void) && !isempty(dependent_lags)
+        discontinuity_callback = DiscontinuityCallback(dependent_lags,
+                                                       tracked_discontinuities,
+                                                       discontinuity_interp_points,
+                                                       discontinuity_abstol,
+                                                       discontinuity_reltol,
+                                                       initialize!)
+        callbacks = CallbackSet(callback, prob.callback, discontinuity_callback)
+    else
+        callbacks = CallbackSet(callback, prob.callback)
+    end
 
     # separate options of integrator and ODE integrator since ODE integrator always saves
     # every step and every index (necessary for history function)
@@ -231,11 +181,9 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                     integrator.opts.qsteady_min,
                                     integrator.opts.failfactor, integrator.opts.dtmax,
                                     integrator.opts.dtmin, integrator.opts.internalnorm,
-                                    save_idxs, integrator.opts.tstops, saveat_internal,
-                                    integrator.opts.d_discontinuities,
-                                    integrator.opts.tstops_cache,
-                                    integrator.opts.saveat_cache,
-                                    integrator.opts.d_discontinuities_cache,
+                                    save_idxs, tstops_internal, saveat_internal,
+                                    d_discontinuities_internal,
+                                    tstops, saveat, d_discontinuities,
                                     integrator.opts.userdata, integrator.opts.progress,
                                     integrator.opts.progress_steps,
                                     integrator.opts.progress_name,
@@ -244,7 +192,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                     integrator.opts.dense_errors, integrator.opts.beta1,
                                     integrator.opts.beta2, integrator.opts.qoldinit,
                                     dense && integrator.opts.dense, save_start, save_end,
-                                    integrator.opts.callback, integrator.opts.isoutofdomain,
+                                    callbacks, integrator.opts.isoutofdomain,
                                     integrator.opts.unstable_check,
                                     integrator.opts.verbose, integrator.opts.calck,
                                     integrator.opts.force_dtmin,
@@ -295,49 +243,17 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 integrator.isout, integrator.reeval_fsal,
                                 integrator.u_modified, opts, integrator)
 
-    # set up additional initial values of newly created DDE integrator
-    # (such as fsalfirst) and its callbacks
-
-    dde_int.u_modified = true
-
-    u_modified = initialize!(integrator.opts.callback,dde_int.t,u,dde_int)
-
-    # if the user modifies u, we need to fix previous values before initializing
-    # FSAL in order for the starting derivatives to be correct
-    if u_modified
-
-        if isinplace
-            recursivecopy!(dde_int.uprev,dde_int.u)
-        else
-            dde_int.uprev = dde_int.u
-        end
-
-        if OrdinaryDiffEq.alg_extrapolates(dde_int.alg)
-            if isinplace
-                recursivecopy!(dde_int.uprev2,dde_int.uprev)
-            else
-                dde_int.uprev2 = dde_int.uprev
-            end
-        end
-
-        # update heap of discontinuities
-        # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
-        push!(dde_int.opts.d_discontinuities, Discontinuity(dde_int.t, 0))
-
-        # reset this as it is now handled so the integrators should proceed as normal
-        reeval_internals_due_to_modification!(dde_int,Val{false})
-
-        if initialize_save &&
-          (any((c)->c.save_positions[2],integrator.opts.callback.discrete_callbacks) ||
-          any((c)->c.save_positions[2],integrator.opts.callback.continuous_callbacks))
-          savevalues!(dde_int,true)
-        end
+    # if time step is not set and DDE integrator has adaptive step size,
+    # automatically determine initial time step
+    if iszero(dde_int.dt) && dde_int.opts.adaptive
+        auto_dt_reset!(dde_int)
     end
 
-    # reset this as it is now handled so the integrators should proceed as normal
-    dde_int.u_modified = false
-
-    initialize!(dde_int)
+    # initialize DDE integrator and callbacks
+    if initialize_integrator
+        initialize_callbacks!(dde_int, initialize_save)
+        initialize!(dde_int)
+    end
 
     dde_int
 end
@@ -428,4 +344,68 @@ function solve(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTy
 
     integrator = init(prob, alg, timeseries_init, ts_init, ks_init; kwargs...)
     solve!(integrator)
+end
+
+function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
+    u = dde_int.u
+    integrator = dde_int.integrator
+    # set up additional initial values of newly created DDE integrator
+    # (such as fsalfirst) and its callbacks
+
+    dde_int.u_modified = true
+
+    u_modified = initialize!(integrator.opts.callback,dde_int.t,u,dde_int)
+
+    # if the user modifies u, we need to fix previous values before initializing
+    # FSAL in order for the starting derivatives to be correct
+    if u_modified
+
+        if isinplace
+            recursivecopy!(dde_int.uprev,dde_int.u)
+        else
+            dde_int.uprev = dde_int.u
+        end
+
+        if OrdinaryDiffEq.alg_extrapolates(dde_int.alg)
+            if isinplace
+                recursivecopy!(dde_int.uprev2,dde_int.uprev)
+            else
+                dde_int.uprev2 = dde_int.uprev
+            end
+        end
+
+        # update heap of discontinuities
+        # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
+        push!(dde_int.opts.d_discontinuities, Discontinuity(dde_int.t, 0))
+
+        # reset this as it is now handled so the integrators should proceed as normal
+        reeval_internals_due_to_modification!(dde_int,Val{false})
+
+        if initialize_save &&
+          (any((c)->c.save_positions[2],integrator.opts.callback.discrete_callbacks) ||
+          any((c)->c.save_positions[2],integrator.opts.callback.continuous_callbacks))
+          savevalues!(dde_int,true)
+        end
+
+        # recompute initial time step
+        auto_dt_reset!(dde_int)
+    end
+
+    # reset this as it is now handled so the integrators should proceed as normal
+    dde_int.u_modified = false
+end
+
+function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan, initial_order, alg_order, constant_lags, tType)
+    # add discontinuities propagated from initial discontinuity
+    if initial_order ≤ alg_order && constant_lags != nothing && !isempty(constant_lags)
+        maxlag = tspan[2] - tspan[1]
+        d_discontinuities_internal = unique(
+            Discontinuity{tType}[d_discontinuities;
+                                 (Discontinuity(tspan[1] + lag, initial_order + 1)
+                                  for lag in constant_lags if lag < maxlag)...])
+    else
+        d_discontinuities_internal = unique(d_discontinuities)
+    end
+
+    return OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities_internal, tdir, tspan, tType)
 end

@@ -5,6 +5,7 @@ using Base.Test
 @time @testset "Constrained Timestep" begin include("constrained.jl") end
 @time @testset "Unconstrained Timestep" begin include("unconstrained.jl") end
 @time @testset "Dependent Delay Tests" begin include("dependent_delays.jl") end
+@time @testset "Reinit" begin include("reinit.jl") end
 @time @testset "Saveat Test" begin include("saveat.jl") end
 @time @testset "Save_idxs Test" begin include("save_idxs.jl") end
 @time @testset "Events" begin include("events.jl") end
