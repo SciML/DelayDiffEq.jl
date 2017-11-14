@@ -11,13 +11,13 @@
 
 DelayDiffEq.jl is a component package in the DifferentialEquations ecosystem. It holds the
 delay differential equation solvers and utilities. It is built on top of OrdinaryDiffEq
-to extend those solvers for differential delay equations. While completely independent
+to extend those solvers for delay differential equations. While completely independent
 and usable on its own, users interested in using this
 functionality should check out [DifferentialEquations.jl](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
 
 ## API
 
-DelayDiffEq.jl is part of the JuliaDiffEq common interface, but can be used independently of DifferentialEquations.jl. The only requirement is that the user passes a DelayDiffEq.jl algorithm to `solve`. For example, we can solve the [ODE tutorial from the docs](http://docs.juliadiffeq.org/latest/tutorials/ode_example.html) using the `MethodOfSteps(Tsit5())` algorithm:
+DelayDiffEq.jl is part of the JuliaDiffEq common interface, but can be used independently of DifferentialEquations.jl. The only requirement is that the user passes a DelayDiffEq.jl algorithm to `solve`. For example, we can solve the [DDE tutorial from the documentation](http://docs.juliadiffeq.org/latest/tutorials/dde_example.html) using the `MethodOfSteps(Tsit5())` algorithm:
 
 ```julia
 using DelayDiffEq
@@ -34,14 +34,12 @@ lags = [tau]
 h(t) = ones(3)
 tspan = (0.0,10.0)
 u0 = [1.0,1.0,1.0]
-prob = ConstantLagDDEProblem(bc_model,h,u0,lags,tspan)
+prob = DDEProblem(bc_model,h,u0,tspan,lags)
 alg = MethodOfSteps(Tsit5())
 sol = solve(prob,alg)
 using Plots; plot(sol)
 ```
 
-For options for the `solve` command, see the [common solver options page](http://docs.juliadiffeq.org/latest/basics/common_solver_opts.html).
-
 ## Available Solvers
 
-For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](http://docs.juliadiffeq.org/latest/solvers/dde_solve.html).
+For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](http://docs.juliadiffeq.org/latest/solvers/dde_solve.html). For options for the `solve` command, see the [common solver options page](http://docs.juliadiffeq.org/latest/basics/common_solver_opts.html).
