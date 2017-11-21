@@ -50,13 +50,11 @@ assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.UDerivativeWrapper}, ::Type) wh
     :($name = OrdinaryDiffEq.UDerivativeWrapper(f, t))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.TimeGradientWrapper}, ::Type) where name =
     :($name = OrdinaryDiffEq.TimeGradientWrapper(
-        OrdinaryDiffEq.VectorF(f, size(u)),
-        uprev,
+        f,uprev,
         getfield(cache, $(Meta.quot(name))).fx1))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.UJacobianWrapper}, ::Type) where name =
     :($name = OrdinaryDiffEq.UJacobianWrapper(
-        OrdinaryDiffEq.VectorFReturn(f, size(u)),
-        t,
+        f,t,
         vec(uprev),
         getfield(cache, $(Meta.quot(name))).fx1))
 
