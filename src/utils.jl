@@ -55,13 +55,13 @@ assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.TimeGradientWrapper}, ::Type) w
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.UJacobianWrapper}, ::Type) where name =
     :($name = OrdinaryDiffEq.UJacobianWrapper(
         f,t,
-        vec(uprev),
+        uprev,
         getfield(cache, $(Meta.quot(name))).fx1))
 
 # create new config of Jacobian
 assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},
             ::Type) where {name,T,V,N,D} =
-                :($name = ForwardDiff.JacobianConfig(uf, vec(du1), vec(uprev),
+                :($name = ForwardDiff.JacobianConfig(uf, du1, uprev,
                                                      ForwardDiff.Chunk{$N}()))
 
 # update implicit RHS
