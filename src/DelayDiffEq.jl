@@ -5,7 +5,8 @@ module DelayDiffEq
 using Reexport
 @reexport using OrdinaryDiffEq
 
-using DataStructures, RecursiveArrayTools, MuladdMacro, ForwardDiff, NLsolve, Roots
+using DataStructures, RecursiveArrayTools, MuladdMacro,
+      DiffEqDiffTools, ForwardDiff, NLsolve, Roots
 
 import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_order,
                        handle_tstop!, ODEIntegrator, savevalues!, postamble!,

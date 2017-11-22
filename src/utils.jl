@@ -44,19 +44,16 @@ assign_expr(::Val{:phi1}, ::Type, ::Type{<:OrdinaryDiffEq.NorsettEulerCache}) =
     :(phi1 = ((expA-I)/A))
 
 # update derivative wrappers
-assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.TimeDerivativeWrapper}, ::Type) where name =
-    :($name = OrdinaryDiffEq.TimeDerivativeWrapper(f, u))
-assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.UDerivativeWrapper}, ::Type) where name =
-    :($name = OrdinaryDiffEq.UDerivativeWrapper(f, t))
-assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.TimeGradientWrapper}, ::Type) where name =
-    :($name = OrdinaryDiffEq.TimeGradientWrapper(
-        f,uprev,
-        getfield(cache, $(Meta.quot(name))).fx1))
-assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.UJacobianWrapper}, ::Type) where name =
-    :($name = OrdinaryDiffEq.UJacobianWrapper(
-        f,t,
-        uprev,
-        getfield(cache, $(Meta.quot(name))).fx1))
+assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.TimeDerivativeWrapper}, ::Type) where name =
+    :($name = DiffEqDiffTools.TimeDerivativeWrapper(f, u))
+assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.UDerivativeWrapper}, ::Type) where name =
+    :($name = DiffEqDiffTools.UDerivativeWrapper(f, t))
+assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.TimeGradientWrapper}, ::Type) where name =
+    :($name = DiffEqDiffTools.TimeGradientWrapper(
+        f,uprev))
+assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.UJacobianWrapper}, ::Type) where name =
+    :($name = DiffEqDiffTools.UJacobianWrapper(
+        f,t))
 
 # create new config of Jacobian
 assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},

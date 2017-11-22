@@ -8,3 +8,4 @@ MuladdMacro
 ForwardDiff
 NLsolve
 Roots
+DiffEqDiffTools 0.2.0
