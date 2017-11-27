@@ -8,9 +8,7 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     # integrator.EEst has unitless type of integrator.t
     if typeof(integrator.EEst) <: AbstractFloat
         if integrator.integrator.t != integrator.t
-            if abs(integrator.t - integrator.integrator.t) >= 10eps(integrator.EEst) *
-                oneunit(integrator.t)
-
+            if abs(integrator.t - integrator.integrator.t) >= 10eps(typeof(integrator.t))
                 error("unexpected time discrepancy detected")
             end
 
