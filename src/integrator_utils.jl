@@ -315,7 +315,7 @@ function handle_discontinuities!(integrator::DDEIntegrator)
     # calculate minimal order of these discontinuities
     # integrator.EEst has unitless type of integrator.t
     if typeof(integrator.EEst) <: AbstractFloat
-        maxΔt = 10eps(integrator.EEst) * oneunit(integrator.t)
+        maxΔt = 10eps(typeof(integrator.t))
 
         while !isempty(integrator.opts.d_discontinuities) &&
             abs(top(integrator.opts.d_discontinuities).t - integrator.t) < maxΔt

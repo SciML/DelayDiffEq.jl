@@ -1,4 +1,4 @@
 DiffEqDevTools
 DiffEqCallbacks
 DiffEqProblemLibrary 0.11.0
-Unitful
+Unitful 0.5.0
