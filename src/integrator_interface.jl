@@ -121,11 +121,12 @@ Calculate next step of `integrator`.
                                                     integrator.integrator.u,
                                                     integrator.u,
                                                     integrator.fixedpoint_abstol,
-                                                    integrator.fixedpoint_reltol)
+                                                    integrator.fixedpoint_reltol,
+                                                    integrator.opts.internalnorm)
             else
                 integrator.resid = OrdinaryDiffEq.calculate_residuals(
                     integrator.integrator.u, integrator.u, integrator.fixedpoint_abstol,
-                    integrator.fixedpoint_reltol)
+                    integrator.fixedpoint_reltol, integrator.opts.internalnorm)
             end
 
             # update error estimate of integrator with a combined error
