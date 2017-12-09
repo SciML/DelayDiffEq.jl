@@ -403,3 +403,9 @@ function auto_dt_reset!(dde_int::DDEIntegrator)
                                                      OrdinaryDiffEq.alg_order(dde_int.alg),
                                                      dde_int.alg)
 end
+
+function DiffEqBase.add_tstop!(integrator::DDEIntegrator,t)
+  integrator.tdir * (t - integrator.t) < 0 && error("Tried to add a tstop that is behind the current time. This is strictly forbidden")
+  push!(integrator.integrator.opts.tstops,t)
+  push!(integrator.opts.tstops,t)
+end
