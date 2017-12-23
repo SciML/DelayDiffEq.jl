@@ -154,12 +154,14 @@ function find_discontinuity_time(integrator::DDEIntegrator, callback::Discontinu
     if contains_discontinuity
         if interp_index != 0
             top_Θ = Θs[interp_index] # Top at the smallest
+            bottom_θ = Θs[prev_sign_index]
         else
             # without interpolation points
             top_Θ = one(integrator.t)
+            bottom_θ = typeof(integrator.t)(0)
         end
 
-        Θ = prevfloat(prevfloat(fzero(f, Θs[prev_sign_index], top_Θ)))
+        Θ = prevfloat(prevfloat(find_zero(f,(bottom_θ,top_Θ),FalsePosition(),abstol = callback.abstol/10)))
         # 2 prevfloat guerentees that the new time is either 1 or 2 floating point
         # numbers just before the event, but not after. If there's a barrier
         # which is never supposed to be crossed, then this will ensure that
