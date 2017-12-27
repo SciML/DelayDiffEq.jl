@@ -409,3 +409,9 @@ function DiffEqBase.add_tstop!(integrator::DDEIntegrator,t)
   push!(integrator.integrator.opts.tstops,t)
   push!(integrator.opts.tstops,t)
 end
+
+function DiffEqBase.add_saveat!(integrator::DDEIntegrator,t)
+  integrator.tdir * (t - integrator.t) < 0 && error("Tried to add a saveat that is behind the current time. This is strictly forbidden")
+  push!(integrator.integrator.opts.saveat,t)
+  push!(integrator.opts.saveat,t)
+end
