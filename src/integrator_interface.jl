@@ -415,3 +415,11 @@ function DiffEqBase.add_saveat!(integrator::DDEIntegrator,t)
   push!(integrator.integrator.opts.saveat,t)
   push!(integrator.opts.saveat,t)
 end
+
+@inline function DiffEqBase.get_du(integrator::ODEIntegrator)
+  integrator.fsallast
+end
+
+@inline function DiffEqBase.get_du!(out,integrator::ODEIntegrator)
+  out .= integrator.fsallast
+end
