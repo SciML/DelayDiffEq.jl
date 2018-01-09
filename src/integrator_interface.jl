@@ -222,6 +222,7 @@ Set the time step that `integrator` will take after the current step to `dt`.
 """
 @inline set_proposed_dt!(integrator::DDEIntegrator, dt) = (integrator.dtpropose = dt)
 
+@inline DiffEqBase.get_tmp_cache(i::DDEIntegrator) = (integrator.cache.tmp,)
 user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)

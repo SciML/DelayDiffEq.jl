@@ -15,15 +15,17 @@ struct HistoryFunction{F1,F2,F3<:ODEIntegrator} <: Function
     integrator::F3
 end
 
-function (f::HistoryFunction)(t, deriv::Type=Val{0}, idxs=nothing)
+function (f::HistoryFunction)(t, ::Type{Val{deriv}}=Val{0}, idxs=nothing) where deriv
     @inbounds if t < f.sol.t[1]
-        if typeof(idxs) <: Void
+        if deriv == 0 && typeof(idxs) <: Void
             return f.h(t)
+        elseif typeof(idxs) <: Void
+            return f.h(t, Val{deriv})
         else
-            return f.h(t, idxs)
+            return f.h(t, Val{deriv}, idxs)
         end
     elseif t <= f.sol.t[end] # Put equals back
-        return f.sol.interp(t, idxs, deriv)
+        return f.sol.interp(t, idxs, Val{deriv})
     end
 
     integrator = f.integrator
@@ -37,21 +39,23 @@ function (f::HistoryFunction)(t, deriv::Type=Val{0}, idxs=nothing)
 
     # handle extrapolations at initial time point
     if integrator.t == integrator.sol.prob.tspan[1]
-        return constant_extrapolant(t, integrator, idxs, deriv)
+        return constant_extrapolant(t, integrator, idxs, Val{deriv})
     else
-        return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
+        return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, Val{deriv})
     end
 end
 
-function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
+function (f::HistoryFunction)(val, t, ::Type{Val{deriv}}=Val{0}, idxs=nothing) where deriv
     @inbounds if t < f.sol.t[1]
-        if typeof(idxs) <: Void
+        if deriv == 0 && typeof(idxs) <: Void
             return f.h(val, t)
+        elseif typeof(idxs) <: Void
+            return f.h(val, t, Val{deriv})
         else
-            return f.h(val, t, idxs)
+            return f.h(val, t, Val{deriv}, idxs)
         end
     elseif t <= f.sol.t[end] # Put equals back
-        return f.sol.interp(val, t, idxs, deriv)
+        return f.sol.interp(val, t, idxs, Val{deriv})
     end
 
     integrator = f.integrator
@@ -65,8 +69,8 @@ function (f::HistoryFunction)(val, t, deriv::Type=Val{0}, idxs=nothing)
 
     # handle extrapolations at initial time point
     if integrator.t == integrator.sol.prob.tspan[1]
-        return constant_extrapolant!(val, t, integrator, idxs, deriv)
+        return constant_extrapolant!(val, t, integrator, idxs, Val{deriv})
     else
-        return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, deriv)
+        return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, Val{deriv})
     end
 end
