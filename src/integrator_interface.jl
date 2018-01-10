@@ -401,8 +401,7 @@ function auto_dt_reset!(dde_int::DDEIntegrator)
                                                      dde_int.opts.reltol,
                                                      dde_int.opts.internalnorm,
                                                      ode_prob,
-                                                     OrdinaryDiffEq.alg_order(dde_int.alg),
-                                                     dde_int.alg)
+                                                     dde_int)
 end
 
 function DiffEqBase.add_tstop!(integrator::DDEIntegrator,t)
