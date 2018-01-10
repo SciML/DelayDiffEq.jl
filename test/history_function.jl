@@ -10,13 +10,19 @@ solve(prob, MethodOfSteps(RK4()))
 
 # history function
 function h(t, idxs=nothing)
+    h(t,Val{0},idxs)
+end
+function h(val::AbstractArray, t, idxs=nothing)
+    h(val,t,Val{0},idxs)
+end
+function h(t, ::Type{Val{0}}, idxs=nothing)
     if typeof(idxs) <: Void
         return [t; -t]
     else
         return [t; -t][idxs]
     end
 end
-function h(val::AbstractArray, t, idxs=nothing)
+function h(val::AbstractArray, t, ::Type{Val{0}}, idxs=nothing)
     if typeof(idxs) <: Void
         val[1] = t
         val[2] = -t
@@ -31,6 +37,8 @@ integrator = init(prob, Tsit5())
 
 # combined history function
 history = DelayDiffEq.HistoryFunction(h, integrator.sol, integrator)
+
+@which h(-0.5, nothing)
 
 # test evaluation of history function
 for idxs in (nothing, [2])
