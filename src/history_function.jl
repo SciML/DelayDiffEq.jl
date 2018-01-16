@@ -15,10 +15,6 @@ struct HistoryFunction{F1,F2,F3<:ODEIntegrator} <: Function
     integrator::F3
 end
 
-function (f::HistoryFunction)(t, idxs=nothing)
-    f(t,Val{0},idxs)
-end
-
 function (f::HistoryFunction)(t, ::Type{Val{deriv}}=Val{0}, idxs=nothing) where deriv
     @inbounds if t < f.sol.t[1]
         if deriv == 0 && typeof(idxs) <: Void
@@ -47,10 +43,6 @@ function (f::HistoryFunction)(t, ::Type{Val{deriv}}=Val{0}, idxs=nothing) where 
     else
         return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, Val{deriv})
     end
-end
-
-function (f::HistoryFunction)(val,t, idxs=nothing)
-    f(val,t,Val{0},idxs)
 end
 
 function (f::HistoryFunction)(val, t, ::Type{Val{deriv}}=Val{0}, idxs=nothing) where deriv
