@@ -44,7 +44,6 @@ for calculation of DDE solution.
                 deleteat!(integrator.integrator.sol.k, integrator.saveiter + 1)
 
                 # correct other arrays
-                pop!(integrator.integrator.notsaveat_idxs)
                 if typeof(integrator.integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
                     deleteat!(integrator.integrator.alg_choice, integrator.saveiter + 1)
                 end
@@ -206,7 +205,7 @@ function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArra
                                               integrator.sol.interp.timeseries],
                     integrator.sol.interp.ts, [[k[integrator.opts.save_idxs] for k in ks]
                                                for ks in integrator.sol.interp.ks],
-                    integrator.sol.interp.alg_choice, integrator.sol.interp.notsaveat_idxs,
+                    integrator.sol.interp.alg_choice,
                     true, integrator.sol.interp.cache)
             else
                 OrdinaryDiffEq.InterpolationData(
@@ -214,8 +213,7 @@ function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArra
                                               integrator.sol.interp.timeseries],
                     integrator.sol.interp.ts, [[k[integrator.opts.save_idxs] for k in ks]
                                                for ks in integrator.sol.interp.ks],
-                    integrator.sol.interp.notsaveat_idxs, true,
-                    integrator.sol.interp.cache)
+                    true, integrator.sol.interp.cache)
             end
         end
     else # create not dense interpolation data if desired

@@ -20,7 +20,6 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
     saveat::tstopsType
     tracked_discontinuities::Vector{Discontinuity{tType}}
     alg::algType
-    notsaveat_idxs::Vector{Int}
     dtcache::tType
     dtchangeable::Bool
     dtpropose::tType
@@ -56,7 +55,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
                                sol,u,k,t,dt,f,uprev,uprev2,tprev,prev_idx,prev2_idx,
                                fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,
                                max_fixedpoint_iters,saveat,tracked_discontinuities,alg,
-                               notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,EEst,qold,
+                               dtcache,dtchangeable,dtpropose,tdir,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
                                prog,cache,kshortsize,force_stepfail,last_stepfail,
                                just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,
@@ -66,7 +65,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
 
         new(sol,u,k,t,dt,f,uprev,uprev2,tprev,prev_idx,prev2_idx,fixedpoint_abstol,
             fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,saveat,
-            tracked_discontinuities,alg,notsaveat_idxs,dtcache,dtchangeable,dtpropose,tdir,
+            tracked_discontinuities,alg,dtcache,dtchangeable,dtpropose,tdir,
             EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,prog,cache,
             kshortsize,force_stepfail,last_stepfail,just_hit_tstop,accept_step,isout,
             reeval_fsal,u_modified,opts,integrator)

@@ -231,7 +231,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 fixedpoint_reltol_internal, resid, fixedpoint_norm,
                                 alg.max_fixedpoint_iters, saveat_copy,
                                 tracked_discontinuities, integrator.alg,
-                                integrator.notsaveat_idxs, integrator.dtcache,
+                                integrator.dtcache,
                                 integrator.dtchangeable, integrator.dtpropose,
                                 integrator.tdir, integrator.EEst, integrator.qold,
                                 integrator.q11, integrator.erracc, integrator.dtacc,
