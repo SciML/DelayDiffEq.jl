@@ -219,11 +219,11 @@ function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArra
     else # create not dense interpolation data if desired
         if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
             OrdinaryDiffEq.CompositeInterpolationData(
-                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(0), Int[],
+                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(0),
                 Int[], false, integrator.sol.interp.cache)
         else
             OrdinaryDiffEq.InterpolationData(
-                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(0), Int[],
+                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(0),
                 false, integrator.sol.interp.cache)
         end
     end
