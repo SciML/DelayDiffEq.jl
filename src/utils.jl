@@ -4,9 +4,9 @@
 Return type of FSAL of `integrator`.
 """
 function fsal_typeof(integrator::ODEIntegrator{<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,
-                                               uType,tType,tTypeNoUnits,tdirType,ksEltype,
+                                               uType,tType,P,tTypeNoUnits,tdirType,ksEltype,
                                                SolType,F,ProgressType,CacheType,O,
-                                               FSALType}) where {uType,tType,tTypeNoUnits,
+                                               FSALType}) where {uType,tType,P,tTypeNoUnits,
                                                                  tdirType,ksEltype,SolType,
                                                                  F,ProgressType,CacheType,O,
                                                                  FSALType}
@@ -19,7 +19,7 @@ end
 Create cache for algorithm `alg` from existing cache `cache` with updated `u`, `uprev`,
 `uprev2`, `f`, `t`, and `dt`.
 """
-@generated function build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt)
+@generated function build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt,p)
     assignments = [assign_expr(Val{name}(), fieldtype(cache, name), cache)
                    for name in fieldnames(cache) if name ∉ [:u, :uprev, :uprev2, :t, :dt]]
 
@@ -45,15 +45,15 @@ assign_expr(::Val{:phi1}, ::Type, ::Type{<:OrdinaryDiffEq.NorsettEulerCache}) =
 
 # update derivative wrappers
 assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.TimeDerivativeWrapper}, ::Type) where name =
-    :($name = DiffEqDiffTools.TimeDerivativeWrapper(f, u))
+    :($name = DiffEqDiffTools.TimeDerivativeWrapper(f, u,p))
 assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.UDerivativeWrapper}, ::Type) where name =
-    :($name = DiffEqDiffTools.UDerivativeWrapper(f, t))
+    :($name = DiffEqDiffTools.UDerivativeWrapper(f, t,p))
 assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.TimeGradientWrapper}, ::Type) where name =
     :($name = DiffEqDiffTools.TimeGradientWrapper(
-        f,uprev))
+        f,uprev,p))
 assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.UJacobianWrapper}, ::Type) where name =
     :($name = DiffEqDiffTools.UJacobianWrapper(
-        f,t))
+        f,t,p))
 
 # create new config of Jacobian
 assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},
@@ -63,14 +63,14 @@ assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},
 
 # update implicit RHS
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name =
-    :($name = OrdinaryDiffEq.ImplicitRHS(f, cache.tmp, t, t, t, cache.dual_cache))
+    :($name = OrdinaryDiffEq.ImplicitRHS(f, cache.tmp, t, t, t, cache.dual_cache,p))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS_Scalar}, ::Type) where name =
-    :($name = OrdinaryDiffEq.ImplicitRHS_Scalar(f, zero(u), t, t, t))
+    :($name = OrdinaryDiffEq.ImplicitRHS_Scalar(f, zero(u), t, t, t,p))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF}, ::Type) where name =
-    :($name = OrdinaryDiffEq.RHS_IIF(f, cache.tmp, t, t, cache.tmp, cache.dual_cache))
+    :($name = OrdinaryDiffEq.RHS_IIF(f, cache.tmp, t, t, cache.tmp, cache.dual_cache,p))
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF_Scalar}, ::Type) where name =
     :($name = OrdinaryDiffEq.RHS_IIF_Scalar(f, zero(u), t, t,
-                                            getfield(cache, $(Meta.quot(name))).a))
+                                            getfield(cache, $(Meta.quot(name))).a,p))
 
 # create new NLsolve differentiable function
 assign_expr(::Val{name}, ::Type{<:NLsolve.DifferentiableMultivariateFunction},

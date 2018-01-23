@@ -247,11 +247,13 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
     if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
         OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
                                      integrator.u, integrator.dt, integrator.f,
+                                     integrator.p,
                                      integrator.cache.caches[integrator.cache.current],
                                      Val{false}, Val{true}, Val{true})
     else
         OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
                                      integrator.u, integrator.dt, integrator.f,
+                                     integrator.p,
                                      integrator.cache, Val{false}, Val{true},
                                      Val{true})
     end

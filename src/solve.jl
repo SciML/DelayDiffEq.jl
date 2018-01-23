@@ -17,6 +17,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     neutral = prob.neutral
     constant_lags = prob.constant_lags
     dependent_lags = prob.dependent_lags
+    p = prob.p
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
@@ -26,7 +27,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(t,u,du) or f(t,u) without history function
-    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan,
+    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan, prob.p,
                                      mass_matrix = prob.mass_matrix)
     integrator = init(ode_prob, alg.alg; initialize_integrator=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
@@ -41,9 +42,9 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # the extrapolation of the integrator for the future
     interp_h = HistoryFunction(prob.h, integrator.sol, integrator)
     if isinplace
-        interp_f = (t,u,du) -> prob.f(t,u,interp_h,du)
+        interp_f = (du,u,p,t) -> prob.f(du,u,interp_h,p,t)
     else
-        interp_f = (t,u) -> prob.f(t,u,interp_h)
+        interp_f = (u,p,t) -> prob.f(u,interp_h,p,t)
     end
 
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
@@ -70,9 +71,9 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # of the form f(t,u,du) or f(t,u) such that ODE algorithms can be applied
     dde_h = HistoryFunction(prob.h, sol, integrator)
     if isinplace
-        dde_f = (t,u,du) -> prob.f(t,u,dde_h,du)
+        dde_f = (du,u,p,t) -> prob.f(du,u,dde_h,p,t)
     else
-        dde_f = (t,u) -> prob.f(t,u,dde_h)
+        dde_f = (u,p,t) -> prob.f(u,dde_h,p,t)
     end
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
@@ -133,12 +134,12 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # new cache with updated u, uprev, uprev2, and function f
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
         caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
-                                                 prob.tspan[1], dt),
+                                                 prob.tspan[1], dt,p),
                      integrator.cache.caches, alg.alg.algs)
         dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
         dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
-                                       prob.tspan[1], dt)
+                                       prob.tspan[1], dt,p)
     end
 
     # filter provided discontinuities
@@ -219,14 +220,14 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # information, the new solution, the parameters of the ODE integrator, and
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
-    dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,
+    dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,typeof(p),
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
                             typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
                             typeof(dde_f),typeof(integrator.prog),typeof(dde_cache),
                             typeof(integrator),typeof(fixedpoint_norm),typeof(opts),
                             typeof(saveat_copy),fsal_typeof(integrator)}(
-                                sol, u, integrator.k, integrator.t, dt, dde_f, uprev,
+                                sol, u, integrator.k, integrator.t, dt, dde_f, p, uprev,
                                 uprev2, integrator.tprev, 1, 1, fixedpoint_abstol_internal,
                                 fixedpoint_reltol_internal, resid, fixedpoint_norm,
                                 alg.max_fixedpoint_iters, saveat_copy,
@@ -299,10 +300,10 @@ function solve!(integrator::DDEIntegrator)
     # calculate analytical solutions to problem if existent
     if has_analytic(prob.f)
         if typeof(integrator.opts.save_idxs) <: Void
-            u_analytic = [prob.f(Val{:analytic}, t, integrator.sol[1]) for t in sol_array.t]
+            u_analytic = [prob.f(Val{:analytic}, integrator.sol[1], integrator.p, t) for t in sol_array.t]
         else
             u_analytic = [@view(prob.f(
-                Val{:analytic}, t, integrator.sol[1])[integrator.opts.save_idxs])
+                Val{:analytic}, integrator.sol[1], integrator.p, t)[integrator.opts.save_idxs])
                           for t in sol_array.t]
         end
         errors = Dict{Symbol,eltype(integrator.u)}()

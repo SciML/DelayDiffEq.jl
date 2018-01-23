@@ -25,7 +25,7 @@ function (f::HistoryFunction)(t, ::Type{Val{deriv}}=Val{0}, idxs=nothing) where 
             return f.h(t, Val{deriv}, idxs)
         end
     elseif t <= f.sol.t[end] # Put equals back
-        return f.sol.interp(t, idxs, Val{deriv})
+        return f.sol.interp(t, idxs, Val{deriv}, f.integrator.p)
     end
 
     integrator = f.integrator
@@ -55,7 +55,7 @@ function (f::HistoryFunction)(val, t, ::Type{Val{deriv}}=Val{0}, idxs=nothing) w
             return f.h(val, t, Val{deriv}, idxs)
         end
     elseif t <= f.sol.t[end] # Put equals back
-        return f.sol.interp(val, t, idxs, Val{deriv})
+        return f.sol.interp(val, t, idxs, Val{deriv}, f.integrator.p)
     end
 
     integrator = f.integrator

@@ -3,7 +3,7 @@ using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 ## Special test
 
 # check constant extrapolation with problem with vanishing delays at t = 0
-prob = DDEProblem((t,u,h,du) -> -h(t/2)[1], t -> [1.0], [1.0], (0.0, 10.0), [])
+prob = DDEProblem((du,u,h,p,t) -> -h(t/2)[1], t -> [1.0], [1.0], (0.0, 10.0), nothing, [])
 solve(prob, MethodOfSteps(RK4()))
 
 ## General tests
@@ -105,13 +105,13 @@ OrdinaryDiffEq.loopfooter!(integrator)
 # test solution interpolation
 for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
     @test history(0.01, deriv, idxs) ==
-        integrator.sol.interp(0.01, idxs, deriv) &&
+        integrator.sol.interp(0.01, idxs, deriv, integrator.p) &&
         !integrator.isout
 
     val = idxs == nothing ? zeros(2) : [0.0]
     val2 = deepcopy(val)
     history(val, 0.01, deriv, idxs)
-    integrator.sol.interp(val2, 0.01, idxs, deriv)
+    integrator.sol.interp(val2, 0.01, idxs, deriv, integrator.p)
 
     @test val == val2 && !integrator.isout
 end
