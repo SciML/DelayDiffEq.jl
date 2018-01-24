@@ -12,7 +12,7 @@ sol = solve!(dde_int)
 
 # constant delay specified as function
 prob2 = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), nothing, [],
-                   [(t, u) -> 1])
+                   [(u,p,t) -> 1])
 
 dde_int2 = init(prob2, alg)
 sol2 = solve!(dde_int2)
@@ -21,7 +21,7 @@ sol2 = solve!(dde_int2)
 
 # with nothing
 prob2_nothing = DDEProblem(DiffEqProblemLibrary.f_1delay, t -> [0.0], [1.0], (0., 10.), nothing, nothing,
-                   [(t, u) -> 1])
+                   [(u,p,t) -> 1])
 
 dde_int2_nothing = init(prob2_nothing, alg)
 sol2_nothing = solve!(dde_int2_nothing)

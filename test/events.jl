@@ -6,7 +6,7 @@ alg = MethodOfSteps(Tsit5(); constrained=false)
 
 # continuous callback
 
-cb = ContinuousCallback((t, u, integrator) -> t - 2.60, # Event when event_f(t,u,k) == 0
+cb = ContinuousCallback((u, t, integrator) -> t - 2.60, # Event when event_f(t,u,k) == 0
                         integrator -> (integrator.u = - integrator.u))
 
 sol1 = solve(prob, alg, callback=cb)

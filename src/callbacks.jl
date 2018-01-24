@@ -52,10 +52,10 @@ end
                           [interp_points::Int=10, abstol=1e-12, reltol=0])
 
 Callback that tracks `discontinuities` that are propagated by dependent `lags` of the form
-`(t, u) -> lag(t, u)`.
+`(u,p,t) -> lag(u,p,t)`.
 
 Hereby a number `interp_points` of interpolation points are used to first check for
-different signs of functions ``f(t) = T + lag(t, u(t)) - t``, where ``T`` is time point of a
+different signs of functions ``f(t) = T + lag(u(t),p,t) - t``, where ``T`` is time point of a
 previous discontinuity and ``t`` is contained in the current time interval. This shows that
 the current time interval contains propagated discontinuities of which the exact time point
 is then determined by a root finding algorithm. The sign at the lower bound of the time
@@ -69,7 +69,7 @@ function DiscontinuityCallback(lags, discontinuities::Vector{<:Discontinuity};
 end
 
 # do not initialize discontinuity callback
-initialize!(c::DiscontinuityCallback, t, u, integrator::DEIntegrator) = (integrator.u_modified=false)
+initialize!(c::DiscontinuityCallback, u, t, integrator::DEIntegrator) = (integrator.u_modified=false)
 
 # find time of first discontinuity in the current time interval (if existent)
 function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCallback)
@@ -84,7 +84,7 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
     Θs = linspace(0, one(integrator.t), callback.interp_points)
 
     for lag in callback.lags
-        # define function f that calculates T + lag(t, u(t)) - t, where t = tprev + Θ*dt is
+        # define function f that calculates T + lag(u(t),p,t) - t, where t = tprev + Θ*dt is
         # a time point in the time interval of the current step and T ≤ tprev is the time
         # point of a discontinuity
         # hence roots t of this function for fixed T are propagated discontinuities
@@ -97,7 +97,7 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
                 tmp = OrdinaryDiffEq.ode_interpolant(Θ, integrator, nothing, Val{0})
             end
             t = integrator.tprev + Θ*integrator.dt
-            T + lag(t, tmp) - t
+            T + lag(tmp,integrator.p,t) - t
         end
 
         for d in callback.discontinuities
@@ -106,14 +106,14 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
             g(Θ) = f(Θ, T)
 
             # use start and end point of last time interval to check for discontinuities
-            previous_condition = T + lag(integrator.tprev, integrator.uprev) -
+            previous_condition = T + lag(integrator.uprev, integrator.p, integrator.tprev) -
                 integrator.tprev
             if isapprox(previous_condition, 0, rtol=callback.reltol, atol=callback.abstol)
                 prev_sign = 0
             else
                 prev_sign = cmp(previous_condition, 0)
             end
-            next_sign = cmp(T + lag(integrator.t, integrator.u) - integrator.t, 0)
+            next_sign = cmp(T + lag(integrator.u, integrator.p, integrator.t) - integrator.t, 0)
 
             # find time of discontinuity if one exists
             t = find_discontinuity_time(integrator, callback, prev_sign, next_sign, Θs, g)
