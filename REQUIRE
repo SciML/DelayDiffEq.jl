@@ -6,6 +6,6 @@ RecursiveArrayTools 0.2.0
 Reexport
 MuladdMacro
 ForwardDiff
-NLsolve 0.14.0
+NLSolversBase 4.2.0
 Roots
 DiffEqDiffTools 0.3.0

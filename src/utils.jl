@@ -73,9 +73,9 @@ assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.RHS_IIF_Scalar}, ::Type) where 
                                             getfield(cache, $(Meta.quot(name))).a,p))
 
 # create new NLsolve differentiable function
-assign_expr(::Val{name}, ::Type{<:NLsolve.DifferentiableMultivariateFunction},
+assign_expr(::Val{name}, ::Type{<:NLSolversBase.OnceDifferentiable},
             ::Type{<:OrdinaryDiffEq.OrdinaryDiffEqMutableCache}) where name =
                 :($name = alg.nlsolve(Val{:init},rhs,u))
-assign_expr(::Val{name}, ::Type{<:NLsolve.DifferentiableMultivariateFunction},
+assign_expr(::Val{name}, ::Type{<:NLSolversBase.OnceDifferentiable},
             ::Type{<:OrdinaryDiffEq.OrdinaryDiffEqConstantCache}) where name =
                 :($name = alg.nlsolve(Val{:init},rhs,uhold))
