@@ -3,7 +3,7 @@ using DelayDiffEq, DiffEqProblemLibrary, Base.Test
 ## Special test
 
 # check constant extrapolation with problem with vanishing delays at t = 0
-prob = DDEProblem((du,u,h,p,t) -> -h(t/2)[1], t -> [1.0], [1.0], (0.0, 10.0), nothing, [])
+prob = DDEProblem((du,u,h,p,t) -> -h(t/2)[1], [1.0], t -> [1.0], (0.0, 10.0))
 solve(prob, MethodOfSteps(RK4()))
 
 ## General tests

@@ -4,12 +4,14 @@ function f_inplace(du,u,h,p,t)
     du[1] = - h(t-1/5)[1] + u[1]
     du[2] = - h(t-1/3)[2] - h(t-1/5)[2]
 end
-prob_inplace = DDEProblem(f_inplace, t->zeros(2), ones(2), (0.0, 100.0), nothing, [1/5, 1/3])
+prob_inplace = DDEProblem(f_inplace, ones(2), t->zeros(2), (0.0, 100.0),
+                          constant_lags = [1/5, 1/3])
 
 function f_notinplace(u,h,p,t)
     [-h(t-1/5)[1] + u[1]; -h(t-1/3)[2] - h(t-1/5)[2]]
 end
-prob_notinplace = DDEProblem(f_notinplace, t->zeros(2), ones(2), (0.0, 100.0), nothing, [1/5, 1/3])
+prob_notinplace = DDEProblem(f_notinplace, ones(2), t->zeros(2), (0.0, 100.0),
+                             constant_lags = [1/5, 1/3])
 
 alg = MethodOfSteps(BS3())
 

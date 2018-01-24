@@ -9,7 +9,7 @@ sol = solve(prob, alg)
 @test sol.errors[:final] < 1.8e-6
 @test sol.errors[:l2] < 2.0e-5
 
-prob2 = DDEProblem(prob.f,prob.h,prob.u0,prob.tspan,Float64[])
+prob2 = DDEProblem(prob.f,prob.u0,prob.h,prob.tspan)
 sol2 = solve(prob2, alg)
 
 @test sol2.errors[:l∞] < 1.1e-4

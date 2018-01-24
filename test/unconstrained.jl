@@ -122,7 +122,8 @@ function h(t,::Type{Val{0}}, idxs=nothing)
   end
 end
 
-prob = DDEProblem(f, h, [1.0], (0.0, 100.), nothing, [0.2])
+prob = DDEProblem(f, [1.0], h, (0.0, 100.),
+                  constant_lags = [0.2])
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
@@ -138,7 +139,8 @@ function h(out::AbstractArray,t,idxs=nothing)
   out[1] = 0.0
 end
 
-prob = DDEProblem(f, h, [1.0], (0.0, 100.0), [0.2])
+prob = DDEProblem(f, [1.0], h, (0.0, 100.0),
+                  constant_lags = [0.2])
 
 alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
                      fixedpoint_abstol=1e-12, fixedpoint_reltol=1e-12)
