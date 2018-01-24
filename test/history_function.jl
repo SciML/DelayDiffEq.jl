@@ -9,20 +9,14 @@ solve(prob, MethodOfSteps(RK4()))
 ## General tests
 
 # history function
-function h(t, idxs=nothing)
-    h(t,Val{0},idxs)
-end
-function h(val::AbstractArray, t, idxs=nothing)
-    h(val,t,Val{0},idxs)
-end
-function h(t, ::Type{Val{0}}, idxs=nothing)
+function h(t; idxs=nothing)
     if typeof(idxs) <: Void
         return [t; -t]
     else
         return [t; -t][idxs]
     end
 end
-function h(val::AbstractArray, t, ::Type{Val{0}}, idxs=nothing)
+function h(val::AbstractArray, t; idxs=nothing)
     if typeof(idxs) <: Void
         val[1] = t
         val[2] = -t
@@ -38,17 +32,15 @@ integrator = init(prob, Tsit5())
 # combined history function
 history = DelayDiffEq.HistoryFunction(h, integrator.sol, integrator)
 
-@which h(-0.5, nothing)
-
 # test evaluation of history function
 for idxs in (nothing, [2])
-    @test history(-0.5, Val{0}, idxs) == h(-0.5, idxs)
+    @test history(-0.5, Val{0}; idxs = idxs) == h(-0.5; idxs = idxs)
 
     val = idxs == nothing ? zeros(2) : [0.0]
     val2 = deepcopy(val)
 
-    history(val, -0.5, Val{0}, idxs)
-    h(val2, -0.5, idxs)
+    history(val, -0.5, Val{0}; idxs = idxs)
+    h(val2, -0.5; idxs = idxs)
 
     @test val == val2
 end
@@ -61,14 +53,14 @@ for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
         (idxs == nothing ? integrator.u : integrator.u[[2]]) :
         (idxs == nothing ? zeros(2) : [0.0])
 
-    @test history(0.5, deriv, idxs) == extrapolation && integrator.isout
+    @test history(0.5, deriv; idxs = idxs) == extrapolation && integrator.isout
 
     integrator.isout = false
-    @test history(nothing, 0.5, deriv, idxs) == extrapolation && integrator.isout
+    @test history(nothing, 0.5, deriv; idxs = idxs) == extrapolation && integrator.isout
 
     integrator.isout = false
     val = 1 .- extrapolation # ensures that val ≠ extrapolation
-    history(val, 0.5, deriv, idxs)
+    history(val, 0.5, deriv; idxs = idxs)
 
     @test val == extrapolation && integrator.isout
 end
@@ -84,14 +76,14 @@ integrator.t = integrator.dt
 for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
     integrator.isout = false
 
-    @test history(0.01, deriv, idxs) ==
+    @test history(0.01, deriv; idxs = idxs) ==
         OrdinaryDiffEq.current_interpolant(0.01, integrator, idxs, deriv) &&
         integrator.isout
 
     integrator.isout = false
     val = idxs == nothing ? zeros(2) : [0.0]
     val2 = deepcopy(val)
-    history(val, 0.01, deriv, idxs)
+    history(val, 0.01, deriv; idxs = idxs)
     OrdinaryDiffEq.current_interpolant!(val2, 0.01, integrator, idxs, deriv)
 
     @test val == val2 && integrator.isout
@@ -104,13 +96,13 @@ OrdinaryDiffEq.loopfooter!(integrator)
 
 # test solution interpolation
 for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
-    @test history(0.01, deriv, idxs) ==
+    @test history(0.01, deriv; idxs = idxs) ==
         integrator.sol.interp(0.01, idxs, deriv, integrator.p) &&
         !integrator.isout
 
     val = idxs == nothing ? zeros(2) : [0.0]
     val2 = deepcopy(val)
-    history(val, 0.01, deriv, idxs)
+    history(val, 0.01, deriv; idxs = idxs)
     integrator.sol.interp(val2, 0.01, idxs, deriv, integrator.p)
 
     @test val == val2 && !integrator.isout
@@ -120,14 +112,14 @@ end
 for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
     integrator.isout = false
 
-    @test history(1, deriv, idxs) ==
+    @test history(1, deriv; idxs = idxs) ==
         OrdinaryDiffEq.current_interpolant(1, integrator, idxs, deriv) &&
         integrator.isout
 
     integrator.isout = false
     val = idxs == nothing ? zeros(2) : [0.0]
     val2 = deepcopy(val)
-    history(val, 1, deriv, idxs)
+    history(val, 1, deriv; idxs = idxs)
     OrdinaryDiffEq.current_interpolant!(val2, 1, integrator, idxs, deriv)
 
     @test val == val2 && integrator.isout

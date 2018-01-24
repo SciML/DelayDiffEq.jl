@@ -111,10 +111,10 @@ println("Standard tests complete. Onto idxs tests")
 # Idxs
 
 function f(du,u,h,p,t)
-  du[1] = -h(t-0.2, Val{0}, 1) + u[1]
+  du[1] = -h(t-0.2;idxs=1) + u[1]
 end
 
-function h(t,::Type{Val{0}}, idxs=nothing)
+function h(t;idxs=nothing)
   if typeof(idxs) <: Void
     return [0.0]
   else
@@ -135,7 +135,7 @@ function f(du,u,h,p,t)
   du[1] += u[1]
 end
 
-function h(out::AbstractArray,t,idxs=nothing)
+function h(out::AbstractArray,t)
   out[1] = 0.0
 end
 
