@@ -24,7 +24,7 @@ using DelayDiffEq
 const p0 = 0.2; const q0 = 0.3; const v0 = 1; const d0 = 5
 const p1 = 0.2; const q1 = 0.3; const v1 = 1; const d1 = 1
 const d2 = 1; const beta0 = 1; const beta1 = 1; const tau = 1
-function bc_model(t,u,h,du)
+function bc_model(du,u,h,p,t)
   du[1] = (v0/(1+beta0*(h(t-tau)[3]^2))) * (p0 - q0)*u[1] - d0*u[1]
   du[2] = (v0/(1+beta0*(h(t-tau)[3]^2))) * (1 - p0 + q0)*u[1] +
           (v1/(1+beta1*(h(t-tau)[3]^2))) * (p1 - q1)*u[2] - d1*u[2]
@@ -34,7 +34,7 @@ lags = [tau]
 h(t) = ones(3)
 tspan = (0.0,10.0)
 u0 = [1.0,1.0,1.0]
-prob = DDEProblem(bc_model,h,u0,tspan,lags)
+prob = DDEProblem(bc_model,h,u0,tspan,constant_lags = lags)
 alg = MethodOfSteps(Tsit5())
 sol = solve(prob,alg)
 using Plots; plot(sol)
