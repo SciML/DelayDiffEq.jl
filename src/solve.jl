@@ -6,7 +6,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               dt=zero(tType), saveat=tType[], tstops = tType[],
               save_idxs=nothing, save_everystep=isempty(saveat),
               save_start=true, save_end = true,
-              dense=save_everystep && !(typeof(alg) <: Discrete),
+              dense=save_everystep && !(typeof(alg) <: FunctionMap),
               minimal_solution=true, discontinuity_interp_points::Int=10,
               discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
               initial_order=prob.h(prob.tspan[1]) == prob.u0 ? 1 : 0,
