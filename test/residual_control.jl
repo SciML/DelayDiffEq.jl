@@ -24,9 +24,9 @@ sol3 = solve(prob2, alg, abstol=1e-9,reltol=1e-6)
 
 sol4 = solve(prob2, alg, abstol=1e-13,reltol=1e-13)
 
-@test sol4.errors[:l∞] < 6.3e-11
+@test sol4.errors[:l∞] < 7.0e-11
 @test sol4.errors[:final] < 1.1e-11
-@test sol4.errors[:l2] < 9.1e-12
+@test sol4.errors[:l2] < 9.3e-12
 
 ######## Now show that non-residual control is worse
 
