@@ -34,7 +34,7 @@ lags = [tau]
 h(t) = ones(3)
 tspan = (0.0,10.0)
 u0 = [1.0,1.0,1.0]
-prob = DDEProblem(bc_model,h,u0,tspan,constant_lags = lags)
+prob = DDEProblem(bc_model,u0,h,tspan,constant_lags = lags)
 alg = MethodOfSteps(Tsit5())
 sol = solve(prob,alg)
 using Plots; plot(sol)
