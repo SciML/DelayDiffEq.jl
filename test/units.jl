@@ -1,67 +1,44 @@
-using Unitful, DelayDiffEq, DiffEqProblemLibrary, Base.Test
+using Unitful
 
-# Scalar problem, not in-place
-prob = DiffEqProblemLibrary.build_prob_dde_1delay_long_scalar_notinplace(1.0u"N", 1.0u"s")
+@testset "Units" begin
+    prob_notinplace =
+        DiffEqProblemLibrary.build_prob_dde_1delay_long_scalar_notinplace(1.0u"N", 1.0u"s")
+    prob_inplace = DiffEqProblemLibrary.build_prob_dde_1delay_long(1.0u"N", 1.0u"s")
 
-# Unconstrained algorithm without units
-alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-10, fixedpoint_reltol=1e-4)
-sol = solve(prob, alg)
+    @testset for prob in (prob_notinplace, prob_inplace), constrained in (false, true)
+        @testset "correct" begin
+            # without units
+            alg1 = MethodOfSteps(Tsit5(), constrained=constrained, max_fixedpoint_iters=100,
+                                 fixedpoint_abstol=1e-10, fixedpoint_reltol=1e-4)
+            sol1 = solve(prob, alg1)
 
-# Unconstrained algorithm with correct units
-alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-7u"mN", fixedpoint_reltol=1e-4)
-sol2 = solve(prob, alg)
+            # with correct units
+            alg2 = MethodOfSteps(Tsit5(), constrained=constrained, max_fixedpoint_iters=100,
+                                 fixedpoint_abstol=1e-7u"mN", fixedpoint_reltol=1e-4)
+            sol2 = solve(prob, alg2)
 
-@test sol.t == sol2.t && sol.u == sol2.u
+            @test sol1.t == sol2.t && sol1.u == sol2.u
 
-# Unconstrained algorithm with incorrect units for absolute tolerance
-alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-10u"s", fixedpoint_reltol=1e-4)
-@test_throws Unitful.DimensionError solve(prob, alg)
+            # with correct units as vectors
+            if typeof(prob.u0) <: AbstractArray
+                alg3 = MethodOfSteps(Tsit5(), constrained=constrained, max_fixedpoint_iters=100,
+                                     fixedpoint_abstol=[1e-7u"mN"], fixedpoint_reltol=[1e-4])
+                sol3 = solve(prob, alg3)
 
-# Unconstrained algorithm with units for relative tolerance
-alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-10, fixedpoint_reltol=1e-4u"N")
-@test_throws Unitful.DimensionError solve(prob, alg)
+                @test sol1.t == sol3.t && sol1.u == sol3.u
+            end
+        end
 
-# Constrained algorithm without units
-alg = MethodOfSteps(Tsit5(), constrained=true, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-10, fixedpoint_reltol=1e-4)
-sol = solve(prob, alg)
+        @testset "incorrect" begin
+            # with incorrect units for absolute tolerance
+            alg1 = MethodOfSteps(Tsit5(), constrained=constrained, max_fixedpoint_iters=100,
+                                fixedpoint_abstol=1e-10u"s", fixedpoint_reltol=1e-4)
+            @test_throws Unitful.DimensionError solve(prob, alg1)
 
-# Constrained algorithm with correct units
-alg = MethodOfSteps(Tsit5(), constrained=true, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-7u"mN", fixedpoint_reltol=1e-4)
-sol2 = solve(prob, alg)
-
-@test sol.t == sol2.t && sol.u == sol2.u
-
-# Vector problem, in-place
-prob = DiffEqProblemLibrary.build_prob_dde_1delay_long(1.0u"N", 1.0u"s")
-
-# Unconstrained algorithm without units
-alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-10, fixedpoint_reltol=1e-4)
-sol = solve(prob, alg)
-
-# Unconstrained algorithm with correct units and both absolute and relative tolerance as
-# vector
-alg = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=[1e-7u"mN"], fixedpoint_reltol=[1e-4])
-sol2 = solve(prob, alg)
-
-@test sol.t == sol2.t && sol.u == sol2.u
-
-# Constrained algorithm without units
-alg = MethodOfSteps(Tsit5(), constrained=true, max_fixedpoint_iters=100,
-                    fixedpoint_abstol=1e-10, fixedpoint_reltol=1e-4)
-sol = solve(prob, alg)
-
-# Constrained algorithm with correct units and both absolute and relative tolerance as
-# vector
-alg = MethodOfSteps(Tsit5(), constrained=true, max_fixedpoint_iters=100,
-                     fixedpoint_abstol=[1e-7u"mN"], fixedpoint_reltol=[1e-4])
-sol2 = solve(prob, alg)
-
-@test sol.t == sol2.t && sol.u == sol2.u
+            # with incorrect units for relative tolerance
+            alg2 = MethodOfSteps(Tsit5(), constrained=constrained, max_fixedpoint_iters=100,
+                                fixedpoint_abstol=1e-10, fixedpoint_reltol=1e-4u"N")
+            @test_throws Unitful.DimensionError solve(prob, alg2)
+        end
+    end
+end

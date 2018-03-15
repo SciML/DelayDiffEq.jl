@@ -1,32 +1,32 @@
-using DelayDiffEq, DiffEqProblemLibrary, DiffEqDevTools,
-      DiffEqCallbacks, Base.Test
+using DiffEqDevTools, DiffEqCallbacks
 
-prob = prob_dde_1delay_scalar_notinplace
-alg = MethodOfSteps(Tsit5(); constrained=false)
+@testset "Events" begin
+    prob = prob_dde_1delay_scalar_notinplace
+    alg = MethodOfSteps(Tsit5(); constrained=false)
 
-# continuous callback
+    # continuous callback
+    @testset "continuous" begin
+        cb = ContinuousCallback(
+            (u, t, integrator) -> t - 2.60, # Event when event_f(t,u,k) == 0
+            integrator -> (integrator.u = - integrator.u))
 
-cb = ContinuousCallback((u, t, integrator) -> t - 2.60, # Event when event_f(t,u,k) == 0
-                        integrator -> (integrator.u = - integrator.u))
+        sol1 = solve(prob, alg, callback=cb)
+        sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
+        sol3 = appxtrue(sol1, sol2)
 
-sol1 = solve(prob, alg, callback=cb)
+        @test sol3.errors[:L2] < 4.1e-3
+        @test sol3.errors[:L∞] < 1.3e-2
+    end
 
-sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
+    # discrete callback
+    @testset "discrete" begin
+        cb = AutoAbstol()
 
-sol3 = appxtrue(sol1, sol2)
+        sol1 = solve(prob, alg, callback=cb)
+        sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
+        sol3 = appxtrue(sol1, sol2)
 
-@test sol3.errors[:L2] < 4.1e-3
-@test sol3.errors[:L∞] < 1.3e-2
-
-# discrete callback
-
-cb = AutoAbstol()
-
-sol1 = solve(prob, alg, callback=cb)
-
-sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
-
-sol3 = appxtrue(sol1, sol2)
-
-@test sol3.errors[:L2] < 1.4e-3
-@test sol3.errors[:L∞] < 4.1e-3
+        @test sol3.errors[:L2] < 1.4e-3
+        @test sol3.errors[:L∞] < 4.1e-3
+    end
+end

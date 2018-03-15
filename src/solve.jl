@@ -9,7 +9,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               dense=save_everystep && !(typeof(alg) <: FunctionMap),
               minimal_solution=true, discontinuity_interp_points::Int=10,
               discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
-              initial_order=prob.h(prob.tspan[1]) == prob.u0 ? 1 : 0,
+              initial_order=agrees(prob.h, prob.u0, prob.tspan[1]) ? 1 : 0,
               initialize_integrator = true, initialize_save = true,
               callback=nothing, kwargs...) where
     {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
