@@ -1,53 +1,61 @@
-using DelayDiffEq, DiffEqProblemLibrary, Base.Test
+@testset "Residual control" begin
+    alg = MethodOfSteps(RK4(); constrained=false)
 
-alg = MethodOfSteps(RK4(); constrained=false)
+    # reference solution with delays specified
+    @testset "reference" begin
+        prob = prob_dde_1delay_scalar_notinplace
+        sol = solve(prob, alg)
 
-prob = prob_dde_1delay_scalar_notinplace
-sol = solve(prob, alg)
+        @test sol.errors[:l∞] < 5.6e-5
+        @test sol.errors[:final] < 1.8e-6
+        @test sol.errors[:l2] < 2.0e-5
+    end
 
-@test sol.errors[:l∞] < 5.6e-5
-@test sol.errors[:final] < 1.8e-6
-@test sol.errors[:l2] < 2.0e-5
+    # problem without delays specified
+    prob = DDEProblem(prob.f,prob.u0,prob.h,prob.tspan)
 
-prob2 = DDEProblem(prob.f,prob.u0,prob.h,prob.tspan)
-sol2 = solve(prob2, alg)
+    # solutions with residual control
+    @testset "residual control" begin
+        sol = solve(prob, alg)
 
-@test sol2.errors[:l∞] < 1.1e-4
-@test sol2.errors[:final] < 4.1e-6
-@test sol2.errors[:l2] < 3.7e-5
+        @test sol.errors[:l∞] < 1.1e-4
+        @test sol.errors[:final] < 4.1e-6
+        @test sol.errors[:l2] < 3.7e-5
 
-sol3 = solve(prob2, alg, abstol=1e-9,reltol=1e-6)
+        sol = solve(prob, alg, abstol=1e-9,reltol=1e-6)
 
-@test sol3.errors[:l∞] < 3.3e-8
-@test sol3.errors[:final] < 4.1e-9
-@test sol3.errors[:l2] < 9.2e-9
+        @test sol.errors[:l∞] < 3.3e-8
+        @test sol.errors[:final] < 4.1e-9
+        @test sol.errors[:l2] < 9.2e-9
 
-sol4 = solve(prob2, alg, abstol=1e-13,reltol=1e-13)
+        sol = solve(prob, alg, abstol=1e-13,reltol=1e-13)
 
-@test sol4.errors[:l∞] < 7.0e-11
-@test sol4.errors[:final] < 1.1e-11
-@test sol4.errors[:l2] < 9.3e-12
+        @test sol.errors[:l∞] < 7.0e-11
+        @test sol.errors[:final] < 1.1e-11
+        @test sol.errors[:l2] < 9.3e-12
+    end
 
-######## Now show that non-residual control is worse
+    ######## Now show that non-residual control is worse
+    # solutions without residual control
+    @testset "non-residual control" begin
+        alg = MethodOfSteps(OwrenZen5(); constrained=false)
+        sol = solve(prob, alg)
 
-alg = MethodOfSteps(OwrenZen5(); constrained=false)
+        @test sol.errors[:l∞] > 1e-1
+        @test sol.errors[:final] > 1e-3
+        @test sol.errors[:l2] > 4e-2
 
-sol4 = solve(prob2, alg)
+        alg = MethodOfSteps(OwrenZen5(); constrained=true)
+        sol = solve(prob, alg)
 
-@test sol4.errors[:l∞] > 1e-1
-@test sol4.errors[:final] > 1e-3
-@test sol4.errors[:l2] > 4e-2
+        @test sol.errors[:l∞] > 1e-1
+        @test sol.errors[:final] > 1e-3
+        @test sol.errors[:l2] > 4e-2
 
-alg = MethodOfSteps(OwrenZen5(); constrained=true)
+        sol = solve(prob, alg,abstol=1e-13,reltol=1e-13)
 
-sol5 = solve(prob2, alg)
-
-@test sol5.errors[:l∞] > 1e-1
-@test sol5.errors[:final] > 1e-3
-@test sol5.errors[:l2] > 4e-2
-
-sol5 = solve(prob2, alg,abstol=1e-13,reltol=1e-13)
-
-@test sol5.errors[:l∞] > 1e-1
-@test sol5.errors[:final] > 1e-3
-@test sol5.errors[:l2] > 5e-2
+        @test sol.errors[:l∞] > 1e-1
+        @test sol.errors[:final] > 1e-3
+        @test sol.errors[:l2] > 5e-2
+    end
+end

@@ -1,10 +1,10 @@
-using DelayDiffEq, DiffEqProblemLibrary, Base.Test
+@testset "Unique times" begin
+    prob = prob_dde_1delay_long
 
-prob = prob_dde_1delay_long
+    @testset for constrained in (false, true)
+        alg = MethodOfSteps(Tsit5(), constrained=constrained)
+        sol = solve(prob, alg)
 
-for constrained in (false, true)
-    alg = MethodOfSteps(Tsit5(), constrained=constrained)
-    sol = solve(prob, alg)
-
-    @test allunique(sol.t)
+        @test allunique(sol.t)
+    end
 end

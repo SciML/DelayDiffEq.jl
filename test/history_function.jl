@@ -1,126 +1,149 @@
-using DelayDiffEq, DiffEqProblemLibrary, Base.Test
-
-## Special test
-
-# check constant extrapolation with problem with vanishing delays at t = 0
-prob = DDEProblem((du,u,h,p,t) -> -h(t/2)[1], [1.0], t -> [1.0], (0.0, 10.0))
-solve(prob, MethodOfSteps(RK4()))
-
-## General tests
-
-# history function
-function h(t; idxs=nothing)
-    if typeof(idxs) <: Void
-        return [t; -t]
-    else
-        return [t; -t][idxs]
+@testset "HistoryFunction" begin
+    # check constant extrapolation with problem with vanishing delays at t = 0
+    @testset "vanishing delays" begin
+        prob = DDEProblem((du,u,h,p,t) -> -h(t/2)[1], [1.0], t -> [1.0], (0.0, 10.0))
+        solve(prob, MethodOfSteps(RK4()))
     end
-end
-function h(val::AbstractArray, t; idxs=nothing)
-    if typeof(idxs) <: Void
-        val[1] = t
-        val[2] = -t
-    else
-        val .= [t; -t][idxs]
+
+
+    @testset "general" begin
+        # naive history functions
+        h_notinplace(t; idxs=nothing) = typeof(idxs) <: Void ? [t, -t] : [t, -t][idxs]
+
+        function h_inplace(val, t; idxs=nothing)
+            if typeof(idxs) <: Void
+                val[1] = t
+                val[2] = -t
+            else
+                val .= [t; -t][idxs]
+            end
+        end
+
+        @testset "agrees (h=$h)" for h in (h_notinplace, h_inplace)
+            @test DelayDiffEq.agrees(h, zeros(2), 0)
+            @test !DelayDiffEq.agrees(h, ones(2), 1)
+        end
+
+        # ODE integrator
+        prob = ODEProblem(DiffEqProblemLibrary.f_2dlinear, ones(2), (0.0, 1.0))
+        integrator = init(prob, Tsit5())
+
+        # combined history function
+        history_notinplace = DelayDiffEq.HistoryFunction(h_notinplace,
+                                                         integrator.sol,
+                                                         integrator)
+        history_inplace = DelayDiffEq.HistoryFunction(h_inplace,
+                                                      integrator.sol,
+                                                      integrator)
+
+        # test evaluation of history function
+        @testset "evaluation (idxs=$idxs)" for idxs in (nothing, [2])
+            # expected value
+            trueval = h_notinplace(-1; idxs = idxs)
+
+            # out-of-place
+            @test history_notinplace(-1, Val{0}; idxs = idxs) == trueval
+
+            # in-place
+            val = zero(trueval)
+            history_inplace(val, -1; idxs = idxs)
+            @test val == trueval
+
+            val = zero(trueval)
+            history_inplace(val, -1, Val{0}; idxs = idxs)
+            @test val == trueval
+        end
+
+        # test constant extrapolation
+        @testset "constant extrapolation (deriv=$deriv, idxs=$idxs)" for
+            deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
+            # expected value
+            trueval = deriv == Val{0} ?
+                (idxs == nothing ? integrator.u : integrator.u[[2]]) :
+                (idxs == nothing ? zeros(2) : [0.0])
+
+            # out-of-place
+            integrator.isout = false
+            @test history_notinplace(1, deriv; idxs = idxs) == trueval &&
+                integrator.isout
+
+            # in-place
+            integrator.isout = false
+            @test history_inplace(nothing, 1, deriv; idxs = idxs) == trueval &&
+                integrator.isout
+
+            integrator.isout = false
+            val = 1 .- trueval # ensures that val ≠ trueval
+            history_inplace(val, 1, deriv; idxs = idxs)
+            @test val == trueval && integrator.isout
+        end
+
+        # add step to integrator
+        @testset "update integrator" begin
+            OrdinaryDiffEq.loopheader!(integrator)
+            OrdinaryDiffEq.perform_step!(integrator, integrator.cache)
+            integrator.t = integrator.dt
+            @test 0.01 < integrator.t < 1
+            @test integrator.sol.t[end] == 0
+        end
+
+        # test integrator interpolation
+        @testset "integrator interpolation (deriv=$deriv, idxs=$idxs)" for
+            deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
+            # expected value
+            trueval = OrdinaryDiffEq.current_interpolant(0.01, integrator, idxs, deriv)
+
+            # out-of-place
+            integrator.isout = false
+            @test history_notinplace(0.01, deriv; idxs = idxs) == trueval &&
+                integrator.isout
+
+            # in-place
+            integrator.isout = false
+            val = zero(trueval)
+            history_inplace(val, 0.01, deriv; idxs = idxs)
+            @test val == trueval && integrator.isout
+        end
+
+        # add step to solution
+        @testset "update solution" begin
+            integrator.t = 0
+            OrdinaryDiffEq.loopfooter!(integrator)
+            @test integrator.t == integrator.sol.t[end]
+        end
+
+        # test solution interpolation
+        @testset "solution interpolation (deriv=$deriv, idxs=$idxs)" for
+            deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
+            # expected value
+            trueval = integrator.sol.interp(0.01, idxs, deriv, integrator.p)
+
+            # out-of-place
+            @test history_notinplace(0.01, deriv; idxs = idxs) == trueval &&
+                !integrator.isout
+
+            # in-place
+            val = zero(trueval)
+            history_inplace(val, 0.01, deriv; idxs = idxs)
+            @test val == trueval && !integrator.isout
+        end
+
+        # test integrator extrapolation
+        @testset "integrator extrapolation (deriv=$deriv, idxs=$idxs)" for
+            deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
+            # expected value
+            trueval = OrdinaryDiffEq.current_interpolant(1, integrator, idxs, deriv)
+
+            # out-of-place
+            integrator.isout = false
+            @test history_notinplace(1, deriv; idxs = idxs) == trueval &&
+                integrator.isout
+
+            # in-place
+            integrator.isout = false
+            val = zero(trueval)
+            history_inplace(val, 1, deriv; idxs = idxs)
+            @test val == trueval && integrator.isout
+        end
     end
-end
-
-# ODE integrator
-prob = ODEProblem(DiffEqProblemLibrary.f_2dlinear, ones(2), (0.0, 1.0))
-integrator = init(prob, Tsit5())
-
-# combined history function
-history = DelayDiffEq.HistoryFunction(h, integrator.sol, integrator)
-
-# test evaluation of history function
-for idxs in (nothing, [2])
-    @test history(-0.5, Val{0}; idxs = idxs) == h(-0.5; idxs = idxs)
-
-    val = idxs == nothing ? zeros(2) : [0.0]
-    val2 = deepcopy(val)
-
-    history(val, -0.5, Val{0}; idxs = idxs)
-    h(val2, -0.5; idxs = idxs)
-
-    @test val == val2
-end
-
-# test constant extrapolation
-for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
-    integrator.isout = false
-
-    extrapolation = deriv == Val{0} ?
-        (idxs == nothing ? integrator.u : integrator.u[[2]]) :
-        (idxs == nothing ? zeros(2) : [0.0])
-
-    @test history(0.5, deriv; idxs = idxs) == extrapolation && integrator.isout
-
-    integrator.isout = false
-    @test history(nothing, 0.5, deriv; idxs = idxs) == extrapolation && integrator.isout
-
-    integrator.isout = false
-    val = 1 .- extrapolation # ensures that val ≠ extrapolation
-    history(val, 0.5, deriv; idxs = idxs)
-
-    @test val == extrapolation && integrator.isout
-end
-
-# add step to integrator
-OrdinaryDiffEq.loopheader!(integrator)
-OrdinaryDiffEq.perform_step!(integrator, integrator.cache)
-integrator.t = integrator.dt
-@test 0.01 < integrator.t < 1
-@test integrator.sol.t[end] == 0
-
-# test integrator interpolation
-for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
-    integrator.isout = false
-
-    @test history(0.01, deriv; idxs = idxs) ==
-        OrdinaryDiffEq.current_interpolant(0.01, integrator, idxs, deriv) &&
-        integrator.isout
-
-    integrator.isout = false
-    val = idxs == nothing ? zeros(2) : [0.0]
-    val2 = deepcopy(val)
-    history(val, 0.01, deriv; idxs = idxs)
-    OrdinaryDiffEq.current_interpolant!(val2, 0.01, integrator, idxs, deriv)
-
-    @test val == val2 && integrator.isout
-end
-
-# add step to solution
-integrator.t = 0
-OrdinaryDiffEq.loopfooter!(integrator)
-@test integrator.t == integrator.sol.t[end]
-
-# test solution interpolation
-for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
-    @test history(0.01, deriv; idxs = idxs) ==
-        integrator.sol.interp(0.01, idxs, deriv, integrator.p) &&
-        !integrator.isout
-
-    val = idxs == nothing ? zeros(2) : [0.0]
-    val2 = deepcopy(val)
-    history(val, 0.01, deriv; idxs = idxs)
-    integrator.sol.interp(val2, 0.01, idxs, deriv, integrator.p)
-
-    @test val == val2 && !integrator.isout
-end
-
-# test integrator extrapolation
-for (deriv, idxs) in Iterators.product((Val{0}, Val{1}), (nothing, [2]))
-    integrator.isout = false
-
-    @test history(1, deriv; idxs = idxs) ==
-        OrdinaryDiffEq.current_interpolant(1, integrator, idxs, deriv) &&
-        integrator.isout
-
-    integrator.isout = false
-    val = idxs == nothing ? zeros(2) : [0.0]
-    val2 = deepcopy(val)
-    history(val, 1, deriv; idxs = idxs)
-    OrdinaryDiffEq.current_interpolant!(val2, 1, integrator, idxs, deriv)
-
-    @test val == val2 && integrator.isout
 end
