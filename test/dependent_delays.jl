@@ -1,59 +1,51 @@
-using DelayDiffEq, DiffEqProblemLibrary, Base.Test
+@testset "Dependent delays" begin
+    alg = MethodOfSteps(BS3())
+    dde_int = init(prob_dde_1delay, alg)
+    sol = solve!(dde_int)
 
-alg = MethodOfSteps(BS3())
+    @testset "reference" begin
+        @test sol.errors[:l∞] < 3.0e-5
+        @test sol.errors[:final] < 2.1e-5
+        @test sol.errors[:l2] < 1.2e-5
+    end
 
-dde_int = init(prob_dde_1delay, alg)
-
-sol = solve!(dde_int)
-
-@test sol.errors[:l∞] < 3.0e-5
-@test sol.errors[:final] < 2.1e-5
-@test sol.errors[:l2] < 1.2e-5
-
-# constant delay specified as function
-prob2 = DDEProblem(DiffEqProblemLibrary.f_1delay, [1.0], t -> [0.0], (0., 10.),
-                   dependent_lags = [(u,p,t) -> 1])
-
-dde_int2 = init(prob2, alg)
-sol2 = solve!(dde_int2)
-
-@test dde_int.tracked_discontinuities == dde_int2.tracked_discontinuities
-
-# with nothing
-prob2_nothing = DDEProblem(DiffEqProblemLibrary.f_1delay, [1.0], t -> [0.0],
-                           (0., 10.),
+    @testset "constant lag function" begin
+        # constant delay specified as lag function
+        prob2 = DDEProblem(DiffEqProblemLibrary.f_1delay, [1.0], t -> [0.0], (0., 10.),
                            dependent_lags = [(u,p,t) -> 1])
+        dde_int2 = init(prob2, alg)
+        sol2 = solve!(dde_int2)
 
-dde_int2_nothing = init(prob2_nothing, alg)
-sol2_nothing = solve!(dde_int2_nothing)
+        @test dde_int.tracked_discontinuities == dde_int2.tracked_discontinuities
 
-@test dde_int.tracked_discontinuities == dde_int2_nothing.tracked_discontinuities
-@test sol2.u == sol2_nothing.u && sol2.t == sol2_nothing.t
+        # worse than results above with constant delays specified as scalars
+        @test sol2.errors[:l∞] < 4.2e-5
+        @test sol2.errors[:final] < 2.2e-5
+        @test sol2.errors[:l2] < 1.7e-5
 
-# worse than results above with constant delays specified as scalars
-@test sol2.errors[:l∞] < 4.2e-5
-@test sol2.errors[:final] < 2.2e-5
-@test sol2.errors[:l2] < 1.7e-5
+        # simple convergence tests
+        @testset "convergence" begin
+            sol3 = solve(prob2, alg, abstol=1e-9, reltol=1e-6)
 
-# simple convergence tests
-sol3 = solve(prob2, alg, abstol=1e-9, reltol=1e-6)
+            @test sol3.errors[:l∞] < 7.5e-8
+            @test sol3.errors[:final] < 4.6e-8
+            @test sol3.errors[:l2] < 3.9e-8
 
-@test sol3.errors[:l∞] < 7.5e-8
-@test sol3.errors[:final] < 4.6e-8
-@test sol3.errors[:l2] < 3.9e-8
+            sol4 = solve(prob2, alg, abstol=1e-13, reltol=1e-13)
 
-sol4 = solve(prob2, alg, abstol=1e-13, reltol=1e-13)
+            @test sol4.errors[:l∞] < 6.9e-11
+            @test sol4.errors[:final] < 1.1e-11
+            @test sol4.errors[:l2] < 6.8e-12 # 6.7e-12, relaxed for Win32
+        end
+    end
 
-@test sol4.errors[:l∞] < 6.9e-11
-@test sol4.errors[:final] < 1.1e-11
-@test sol4.errors[:l2] < 6.8e-12 # 6.7e-12, relaxed for Win32
+    # without any delays specified is worse
+    @testset "without delays" begin
+        prob2 = DDEProblem(DiffEqProblemLibrary.f_1delay, [1.0], t -> [0.0], (0., 10.))
+        sol2 = solve(prob2, alg)
 
-# without any delays specified is worse
-prob3 = DDEProblem(DiffEqProblemLibrary.f_1delay, [1.0], t -> [0.0], (0., 10.))
-
-dde_int3 = init(prob3, alg)
-sol3 = solve!(dde_int3)
-
-@test sol3.errors[:l∞] > 1e-3
-@test sol3.errors[:final] > 4e-5
-@test sol3.errors[:l2] > 7e-4
+        @test sol2.errors[:l∞] > 1e-3
+        @test sol2.errors[:final] > 4e-5
+        @test sol2.errors[:l2] > 7e-4
+    end
+end
