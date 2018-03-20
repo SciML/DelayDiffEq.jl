@@ -240,7 +240,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 integrator.saveiter, integrator.saveiter_dense,
                                 integrator.prog, dde_cache, integrator.kshortsize,
                                 integrator.force_stepfail, integrator.just_hit_tstop,
-                                integrator.last_stepfail, integrator.accept_step,
+                                integrator.last_stepfail, integrator.event_last_time,
+                                integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
                                 integrator.u_modified, opts, integrator)
 

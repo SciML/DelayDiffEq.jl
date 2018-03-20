@@ -40,6 +40,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
     force_stepfail::Bool
     last_stepfail::Bool
     just_hit_tstop::Bool
+    event_last_time::Bool
     accept_step::Bool
     isout::Bool
     reeval_fsal::Bool
@@ -59,7 +60,8 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
                                dtcache,dtchangeable,dtpropose,tdir,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
                                prog,cache,kshortsize,force_stepfail,last_stepfail,
-                               just_hit_tstop,accept_step,isout,reeval_fsal,u_modified,opts,
+                               just_hit_tstop,event_last_time,accept_step,isout,
+                               reeval_fsal,u_modified,opts,
                                integrator) where
         {algType,uType,tType,P,absType,relType,residType,tTypeNoUnits,tdirType,ksEltype,
          SolType,F,ProgressType,CacheType,IType,NType,O,tstopsType,FSALType}
@@ -68,8 +70,8 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,uTy
             fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,saveat,
             tracked_discontinuities,alg,dtcache,dtchangeable,dtpropose,tdir,
             EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,prog,cache,
-            kshortsize,force_stepfail,last_stepfail,just_hit_tstop,accept_step,isout,
-            reeval_fsal,u_modified,opts,integrator)
+            kshortsize,force_stepfail,last_stepfail,just_hit_tstop,accept_step,
+            event_last_time,isout,reeval_fsal,u_modified,opts,integrator)
     end
 end
 

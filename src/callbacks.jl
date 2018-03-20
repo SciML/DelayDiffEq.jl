@@ -76,6 +76,7 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
     # initialize time and order of first discontinuity in the current time interval
     tmin = zero(integrator.t)
     order = 0
+    contains_discontinuity = false
 
     # update interpolation data and calculate interpolation points
     if callback.interp_points != 0
@@ -116,17 +117,17 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
             next_sign = cmp(T + lag(integrator.u, integrator.p, integrator.t) - integrator.t, 0)
 
             # find time of discontinuity if one exists
-            t = find_discontinuity_time(integrator, callback, prev_sign, next_sign, Θs, g)
+            t,contains_discontinuity = find_discontinuity_time(integrator, callback, prev_sign, next_sign, Θs, g)
 
             # update time and order of first discontinuity in the current time interval
-            if !iszero(t) && (t < tmin || iszero(tmin))
+            if contains_discontinuity && (t < tmin || iszero(tmin))
                 tmin = t
                 order = d.order + 1
             end
         end
     end
 
-    tmin, order
+    tmin, order, contains_discontinuity
 end
 
 """
@@ -176,7 +177,7 @@ function find_discontinuity_time(integrator::DDEIntegrator, callback::Discontinu
         new_t = zero(integrator.t)
     end
 
-    new_t
+    new_t,contains_discontinuity
 end
 
 """
