@@ -9,7 +9,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
               dense=save_everystep && !(typeof(alg) <: FunctionMap),
               minimal_solution=true, discontinuity_interp_points::Int=10,
               discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
-              initial_order=agrees(prob.h, prob.u0, prob.tspan[1]) ? 1 : 0,
+              initial_order=agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
               initialize_integrator = true, initialize_save = true,
               callback=nothing, kwargs...) where
     {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
@@ -26,8 +26,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
-    # ODE solvers only accept functions f(t,u,du) or f(t,u) without history function
-    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan, prob.p,
+    # ODE solvers only accept functions f(du,u,p,t) or f(u,p,t) without history function
+    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan, p,
                                      mass_matrix = prob.mass_matrix)
     integrator = init(ode_prob, alg.alg; initialize_integrator=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
@@ -37,7 +37,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     integrator.dtcache = zero(integrator.dt)
 
     # create new solution based on this integrator with an interpolation function of the
-    # expected form f(t,u,du) or f(t,u) which already includes information about the
+    # expected form f(du,u,p,t) or f(u,p,t) which already includes information about the
     # history function of the DDE problem, the current solution of the integrator, and
     # the extrapolation of the integrator for the future
     interp_h = HistoryFunction(prob.h, integrator.sol, integrator)
@@ -68,7 +68,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # use this improved solution together with the given history function and the integrator
     # to create a problem function of the DDE with all available history information that is
-    # of the form f(t,u,du) or f(t,u) such that ODE algorithms can be applied
+    # of the form f(du,u,p,t) or f(u,p,t) such that ODE algorithms can be applied
     dde_h = HistoryFunction(prob.h, sol, integrator)
     if isinplace
         dde_f = (du,u,p,t) -> prob.f(du,u,dde_h,p,t)
@@ -134,12 +134,12 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # new cache with updated u, uprev, uprev2, and function f
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
         caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
-                                                 prob.tspan[1], dt,p),
+                                                 prob.tspan[1], dt, p),
                      integrator.cache.caches, alg.alg.algs)
         dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
         dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
-                                       prob.tspan[1], dt,p)
+                                       prob.tspan[1], dt, p)
     end
 
     # filter provided discontinuities

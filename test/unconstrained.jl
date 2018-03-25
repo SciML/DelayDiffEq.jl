@@ -99,9 +99,9 @@
 
         @testset "idxs" begin
             function f(du,u,h,p,t)
-                du[1] = -h(t-0.2;idxs=1) + u[1]
+                du[1] = -h(p, t-0.2;idxs=1) + u[1]
             end
-            h(t; idxs=nothing) = typeof(idxs) <: Number ? 0.0 : [0.0]
+            h(p, t; idxs=nothing) = typeof(idxs) <: Number ? 0.0 : [0.0]
 
             prob = DDEProblem(f, [1.0], h, (0.0, 100.), constant_lags = [0.2])
             solve(prob, alg)
@@ -109,10 +109,10 @@
 
         @testset "in-place" begin
             function f(du,u,h,p,t)
-                h(du, t-0.2)
+                h(du, p, t-0.2)
                 du[1] = -du[1] + u[1]
             end
-            h(out,t) = (out .= 0.0)
+            h(val, p, t) = (val .= 0.0)
 
             prob = DDEProblem(f, [1.0], h, (0.0, 100.0), constant_lags = [0.2])
             solve(prob, alg)

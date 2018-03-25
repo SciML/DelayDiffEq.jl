@@ -15,16 +15,16 @@ struct HistoryFunction{F1,F2,F3<:ODEIntegrator} <: Function
     integrator::F3
 end
 
-function (f::HistoryFunction)(t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
+function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
     @inbounds if t < f.sol.t[1]
         if deriv == 0 && typeof(idxs) <: Void
-            return f.h(t)
+            return f.h(p, t)
         elseif typeof(idxs) <: Void
-            return f.h(t, Val{deriv})
+            return f.h(p, t, Val{deriv})
         elseif deriv == 0
-            return f.h(t; idxs = idxs)
+            return f.h(p, t; idxs = idxs)
         else
-            return f.h(t, Val{deriv}; idxs = idxs)
+            return f.h(p, t, Val{deriv}; idxs = idxs)
         end
     elseif t <= f.sol.t[end] # Put equals back
         return f.sol.interp(t, idxs, Val{deriv}, f.integrator.p)
@@ -47,16 +47,16 @@ function (f::HistoryFunction)(t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where 
     end
 end
 
-function (f::HistoryFunction)(val, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
+function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
     @inbounds if t < f.sol.t[1]
         if deriv == 0 && typeof(idxs) <: Void
-            return f.h(val, t)
+            return f.h(val, p, t)
         elseif typeof(idxs) <: Void
-            return f.h(val, t, Val{deriv})
+            return f.h(val, p, t, Val{deriv})
         elseif deriv == 0
-            return f.h(val, t; idxs = idxs)
+            return f.h(val, p, t; idxs = idxs)
         else
-            return f.h(val, t, Val{deriv}; idxs = idxs)
+            return f.h(val, p, t, Val{deriv}; idxs = idxs)
         end
     elseif t <= f.sol.t[end] # Put equals back
         return f.sol.interp(val, t, idxs, Val{deriv}, f.integrator.p)

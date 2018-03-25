@@ -1,34 +1,39 @@
+using RecursiveArrayTools
+
 @testset "Reinitialization" begin
     alg = MethodOfSteps(BS3(); constrained=false)
-    prob = prob_dde_1delay_scalar_notinplace
 
-    @testset "integrator" begin
-        integrator = init(prob, alg, dt= 0.01)
-        solve!(integrator)
+    @testset for inplace in (true, false)
+        prob = inplace ? prob_dde_1delay : prob_dde_1delay_scalar_notinplace
 
-        u = copy(integrator.sol.u)
-        t = copy(integrator.sol.t)
+        @testset "integrator" begin
+            integrator = init(prob, alg, dt= 0.01)
+            solve!(integrator)
 
-        reinit!(integrator)
-        integrator.dt = 0.01
-        solve!(integrator)
+            u = recursivecopy(integrator.sol.u)
+            t = copy(integrator.sol.t)
 
-        @test u == integrator.sol.u
-        @test t == integrator.sol.t
-    end
+            reinit!(integrator)
+            integrator.dt = 0.01
+            solve!(integrator)
 
-    @testset "solution" begin
-        integrator = init(prob, alg, dt= 0.01, tstops = [0.5], saveat = [0.33])
-        sol = solve!(integrator)
+            @test u == integrator.sol.u
+            @test t == integrator.sol.t
+        end
 
-        u = copy(sol.u)
-        t = copy(sol.t)
+        @testset "solution" begin
+            integrator = init(prob, alg, dt= 0.01, tstops = [0.5], saveat = [0.33])
+            sol = solve!(integrator)
 
-        reinit!(integrator)
-        integrator.dt = 0.01
-        sol = solve!(integrator)
+            u = recursivecopy(sol.u)
+            t = copy(sol.t)
 
-        @test u == sol.u
-        @test t == sol.t
+            reinit!(integrator)
+            integrator.dt = 0.01
+            sol = solve!(integrator)
+
+            @test u == sol.u
+            @test t == sol.t
+        end
     end
 end

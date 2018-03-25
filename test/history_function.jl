@@ -1,16 +1,16 @@
 @testset "HistoryFunction" begin
     # check constant extrapolation with problem with vanishing delays at t = 0
     @testset "vanishing delays" begin
-        prob = DDEProblem((du,u,h,p,t) -> -h(t/2)[1], [1.0], t -> [1.0], (0.0, 10.0))
+        prob = DDEProblem((du,u,h,p,t) -> -h(p, t/2)[1], [1.0], (p, t) -> [1.0], (0.0, 10.0))
         solve(prob, MethodOfSteps(RK4()))
     end
 
 
     @testset "general" begin
         # naive history functions
-        h_notinplace(t; idxs=nothing) = typeof(idxs) <: Void ? [t, -t] : [t, -t][idxs]
+        h_notinplace(p, t; idxs=nothing) = typeof(idxs) <: Void ? [t, -t] : [t, -t][idxs]
 
-        function h_inplace(val, t; idxs=nothing)
+        function h_inplace(val, p, t; idxs=nothing)
             if typeof(idxs) <: Void
                 val[1] = t
                 val[2] = -t
@@ -20,8 +20,8 @@
         end
 
         @testset "agrees (h=$h)" for h in (h_notinplace, h_inplace)
-            @test DelayDiffEq.agrees(h, zeros(2), 0)
-            @test !DelayDiffEq.agrees(h, ones(2), 1)
+            @test DelayDiffEq.agrees(h, zeros(2), nothing, 0)
+            @test !DelayDiffEq.agrees(h, ones(2), nothing, 1)
         end
 
         # ODE integrator
@@ -39,18 +39,18 @@
         # test evaluation of history function
         @testset "evaluation (idxs=$idxs)" for idxs in (nothing, [2])
             # expected value
-            trueval = h_notinplace(-1; idxs = idxs)
+            trueval = h_notinplace(nothing, -1; idxs = idxs)
 
             # out-of-place
-            @test history_notinplace(-1, Val{0}; idxs = idxs) == trueval
+            @test history_notinplace(nothing, -1, Val{0}; idxs = idxs) == trueval
 
             # in-place
             val = zero(trueval)
-            history_inplace(val, -1; idxs = idxs)
+            history_inplace(val, nothing, -1; idxs = idxs)
             @test val == trueval
 
             val = zero(trueval)
-            history_inplace(val, -1, Val{0}; idxs = idxs)
+            history_inplace(val, nothing, -1, Val{0}; idxs = idxs)
             @test val == trueval
         end
 
@@ -64,17 +64,17 @@
 
             # out-of-place
             integrator.isout = false
-            @test history_notinplace(1, deriv; idxs = idxs) == trueval &&
+            @test history_notinplace(nothing, 1, deriv; idxs = idxs) == trueval &&
                 integrator.isout
 
             # in-place
             integrator.isout = false
-            @test history_inplace(nothing, 1, deriv; idxs = idxs) == trueval &&
+            @test history_inplace(nothing, nothing, 1, deriv; idxs = idxs) == trueval &&
                 integrator.isout
 
             integrator.isout = false
             val = 1 .- trueval # ensures that val ≠ trueval
-            history_inplace(val, 1, deriv; idxs = idxs)
+            history_inplace(val, nothing, 1, deriv; idxs = idxs)
             @test val == trueval && integrator.isout
         end
 
@@ -95,13 +95,13 @@
 
             # out-of-place
             integrator.isout = false
-            @test history_notinplace(0.01, deriv; idxs = idxs) == trueval &&
+            @test history_notinplace(nothing, 0.01, deriv; idxs = idxs) == trueval &&
                 integrator.isout
 
             # in-place
             integrator.isout = false
             val = zero(trueval)
-            history_inplace(val, 0.01, deriv; idxs = idxs)
+            history_inplace(val, nothing, 0.01, deriv; idxs = idxs)
             @test val == trueval && integrator.isout
         end
 
@@ -119,12 +119,12 @@
             trueval = integrator.sol.interp(0.01, idxs, deriv, integrator.p)
 
             # out-of-place
-            @test history_notinplace(0.01, deriv; idxs = idxs) == trueval &&
+            @test history_notinplace(nothing, 0.01, deriv; idxs = idxs) == trueval &&
                 !integrator.isout
 
             # in-place
             val = zero(trueval)
-            history_inplace(val, 0.01, deriv; idxs = idxs)
+            history_inplace(val, nothing, 0.01, deriv; idxs = idxs)
             @test val == trueval && !integrator.isout
         end
 
@@ -136,13 +136,13 @@
 
             # out-of-place
             integrator.isout = false
-            @test history_notinplace(1, deriv; idxs = idxs) == trueval &&
+            @test history_notinplace(nothing, 1, deriv; idxs = idxs) == trueval &&
                 integrator.isout
 
             # in-place
             integrator.isout = false
             val = zero(trueval)
-            history_inplace(val, 1, deriv; idxs = idxs)
+            history_inplace(val, nothing, 1, deriv; idxs = idxs)
             @test val == trueval && integrator.isout
         end
     end

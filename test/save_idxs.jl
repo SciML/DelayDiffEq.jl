@@ -1,17 +1,17 @@
 @testset "save_idxs" begin
     # out-of-place problem
     function f_notinplace(u,h,p,t)
-        [-h(t-1/5)[1] + u[1]; -h(t-1/3)[2] - h(t-1/5)[2]]
+        [-h(p, t-1/5)[1] + u[1]; -h(p, t-1/3)[2] - h(p, t-1/5)[2]]
     end
-    prob_notinplace = DDEProblem(f_notinplace, ones(2), t->zeros(2), (0.0, 100.0),
+    prob_notinplace = DDEProblem(f_notinplace, ones(2), (p, t)->zeros(2), (0.0, 100.0),
                                  constant_lags = [1/5, 1/3])
 
     # in-place problem
     function f_inplace(du,u,h,p,t)
-        du[1] = - h(t-1/5)[1] + u[1]
-        du[2] = - h(t-1/3)[2] - h(t-1/5)[2]
+        du[1] = - h(p, t-1/5)[1] + u[1]
+        du[2] = - h(p, t-1/3)[2] - h(p, t-1/5)[2]
     end
-    prob_inplace = DDEProblem(f_inplace, ones(2), t->zeros(2), (0.0, 100.0),
+    prob_inplace = DDEProblem(f_inplace, ones(2), (p, t)->zeros(2), (0.0, 100.0),
                               constant_lags = [1/5, 1/3])
 
     alg = MethodOfSteps(BS3())
