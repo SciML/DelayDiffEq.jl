@@ -1,4 +1,5 @@
 DiffEqDevTools
 DiffEqCallbacks
-DiffEqProblemLibrary 0.11.0
+DiffEqProblemLibrary 1.1.0
 Unitful 0.7.1
+RecursiveArrayTools

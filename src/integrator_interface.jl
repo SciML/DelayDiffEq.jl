@@ -312,7 +312,7 @@ function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
                  tstops = integrator.opts.tstops_cache,
                  saveat = integrator.opts.saveat_cache,
                  d_discontinuities = integrator.opts.d_discontinuities_cache,
-                 initial_order = integrator.sol.prob.h(t0) == u0 ? 1 : 0,
+                 initial_order = agrees(integrator.sol.prob.h, u0, integrator.sol.prob.p, t0) ? 1 : 0,
                  reset_dt = iszero(integrator.dtcache) && integrator.opts.adaptive,
                  reinit_callbacks = true, initialize_save = true,
                  reinit_cache = true)
