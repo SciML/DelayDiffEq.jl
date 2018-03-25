@@ -17,6 +17,15 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
         end
     end
 
+    # If forced, then the user or an event changed integrator.u directly.
+    if force_save
+        if typeof(integrator.cache) <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
+            integrator.integrator.u .= integrator.u
+        else
+            integrator.integrator.u = integrator.u
+        end
+    end
+
     # update solution
     savevalues!(integrator.integrator, force_save, false) # reduce_size = false
 
