@@ -221,6 +221,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
     dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,typeof(p),
+                            typeof(integrator.eigen_est),
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
                             typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
@@ -234,7 +235,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
                                 tracked_discontinuities, integrator.alg,
                                 integrator.dtcache,
                                 integrator.dtchangeable, integrator.dtpropose,
-                                integrator.tdir, integrator.EEst, integrator.qold,
+                                integrator.tdir, integrator.eigen_est,
+                                integrator.EEst, integrator.qold,
                                 integrator.q11, integrator.erracc, integrator.dtacc,
                                 integrator.success_iter, integrator.iter,
                                 integrator.saveiter, integrator.saveiter_dense,
