@@ -329,7 +329,7 @@ function solve!(integrator::DDEIntegrator)
                       typeof(integrator.sol.alg),typeof(interp)}(
                           sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
                           prob, integrator.sol.alg, interp, interp.dense,
-                          integrator.sol.tslocation, integrator.sol.retcode)
+                          integrator.sol.tslocation, :Success)
 
     # calculate errors of solution
     if sol.u_analytic != nothing
@@ -338,7 +338,6 @@ function solve!(integrator::DDEIntegrator)
                                    dense_errors=integrator.opts.dense_errors)
     end
 
-    integrator.sol = solution_new_retcode(integrator.sol,:Success)
     return sol
 end
 
