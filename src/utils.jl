@@ -81,8 +81,12 @@ assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.UJacobianWrapper}, ::Type) whe
 # create new config of Jacobian
 assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},
             ::Type) where {name,T,V,N,D} =
-                :($name = ForwardDiff.JacobianConfig(uf, du1, uprev,
-                                                     ForwardDiff.Chunk{$N}()))
+                :($name = build_jac_config(alg, f, uf, du1, uprev, u, tmp, du2))
+
+# create new config of Gradient
+assign_expr(::Val{name}, ::Type{ForwardDiff.DerivativeConfig{T,D}},
+           ::Type) where {name,T,D} =
+               :($name = build_grad_config(alg, f, tf, du1, t))
 
 # update implicit RHS
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name =
