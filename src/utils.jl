@@ -79,14 +79,22 @@ assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.UJacobianWrapper}, ::Type) whe
         f,t,p))
 
 # create new config of Jacobian
-assign_expr(::Val{name}, ::Type{ForwardDiff.JacobianConfig{T,V,N,D}},
-            ::Type) where {name,T,V,N,D} =
-                :($name = build_jac_config(alg, f, uf, du1, uprev, u, tmp, du2))
+assign_expr(::Val{name}, ::Type{<:ForwardDiff.JacobianConfig},
+            ::Type) where {name} =
+                :($name = OrdinaryDiffEq.build_jac_config(alg, f,
+                            uf, cache.du1, uprev, u, cache.tmp, cache.du2))
+assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.JacobianCache},
+            ::Type) where {name} =
+                :($name = OrdinaryDiffEq.build_jac_config(alg, f,
+                            uf, cache.du1, uprev, u, cache.tmp, cache.du2))
 
 # create new config of Gradient
-assign_expr(::Val{name}, ::Type{ForwardDiff.DerivativeConfig{T,D}},
-           ::Type) where {name,T,D} =
-               :($name = build_grad_config(alg, f, tf, du1, t))
+assign_expr(::Val{name}, ::Type{<:ForwardDiff.DerivativeConfig},
+           ::Type) where {name} =
+               :($name = OrdinaryDiffEq.build_grad_config(alg, f, tf, cache.du1, t))
+assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.GradientCache},
+          ::Type) where {name} =
+              :($name = OrdinaryDiffEq.build_grad_config(alg, f, tf, cache.du1, t))
 
 # update implicit RHS
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name =
