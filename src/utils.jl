@@ -81,20 +81,26 @@ assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.UJacobianWrapper}, ::Type) whe
 # create new config of Jacobian
 assign_expr(::Val{name}, ::Type{<:ForwardDiff.JacobianConfig},
             ::Type) where {name} =
-                :($name = OrdinaryDiffEq.build_jac_config(alg, f,
-                            uf, cache.du1, uprev, u, cache.tmp, cache.du2))
+                :($name = OrdinaryDiffEq.build_jac_config(alg, f, uf, du1,
+                                                            uprev, u, tmp, dz))
+assign_expr(::Val{name}, ::Type{<:ForwardDiff.JacobianConfig},
+            ::Type{<:OrdinaryDiffEq.RosenbrockMutableCache}) where {name} =
+                :($name = OrdinaryDiffEq.build_jac_config(alg, f, uf, du1,
+                                                            uprev, u, tmp, du2))
 assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.JacobianCache},
             ::Type) where {name} =
+                :($name = OrdinaryDiffEq.build_jac_config(alg,f,uf,du1,uprev,u,tmp,dz))
+assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.JacobianCache},
+            ::Type{<:OrdinaryDiffEq.RosenbrockMutableCache}) where {name} =
                 :($name = OrdinaryDiffEq.build_jac_config(alg, f,
-                            uf, cache.du1, uprev, u, cache.tmp, cache.du2))
-
+                            uf, du1, uprev, u, tmp, du2))
 # create new config of Gradient
 assign_expr(::Val{name}, ::Type{<:ForwardDiff.DerivativeConfig},
            ::Type) where {name} =
-               :($name = OrdinaryDiffEq.build_grad_config(alg, f, tf, cache.du1, t))
+               :($name = OrdinaryDiffEq.build_grad_config(alg, f, tf, du1, t))
 assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.GradientCache},
           ::Type) where {name} =
-              :($name = OrdinaryDiffEq.build_grad_config(alg, f, tf, cache.du1, t))
+              :($name = OrdinaryDiffEq.build_grad_config(alg, f, tf, du1, t))
 
 # update implicit RHS
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name =
