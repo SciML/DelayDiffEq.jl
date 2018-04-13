@@ -147,7 +147,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # retrieve time stops, time points at which solutions is saved, and discontinuities
     tstops_internal, saveat_internal, d_discontinuities_internal =
-        tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir, prob.tspan, initial_order, alg_order(alg), constant_lags, tType)
+        tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
+                                   prob.tspan, initial_order, alg_order(alg), constant_lags, tType)
 
     # create array of tracked discontinuities
     # used to find propagated discontinuities with callbacks and to keep track of all
@@ -257,6 +258,8 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     if initialize_integrator
         initialize_callbacks!(dde_int, initialize_save)
         initialize!(dde_int)
+        typeof(alg.alg) <: OrdinaryDiffEq.CompositeAlgorithm &&
+            copyat_or_push!(dde_int.sol.alg_choice, 1, dde_int.alg.current_alg)
     end
 
     dde_int
@@ -323,13 +326,23 @@ function solve!(integrator::DDEIntegrator)
       N = length((size(prob.u0)..., length(sol_array.u)))
     end
 
-    sol = ODESolution{eltype(sol_array),N,typeof(sol_array.u),
-                      typeof(u_analytic),typeof(errors),typeof(sol_array.t),
-                      typeof(interp.ks),typeof(prob),
-                      typeof(integrator.sol.alg),typeof(interp)}(
-                          sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
-                          prob, integrator.sol.alg, interp, interp.dense,
-                          integrator.sol.tslocation, :Success)
+    if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
+        sol = OrdinaryDiffEq.ODECompositeSolution{
+            eltype(sol_array),N,typeof(sol_array.u),typeof(u_analytic),
+            typeof(errors),typeof(sol_array.t),typeof(interp.ks),
+            typeof(prob),typeof(integrator.sol.alg),typeof(interp)}(
+                sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
+                prob, integrator.sol.alg, interp, interp.alg_choice,
+                interp.dense, integrator.sol.tslocation, :Success)
+    else
+        sol = ODESolution{
+            eltype(sol_array),N,typeof(sol_array.u),typeof(u_analytic),
+            typeof(errors),typeof(sol_array.t),typeof(interp.ks),
+            typeof(prob),typeof(integrator.sol.alg),typeof(interp)}(
+                sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
+                prob, integrator.sol.alg, interp, interp.dense,
+                integrator.sol.tslocation, :Success)
+    end
 
     # calculate errors of solution
     if sol.u_analytic != nothing
