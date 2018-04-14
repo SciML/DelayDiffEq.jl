@@ -263,6 +263,9 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
     integrator.integrator.t = integrator.t + integrator.dt
     integrator.integrator.tprev = integrator.t
     integrator.integrator.dt = integrator.dt
+    if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
+      integrator.integrator.cache.current = integrator.cache.current
+    end
     if isinplace(integrator.sol.prob)
         recursivecopy!(integrator.integrator.u, integrator.u)
     else
