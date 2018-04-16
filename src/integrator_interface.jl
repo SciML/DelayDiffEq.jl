@@ -82,6 +82,7 @@ Calculate next step of `integrator`.
 @muladd function perform_step!(integrator::DDEIntegrator)
     # reset ODE integrator to cached values if last step failed
     if !integrator.integrator.accept_step
+        @show "here"
         if isinplace(integrator.sol.prob)
             recursivecopy!(integrator.integrator.u, integrator.sol.u[end])
         else
@@ -92,7 +93,12 @@ Calculate next step of `integrator`.
         integrator.integrator.dt = integrator.integrator.dtcache
 
         # u(tprev) is not modified hence we do not have to copy it
-        integrator.integrator.uprev = integrator.sol.u[integrator.prev2_idx]
+        if isinplace(integrator.sol.prob)
+            recursivecopy!(integrator.integrator.uprev,integrator.sol.u[integrator.prev2_idx])
+        else
+            integrator.integrator.uprev = integrator.sol.u[integrator.prev2_idx]
+        end
+
 
         # do not have to reset interpolation data in initial time step since always a
         # constant extrapolation is used (and interpolation data of solution at initial
@@ -100,7 +106,13 @@ Calculate next step of `integrator`.
         if length(integrator.sol.t) > 1
             recursivecopy!(integrator.integrator.k, integrator.sol.k[end])
         end
+    else
+      @show "here2"
     end
+
+    @show integrator.dt
+    @show integrator.sol.t[end]
+    @show integrator.integrator.sol.t[end]
 
     # reset boolean which indicates whether history function was evaluated at a time point
     # past the final point of the current solution
@@ -111,10 +123,12 @@ Calculate next step of `integrator`.
 
     # perform always at least one calculation
     perform_step!(integrator, integrator.cache)
+    @show "out of perform step"
 
     # if the history function was evaluated at time points past the final time point of the
     # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
     if integrator.integrator.isout
+        @show "isout"
         # update ODE integrator to next time interval together with correct interpolation
         advance_ode_integrator!(integrator)
 

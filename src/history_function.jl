@@ -16,6 +16,7 @@ struct HistoryFunction{F1,F2,F3<:ODEIntegrator} <: Function
 end
 
 function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
+
     @inbounds if t < f.sol.t[1]
         if deriv == 0 && typeof(idxs) <: Void
             return f.h(p, t)
@@ -29,6 +30,10 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
     elseif t <= f.sol.t[end] # Put equals back
         return f.sol.interp(t, idxs, Val{deriv}, f.integrator.p)
     end
+
+    @show f.sol.t[end]
+    @show t
+    error("We shouldn't be here!")
 
     integrator = f.integrator
 
