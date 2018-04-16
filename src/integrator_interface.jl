@@ -83,6 +83,7 @@ Calculate next step of `integrator`.
     # reset ODE integrator to cached values if last step failed
     if !integrator.integrator.accept_step
         @show "here"
+        @show integrator.t
         if isinplace(integrator.sol.prob)
             recursivecopy!(integrator.integrator.u, integrator.sol.u[end])
         else
@@ -106,13 +107,7 @@ Calculate next step of `integrator`.
         if length(integrator.sol.t) > 1
             recursivecopy!(integrator.integrator.k, integrator.sol.k[end])
         end
-    else
-      @show "here2"
     end
-
-    @show integrator.dt
-    @show integrator.sol.t[end]
-    @show integrator.integrator.sol.t[end]
 
     # reset boolean which indicates whether history function was evaluated at a time point
     # past the final point of the current solution
@@ -123,7 +118,6 @@ Calculate next step of `integrator`.
 
     # perform always at least one calculation
     perform_step!(integrator, integrator.cache)
-    @show "out of perform step"
 
     # if the history function was evaluated at time points past the final time point of the
     # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
