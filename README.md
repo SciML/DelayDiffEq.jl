@@ -40,6 +40,8 @@ sol = solve(prob,alg)
 using Plots; plot(sol)
 ```
 
+Both constant and state-dependent lags are supported. Interfacing with OrdinaryDiffEq.jl for implicit methods for stiff equations is also supported.
+
 ## Available Solvers
 
 For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](http://docs.juliadiffeq.org/latest/solvers/dde_solve.html). For options for the `solve` command, see the [common solver options page](http://docs.juliadiffeq.org/latest/basics/common_solver_opts.html).
