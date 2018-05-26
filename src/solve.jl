@@ -143,17 +143,17 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
 
     # filter provided discontinuities
-    filter!(x -> x.order ≤ alg_order(alg) + 1, d_discontinuities)
+    filter!(x -> x.order ≤ alg_maximum_order(alg) + 1, d_discontinuities)
 
     # retrieve time stops, time points at which solutions is saved, and discontinuities
     tstops_internal, saveat_internal, d_discontinuities_internal =
         tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
-                                   prob.tspan, initial_order, alg_order(alg), constant_lags, tType)
+                                   prob.tspan, initial_order, alg_maximum_order(alg), constant_lags, tType)
 
     # create array of tracked discontinuities
     # used to find propagated discontinuities with callbacks and to keep track of all
     # passed discontinuities
-    if initial_order ≤ alg_order(alg)
+    if initial_order ≤ alg_maximum_order(alg)
         tracked_discontinuities = [Discontinuity(prob.tspan[1], initial_order)]
     else
         tracked_discontinuities = Discontinuity{tType}[]
@@ -259,7 +259,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
         initialize_callbacks!(dde_int, initialize_save)
         initialize!(dde_int)
         typeof(alg.alg) <: OrdinaryDiffEq.CompositeAlgorithm &&
-            copyat_or_push!(dde_int.sol.alg_choice, 1, dde_int.alg.current_alg)
+            copyat_or_push!(dde_int.sol.alg_choice, 1, dde_int.cache.current)
     end
 
     dde_int
@@ -411,9 +411,9 @@ function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
     dde_int.u_modified = false
 end
 
-function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan, initial_order, alg_order, constant_lags, tType)
+function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan, initial_order, alg_maximum_order, constant_lags, tType)
     # add discontinuities propagated from initial discontinuity
-    if initial_order ≤ alg_order && constant_lags != nothing && !isempty(constant_lags)
+    if initial_order ≤ alg_maximum_order && constant_lags != nothing && !isempty(constant_lags)
         maxlag = tspan[2] - tspan[1]
         d_discontinuities_internal = unique(
             Discontinuity{tType}[d_discontinuities;

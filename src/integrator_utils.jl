@@ -355,7 +355,7 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
     constant_lags = integrator.sol.prob.constant_lags
 
     # only track discontinuities up to order of the applied method
-    order > alg_order(integrator.alg) && !neutral && return nothing
+    order > alg_maximum_order(integrator.alg) && !neutral && return nothing
 
     # discontinuities caused by constant lags
     if constant_lags != nothing

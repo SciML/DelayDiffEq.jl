@@ -1,4 +1,4 @@
-alg_order(alg::AbstractMethodOfStepsAlgorithm) = alg_order(alg.alg)
+alg_maximum_order(alg::AbstractMethodOfStepsAlgorithm) = alg_maximum_order(alg.alg)
 
 isconstrained(alg::AbstractMethodOfStepsAlgorithm{constrained}) where constrained =
     constrained

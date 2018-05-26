@@ -347,7 +347,7 @@ function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
     # reinit time stops, time points at which solution is saved, and discontinuities
     integrator.opts.tstops, integrator.opts.saveat, integrator.opts.d_discontinuities =
         tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
-                                   (t0,tf), initial_order, alg_order(integrator.alg),
+                                   (t0,tf), initial_order, alg_maximum_order(integrator.alg),
                                    integrator.sol.prob.constant_lags, typeof(integrator.t))
 
     # copy time points at which solution is saved if solution should be
@@ -358,7 +358,7 @@ function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
 
     if erase_sol
         # erase array of tracked discontinuities
-        if initial_order ≤ alg_order(integrator.alg)
+        if initial_order ≤ alg_maximum_order(integrator.alg)
             resize!(integrator.tracked_discontinuities, 1)
             integrator.tracked_discontinuities[1] = Discontinuity(t0, initial_order)
         else

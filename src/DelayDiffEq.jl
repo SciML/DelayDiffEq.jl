@@ -8,7 +8,7 @@ using Reexport
 using DataStructures, RecursiveArrayTools, MuladdMacro,
       DiffEqDiffTools, ForwardDiff, NLSolversBase, Roots
 
-import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_order,
+import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_maximum_order,
                        handle_tstop!, ODEIntegrator, savevalues!, postamble!,
                        handle_callback_modifiers!, reeval_internals_due_to_modification!,
                        handle_discontinuities!, find_callback_time, apply_callback!,
