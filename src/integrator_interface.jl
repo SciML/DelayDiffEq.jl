@@ -154,13 +154,13 @@ Calculate next step of `integrator`.
                                              integrator.u, integrator.dt, integrator.f,
                                              integrator.p,
                                              integrator.cache.caches[integrator.cache.current],
-                                             Val{false}, Val{true}, Val{true})
+                                             false, true, true)
             else
                 OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
                                              integrator.u, integrator.dt, integrator.f,
                                              integrator.p,
-                                             integrator.cache, Val{false}, Val{true},
-                                             Val{true})
+                                             integrator.cache, false, true,
+                                             true)
             end
             recursivecopy!(integrator.integrator.k, integrator.k)
 
