@@ -19,7 +19,7 @@ function reeval_internals_due_to_modification!(integrator::DDEIntegrator,
     # of ODE integrator in evaluation of history function that was calculated in
     # `perform_step!`
     if not_initialization
-        OrdinaryDiffEq.ode_addsteps!(integrator, integrator.f, Val{true}, Val{true}, Val{true})
+        OrdinaryDiffEq.ode_addsteps!(integrator, integrator.f, true, true, true)
         # copy interpolation data to ODE integrator
         recursivecopy!(integrator.integrator.k, integrator.k)
     end
