@@ -30,7 +30,7 @@
                 prob = prob_dde_1delay_notinplace
                 sol2 = solve(prob, alg)
 
-                @test sol.t == sol2.t && sol.u == sol2[1, :]
+                @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
 
                 ### In-place function
                 prob = prob_dde_1delay
@@ -68,7 +68,7 @@
                 prob = prob_dde_2delays_notinplace
                 sol2 = solve(prob, alg)
 
-                @test sol.t == sol2.t && sol.u == sol2[1, :]
+                @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
 
                 ### In-place function
                 prob = prob_dde_2delays
