@@ -8,10 +8,10 @@
 
     @testset "general" begin
         # naive history functions
-        h_notinplace(p, t; idxs=nothing) = typeof(idxs) <: Void ? [t, -t] : [t, -t][idxs]
+        h_notinplace(p, t; idxs=nothing) = typeof(idxs) <: Nothing ? [t, -t] : [t, -t][idxs]
 
         function h_inplace(val, p, t; idxs=nothing)
-            if typeof(idxs) <: Void
+            if typeof(idxs) <: Nothing
                 val[1] = t
                 val[2] = -t
             else

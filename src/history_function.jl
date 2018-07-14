@@ -17,9 +17,9 @@ end
 
 function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
     @inbounds if t < f.sol.t[1]
-        if deriv == 0 && typeof(idxs) <: Void
+        if deriv == 0 && typeof(idxs) <: Nothing
             return f.h(p, t)
-        elseif typeof(idxs) <: Void
+        elseif typeof(idxs) <: Nothing
             return f.h(p, t, Val{deriv})
         elseif deriv == 0
             return f.h(p, t; idxs = idxs)
@@ -49,9 +49,9 @@ end
 
 function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
     @inbounds if t < f.sol.t[1]
-        if deriv == 0 && typeof(idxs) <: Void
+        if deriv == 0 && typeof(idxs) <: Nothing
             return f.h(val, p, t)
-        elseif typeof(idxs) <: Void
+        elseif typeof(idxs) <: Nothing
             return f.h(val, p, t, Val{deriv})
         elseif deriv == 0
             return f.h(val, p, t; idxs = idxs)

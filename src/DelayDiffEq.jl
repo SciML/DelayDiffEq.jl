@@ -14,7 +14,7 @@ import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg
                        handle_discontinuities!, find_callback_time, apply_callback!,
                        initialize_callbacks!, tstop_saveat_disc_handling
 
-import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, full_cache,
+import DiffEqBase: solve!, resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!,
                    has_reinit, reinit!, auto_dt_reset!, AbstractContinuousCallback,
                    AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem

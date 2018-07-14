@@ -80,14 +80,14 @@ function build_solution_array(integrator::DDEIntegrator)
         # use solution of ODE integrator if no additional time points provided
         if integrator.opts.save_start
             t = integrator.sol.t
-            if typeof(integrator.opts.save_idxs) <: Void
+            if typeof(integrator.opts.save_idxs) <: Nothing
                 u = integrator.sol.u
             else
                 u = [u[integrator.opts.save_idxs] for u in integrator.sol.u]
             end
         else # remove initial time point
             t = integrator.sol.t[2:end]
-            if typeof(integrator.opts.save_idxs) <: Void
+            if typeof(integrator.opts.save_idxs) <: Nothing
                 u = integrator.sol.u[2:end]
             else
                 u = [u[integrator.opts.save_idxs] for u in @view(integrator.sol.u[2:end])]
@@ -104,7 +104,7 @@ function build_solution_array(integrator::DDEIntegrator)
         n += saveat_length
         integrator.opts.save_start || (n -= 1)
         t = Vector{typeof(integrator.t)}(n)
-        if typeof(integrator.opts.save_idxs) <: Void
+        if typeof(integrator.opts.save_idxs) <: Nothing
           u = Vector{typeof(integrator.u)}(n)
         else
           u = Vector{typeof(integrator.u[integrator.opts.save_idxs])}(n)
@@ -114,7 +114,7 @@ function build_solution_array(integrator::DDEIntegrator)
         write_idx = 1 # next index of solution to write to
         if integrator.opts.save_start
             t[1] = integrator.sol.t[1]
-            if typeof(integrator.opts.save_idxs) <: Void
+            if typeof(integrator.opts.save_idxs) <: Nothing
                 u[1] = integrator.sol.u[1]
             else
                 u[1] = integrator.sol.u[1][integrator.opts.save_idxs]
@@ -141,7 +141,7 @@ function build_solution_array(integrator::DDEIntegrator)
                 else
                     # copy time points and values of solution of ODE integrator
                     t[write_idx] = integrator.sol.t[sol_idx]
-                    if typeof(integrator.opts.save_idxs) <: Void
+                    if typeof(integrator.opts.save_idxs) <: Nothing
                         u[write_idx] = integrator.sol.u[sol_idx]
                     else
                         u[write_idx] = integrator.sol.u[sol_idx][integrator.opts.save_idxs]
@@ -156,7 +156,7 @@ function build_solution_array(integrator::DDEIntegrator)
             # copy remaining time points of solution of ODE integrator
             # except of final time point
             copy!(t, write_idx, integrator.sol.t, sol_idx, sol_length - sol_idx)
-            if typeof(integrator.opts.save_idxs) <: Void
+            if typeof(integrator.opts.save_idxs) <: Nothing
                 copy!(u, write_idx, integrator.sol.u, sol_idx, sol_length - sol_idx)
             else
                 copy!(u, write_idx,
@@ -178,7 +178,7 @@ function build_solution_array(integrator::DDEIntegrator)
 
         # always output final time point
         t[end] = integrator.sol.t[end]
-        if typeof(integrator.opts.save_idxs) <: Void
+        if typeof(integrator.opts.save_idxs) <: Nothing
             u[end] = integrator.sol.u[end]
         else
             u[end] = integrator.sol.u[end][integrator.opts.save_idxs]
@@ -196,7 +196,7 @@ values in `sol`.
 """
 function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArray)
     if integrator.opts.dense
-        if typeof(integrator.opts.save_idxs) <: Void
+        if typeof(integrator.opts.save_idxs) <: Nothing
             integrator.sol.interp
         else # update interpolation data if only a subset of indices is returned
             if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm

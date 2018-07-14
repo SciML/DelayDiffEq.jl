@@ -1,4 +1,4 @@
-function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
+function DiffEqBase.__init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
               timeseries_init=uType[], ts_init=tType[], ks_init=[];
               d_discontinuities::Vector{Discontinuity{tType}}=Discontinuity{tType}[],
               dtmax = (prob.constant_lags == nothing || isempty(prob.constant_lags)) ?
@@ -79,14 +79,14 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
     # in particular important for calculations with units
-    if typeof(alg.fixedpoint_abstol) <: Void
+    if typeof(alg.fixedpoint_abstol) <: Nothing
         fixedpoint_abstol_internal = map(eltype(uType), integrator.opts.abstol)
     else
         fixedpoint_abstol_internal = map(eltype(uType), alg.fixedpoint_abstol)
     end
 
     # use norm of ODE integrator if no norm for fixed-point iterations is specified
-    if typeof(alg.fixedpoint_norm) <: Void
+    if typeof(alg.fixedpoint_norm) <: Nothing
         fixedpoint_norm = integrator.opts.internalnorm
     end
 
@@ -97,7 +97,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # relative tolerance for fixed-point iterations has to be of same type as elements of u
     # without units
     # in particular important for calculations with units
-    if typeof(alg.fixedpoint_reltol) <: Void
+    if typeof(alg.fixedpoint_reltol) <: Nothing
         fixedpoint_reltol_internal = map(uEltypeNoUnits, integrator.opts.reltol)
     else
         fixedpoint_reltol_internal = map(uEltypeNoUnits, alg.fixedpoint_reltol)
@@ -128,7 +128,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
 
     # check if all indices should be returned
-    if !(typeof(save_idxs) <: Void) && collect(save_idxs) == collect(1:length(integrator.u))
+    if !(typeof(save_idxs) <: Nothing) && collect(save_idxs) == collect(1:length(integrator.u))
         save_idxs = nothing # prevents indexing of ODE solution and saves memory
     end
 
@@ -161,7 +161,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
 
     # create additional callback to track dependent delays
-    if !(typeof(dependent_lags) <: Void) && !isempty(dependent_lags)
+    if !(typeof(dependent_lags) <: Nothing) && !isempty(dependent_lags)
         discontinuity_callback = DiscontinuityCallback(dependent_lags,
                                                        tracked_discontinuities,
                                                        discontinuity_interp_points,
@@ -207,7 +207,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # WARNING: can impact quality of solution if not all constant lags specified
     minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep &&
         constant_lags != nothing && !isempty(constant_lags) &&
-        (typeof(dependent_lags) <: Void || isempty(dependent_lags))
+        (typeof(dependent_lags) <: Nothing || isempty(dependent_lags))
 
     # need copy of heap of additional time points (nodes will be deleted!) in order to
     # remove unneeded time points of ODE solution as soon as possible and keep track
@@ -306,7 +306,7 @@ function solve!(integrator::DDEIntegrator)
 
     # calculate analytical solutions to problem if existent
     if has_analytic(prob.f)
-        if typeof(integrator.opts.save_idxs) <: Void
+        if typeof(integrator.opts.save_idxs) <: Nothing
             u_analytic = [prob.f(Val{:analytic}, integrator.sol[1], integrator.p, t) for t in sol_array.t]
         else
             u_analytic = [@view(prob.f(
@@ -355,7 +355,7 @@ function solve!(integrator::DDEIntegrator)
     return sol
 end
 
-function solve(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
+function DiffEqBase.__solve(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
                timeseries_init=uType[], ts_init=tType[], ks_init=[]; kwargs...) where
     {uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType}
 
