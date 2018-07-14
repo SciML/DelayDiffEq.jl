@@ -25,7 +25,7 @@
         end
 
         # ODE integrator
-        prob = ODEProblem(DiffEqProblemLibrary.f_2dlinear, ones(2), (0.0, 1.0))
+        prob = ODEProblem((du,u,p,t)->@.(du=p*u), ones(2), (0.0, 1.0),1.01)
         integrator = init(prob, Tsit5())
 
         # combined history function
