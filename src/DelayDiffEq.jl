@@ -16,7 +16,8 @@ import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg
 
 import DiffEqBase: solve, solve!, init, resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!,
-                   has_reinit, reinit!, auto_dt_reset!
+                   has_reinit, reinit!, auto_dt_reset!, AbstractContinuousCallback,
+                   AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem
 
 using OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
     TrapezoidCache
