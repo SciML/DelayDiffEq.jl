@@ -62,7 +62,7 @@ assign_expr(::Val{name}, ::Type, ::Type) where {name} =
 
 # update matrix exponential
 assign_expr(::Val{:expA}, ::Type, ::Type) =
-    :(A = f.f1; expA = expm(A*dt))
+    :(A = f.f1; expA = exp(A*dt))
 assign_expr(::Val{:phi1}, ::Type, ::Type{<:OrdinaryDiffEq.NorsettEulerCache}) =
     :(phi1 = ((expA-I)/A))
 
