@@ -35,7 +35,7 @@
                 @test length(dde_int.sol.u[1]) == 2
 
                 ## interpolation
-                @test sol(25:100, idxs=2) == [u[1] for u in sol(25:100, idxs=[2])]
+                @test sol(25:100, idxs=2) ≈ [u[1] for u in sol(25:100, idxs=[2])]
             end
 
             # with keyword argument
@@ -97,7 +97,7 @@
 
                 ## interpolation of solution equals second component of
                 ## interpolation of complete solution
-                @test sol(25:100, idxs=2) == sol2(25:100, idxs=1)
+                @test sol(25:100, idxs=2) ≈ sol2(25:100, idxs=1)
             end
         end
     end
