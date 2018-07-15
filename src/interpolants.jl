@@ -9,7 +9,7 @@ function constant_extrapolant(t, integrator::DEIntegrator, idxs, deriv)
 end
 
 function constant_extrapolant(t::Number, integrator::DEIntegrator, idxs, T::Type{Val{0}})
-    if typeof(idxs) <: Void
+    if typeof(idxs) <: Nothing
         return integrator.u
     else
         return integrator.u[idxs]
@@ -17,7 +17,7 @@ function constant_extrapolant(t::Number, integrator::DEIntegrator, idxs, T::Type
 end
 
 function constant_extrapolant(t::Number, integrator::DEIntegrator, idxs, T::Type{Val{1}})
-    if typeof(idxs) <: Void
+    if typeof(idxs) <: Nothing
         return zero(integrator.u)./oneunit(t)
     else
         return zero(integrator.u[idxs])./oneunit(t)

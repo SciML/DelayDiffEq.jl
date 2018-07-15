@@ -36,7 +36,7 @@
 
             @test sol.errors[:l∞] < 2.0e-3
             @test sol.errors[:final] < 1.8e-5
-            @test sol.errors[:l2] < 8.0e-4
+            @test sol.errors[:l2] < 9.0e-4
 
             sol2 = solve(prob_notinplace, MethodOfSteps(Vern8()))
 

@@ -1,4 +1,4 @@
-using DiffEqDevTools, DiffEqCallbacks, Base.Test
+using DiffEqDevTools, DiffEqCallbacks, Test
 
 @testset "Events" begin
     prob = prob_dde_1delay_scalar_notinplace

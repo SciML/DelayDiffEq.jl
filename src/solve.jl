@@ -1,19 +1,24 @@
-function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
-              timeseries_init=uType[], ts_init=tType[], ks_init=[];
-              d_discontinuities::Vector{Discontinuity{tType}}=Discontinuity{tType}[],
+function DiffEqBase.__init(
+              prob::AbstractDDEProblem{uType,tupType,lType,iip},
+              alg::algType,
+              timeseries_init=uType[], ts_init=eltype(tupType)[], ks_init=[];
+              d_discontinuities=Discontinuity{eltype(tupType)}[],
               dtmax = (prob.constant_lags == nothing || isempty(prob.constant_lags)) ?
-              prob.tspan[2]-prob.tspan[1] : tType(7*minimum(prob.constant_lags)),
-              dt=zero(tType), saveat=tType[], tstops = tType[],
+              prob.tspan[2]-prob.tspan[1] : eltype(tupType)(7*minimum(prob.constant_lags)),
+              dt=zero(eltype(tupType)), saveat=eltype(tupType)[],
+              tstops = eltype(tupType)[],
               save_idxs=nothing, save_everystep=isempty(saveat),
               save_start = save_everystep || isempty(saveat) || typeof(saveat) <: Number ? true : prob.tspan[1] in saveat,
               save_end = save_everystep || isempty(saveat) || typeof(saveat) <: Number ? true : prob.tspan[2] in saveat,
               dense = save_everystep && !(typeof(alg) <: FunctionMap) && isempty(saveat),
               minimal_solution=true, discontinuity_interp_points::Int=10,
-              discontinuity_abstol=tType(1//Int64(10)^12), discontinuity_reltol=0,
+              discontinuity_abstol=eltype(tupType)(1//Int64(10)^12), discontinuity_reltol=0,
               initial_order=agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
               initialize_integrator = true, initialize_save = true,
-              callback=nothing, kwargs...) where
-    {uType,tType,lType,isinplace,algType<:AbstractMethodOfStepsAlgorithm}
+              callback=nothing, kwargs... ) where
+    {uType,tupType,lType,iip,algType<:AbstractMethodOfStepsAlgorithm}
+
+    tType = eltype(tupType)
 
     neutral = prob.neutral
     constant_lags = prob.constant_lags
@@ -28,7 +33,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(du,u,p,t) or f(u,p,t) without history function
-    ode_prob = ODEProblem{isinplace}(prob.f, prob.u0, prob.tspan, p,
+    ode_prob = ODEProblem{iip}(prob.f, prob.u0, prob.tspan, p,
                                      mass_matrix = prob.mass_matrix)
     integrator = init(ode_prob, alg.alg; initialize_integrator=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
@@ -42,7 +47,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # history function of the DDE problem, the current solution of the integrator, and
     # the extrapolation of the integrator for the future
     interp_h = HistoryFunction(prob.h, integrator.sol, integrator)
-    if isinplace
+    if iip
         interp_f = (du,u,p,t) -> prob.f(du,u,interp_h,p,t)
     else
         interp_f = (u,p,t) -> prob.f(u,interp_h,p,t)
@@ -57,12 +62,12 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
 
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
-        sol = build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
+        sol = DiffEqBase.build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
                              dense=integrator.sol.dense, k=integrator.sol.k,
                              interp=interp_data, alg_choice=integrator.sol.alg_choice,
                              calculate_error = false)
     else
-        sol = build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
+        sol = DiffEqBase.build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
                              dense=integrator.sol.dense, k=integrator.sol.k,
                              interp=interp_data, calculate_error = false)
     end
@@ -71,22 +76,22 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # to create a problem function of the DDE with all available history information that is
     # of the form f(du,u,p,t) or f(u,p,t) such that ODE algorithms can be applied
     dde_h = HistoryFunction(prob.h, sol, integrator)
-    if isinplace
-        dde_f = (du,u,p,t) -> prob.f(du,u,dde_h,p,t)
+    if iip
+        dde_f = ODEFunction((du,u,p,t) -> prob.f(du,u,dde_h,p,t))
     else
-        dde_f = (u,p,t) -> prob.f(u,dde_h,p,t)
+        dde_f = ODEFunction((u,p,t) -> prob.f(u,dde_h,p,t))
     end
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
     # in particular important for calculations with units
-    if typeof(alg.fixedpoint_abstol) <: Void
+    if typeof(alg.fixedpoint_abstol) <: Nothing
         fixedpoint_abstol_internal = map(eltype(uType), integrator.opts.abstol)
     else
         fixedpoint_abstol_internal = map(eltype(uType), alg.fixedpoint_abstol)
     end
 
     # use norm of ODE integrator if no norm for fixed-point iterations is specified
-    if typeof(alg.fixedpoint_norm) <: Void
+    if typeof(alg.fixedpoint_norm) <: Nothing
         fixedpoint_norm = integrator.opts.internalnorm
     end
 
@@ -97,7 +102,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # relative tolerance for fixed-point iterations has to be of same type as elements of u
     # without units
     # in particular important for calculations with units
-    if typeof(alg.fixedpoint_reltol) <: Void
+    if typeof(alg.fixedpoint_reltol) <: Nothing
         fixedpoint_reltol_internal = map(uEltypeNoUnits, integrator.opts.reltol)
     else
         fixedpoint_reltol_internal = map(uEltypeNoUnits, alg.fixedpoint_reltol)
@@ -128,7 +133,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
 
     # check if all indices should be returned
-    if !(typeof(save_idxs) <: Void) && collect(save_idxs) == collect(1:length(integrator.u))
+    if !(typeof(save_idxs) <: Nothing) && collect(save_idxs) == collect(1:length(integrator.u))
         save_idxs = nothing # prevents indexing of ODE solution and saves memory
     end
 
@@ -161,7 +166,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     end
 
     # create additional callback to track dependent delays
-    if !(typeof(dependent_lags) <: Void) && !isempty(dependent_lags)
+    if !(typeof(dependent_lags) <: Nothing) && !isempty(dependent_lags)
         discontinuity_callback = DiscontinuityCallback(dependent_lags,
                                                        tracked_discontinuities,
                                                        discontinuity_interp_points,
@@ -207,7 +212,7 @@ function init(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algTyp
     # WARNING: can impact quality of solution if not all constant lags specified
     minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep &&
         constant_lags != nothing && !isempty(constant_lags) &&
-        (typeof(dependent_lags) <: Void || isempty(dependent_lags))
+        (typeof(dependent_lags) <: Nothing || isempty(dependent_lags))
 
     # need copy of heap of additional time points (nodes will be deleted!) in order to
     # remove unneeded time points of ODE solution as soon as possible and keep track
@@ -305,8 +310,8 @@ function solve!(integrator::DDEIntegrator)
     prob = integrator.sol.prob
 
     # calculate analytical solutions to problem if existent
-    if has_analytic(prob.f)
-        if typeof(integrator.opts.save_idxs) <: Void
+    if DiffEqBase.has_analytic(prob.f)
+        if typeof(integrator.opts.save_idxs) <: Nothing
             u_analytic = [prob.f(Val{:analytic}, integrator.sol[1], integrator.p, t) for t in sol_array.t]
         else
             u_analytic = [@view(prob.f(
@@ -347,7 +352,7 @@ function solve!(integrator::DDEIntegrator)
 
     # calculate errors of solution
     if sol.u_analytic != nothing
-        calculate_solution_errors!(sol; fill_uanalytic=false,
+        DiffEqBase.calculate_solution_errors!(sol; fill_uanalytic=false,
                                    timeseries_errors=integrator.opts.timeseries_errors,
                                    dense_errors=integrator.opts.dense_errors)
     end
@@ -355,11 +360,12 @@ function solve!(integrator::DDEIntegrator)
     return sol
 end
 
-function solve(prob::AbstractDDEProblem{uType,tType,lType,isinplace}, alg::algType,
-               timeseries_init=uType[], ts_init=tType[], ks_init=[]; kwargs...) where
-    {uType,tType,isinplace,algType<:AbstractMethodOfStepsAlgorithm,lType}
+function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem{uType,tupType,lType,iip},
+               alg::algType,
+               timeseries_init=uType[], ts_init=eltype(tupType)[], ks_init=[]; kwargs...) where
+    {uType,tupType,iip,algType<:AbstractMethodOfStepsAlgorithm,lType}
 
-    integrator = init(prob, alg, timeseries_init, ts_init, ks_init; kwargs...)
+    integrator = DiffEqBase.__init(prob, alg, timeseries_init, ts_init, ks_init; kwargs...)
     solve!(integrator)
 end
 
@@ -377,14 +383,14 @@ function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
     # FSAL in order for the starting derivatives to be correct
     if u_modified
 
-        if isinplace
+        if iip
             recursivecopy!(dde_int.uprev,dde_int.u)
         else
             dde_int.uprev = dde_int.u
         end
 
         if OrdinaryDiffEq.alg_extrapolates(dde_int.alg)
-            if isinplace
+            if iip
                 recursivecopy!(dde_int.uprev2,dde_int.uprev)
             else
                 dde_int.uprev2 = dde_int.uprev

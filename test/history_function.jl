@@ -8,10 +8,10 @@
 
     @testset "general" begin
         # naive history functions
-        h_notinplace(p, t; idxs=nothing) = typeof(idxs) <: Void ? [t, -t] : [t, -t][idxs]
+        h_notinplace(p, t; idxs=nothing) = typeof(idxs) <: Nothing ? [t, -t] : [t, -t][idxs]
 
         function h_inplace(val, p, t; idxs=nothing)
-            if typeof(idxs) <: Void
+            if typeof(idxs) <: Nothing
                 val[1] = t
                 val[2] = -t
             else
@@ -25,7 +25,7 @@
         end
 
         # ODE integrator
-        prob = ODEProblem(DiffEqProblemLibrary.f_2dlinear, ones(2), (0.0, 1.0))
+        prob = ODEProblem((du,u,p,t)->@.(du=p*u), ones(2), (0.0, 1.0),1.01)
         integrator = init(prob, Tsit5())
 
         # combined history function

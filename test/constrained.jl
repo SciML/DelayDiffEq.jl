@@ -20,7 +20,7 @@
         dde_int = init(prob, alg; dt=0.1)
         sol2 = solve!(dde_int)
 
-        @test sol.t == sol2.t && sol.u == sol2[1, :]
+        @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
 
         ## In-place function
         prob = prob_dde_1delay
@@ -46,7 +46,7 @@
         dde_int = init(prob, alg; dt=0.1)
         sol2 = solve!(dde_int)
 
-        @test sol.t == sol2.t && sol.u == sol2[1, :]
+        @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
 
         ## In-place function
         prob = prob_dde_2delays
