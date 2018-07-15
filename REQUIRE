@@ -1,4 +1,4 @@
-julia 0.7-
+julia 0.7-beta2
 DiffEqBase 3.10.0
 OrdinaryDiffEq 3.15.1
 DataStructures 0.4.6
