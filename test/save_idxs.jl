@@ -52,8 +52,8 @@
                 @test sol.t == sol2.t && sol.u == sol2.u
 
                 ## interpolation
-                @test sol(25:100, idxs=2) == sol2(25:100, idxs=2)
-                @test sol(25:100, idxs=[2]) == sol2(25:100, idxs=[2])
+                @test sol(25:100, idxs=2) ≈ sol2(25:100, idxs=2)
+                @test sol(25:100, idxs=[2]) ≈ sol2(25:100, idxs=[2])
             end
         end
 
@@ -76,8 +76,8 @@
 
                 ## interpolation of solution equals second component of
                 ## interpolation of complete solution
-                @test sol(25:100, idxs=2) == sol2(25:100, idxs=1)
-                @test sol(25:100, idxs=[2]) == sol2(25:100, idxs=[1])
+                @test sol(25:100, idxs=2) ≈ sol2(25:100, idxs=1)
+                @test sol(25:100, idxs=[2]) ≈ sol2(25:100, idxs=[1])
             end
 
             # scalar index
@@ -93,7 +93,7 @@
                 @test length(dde_int2.sol.u[1]) == 2
 
                 ## solution equals second component of complete solution
-                @test sol.t == sol2.t && sol[2, :] == sol2.u
+                @test sol.t ≈ sol2.t && sol[2, :] ≈ sol2.u
 
                 ## interpolation of solution equals second component of
                 ## interpolation of complete solution

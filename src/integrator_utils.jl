@@ -103,11 +103,11 @@ function build_solution_array(integrator::DDEIntegrator)
         n = integrator.opts.save_everystep ? length(integrator.sol.t) : 2
         n += saveat_length
         integrator.opts.save_start || (n -= 1)
-        t = Vector{typeof(integrator.t)}(n)
+        t = Vector{typeof(integrator.t)}(undef,n)
         if typeof(integrator.opts.save_idxs) <: Nothing
-          u = Vector{typeof(integrator.u)}(n)
+          u = Vector{typeof(integrator.u)}(undef,n)
         else
-          u = Vector{typeof(integrator.u[integrator.opts.save_idxs])}(n)
+          u = Vector{typeof(integrator.u[integrator.opts.save_idxs])}(undef,n)
         end
 
         # output initial time point if desired
