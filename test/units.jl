@@ -2,8 +2,8 @@ using Unitful
 
 @testset "Units" begin
     prob_notinplace =
-        DiffEqProblemLibrary.build_prob_dde_1delay_long_scalar_notinplace(1.0u"N", 1.0u"s")
-    prob_inplace = DiffEqProblemLibrary.build_prob_dde_1delay_long(1.0u"N", 1.0u"s")
+        DiffEqProblemLibrary.DDEProblemLibrary.build_prob_dde_1delay_long_scalar_notinplace(1.0u"N", 1.0u"s")
+    prob_inplace = DiffEqProblemLibrary.DDEProblemLibrary.build_prob_dde_1delay_long(1.0u"N", 1.0u"s")
 
     @testset for prob in (prob_notinplace, prob_inplace), constrained in (false, true)
         @testset "correct" begin
