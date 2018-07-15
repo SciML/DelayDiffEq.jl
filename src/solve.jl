@@ -77,9 +77,9 @@ function DiffEqBase.__init(
     # of the form f(du,u,p,t) or f(u,p,t) such that ODE algorithms can be applied
     dde_h = HistoryFunction(prob.h, sol, integrator)
     if iip
-        dde_f = (du,u,p,t) -> prob.f(du,u,dde_h,p,t)
+        dde_f = ODEFunction((du,u,p,t) -> prob.f(du,u,dde_h,p,t))
     else
-        dde_f = (u,p,t) -> prob.f(u,dde_h,p,t)
+        dde_f = ODEFunction((u,p,t) -> prob.f(u,dde_h,p,t))
     end
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u
