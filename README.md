@@ -6,9 +6,6 @@
 [![Coverage Status](https://coveralls.io/repos/JuliaDiffEq/DelayDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaDiffEq/DelayDiffEq.jl?branch=master)
 [![codecov.io](http://codecov.io/github/JuliaDiffEq/DelayDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DelayDiffEq.jl?branch=master)
 
-[![DelayDiffEq](http://pkg.julialang.org/badges/DelayDiffEq_0.5.svg)](http://pkg.julialang.org/?pkg=DelayDiffEq)
-[![DelayDiffEq](http://pkg.julialang.org/badges/DelayDiffEq_0.6.svg)](http://pkg.julialang.org/?pkg=DelayDiffEq)
-
 DelayDiffEq.jl is a component package in the DifferentialEquations ecosystem. It holds the
 delay differential equation solvers and utilities. It is built on top of OrdinaryDiffEq
 to extend those solvers for delay differential equations. While completely independent

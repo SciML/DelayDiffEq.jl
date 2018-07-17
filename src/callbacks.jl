@@ -82,7 +82,7 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
     if callback.interp_points != 0
       ode_addsteps!(integrator)
     end
-    Θs = linspace(0, one(integrator.t), callback.interp_points)
+    Θs = range(0, stop=one(integrator.t), length=callback.interp_points)
 
     for lag in callback.lags
         # define function f that calculates T + lag(u(t),p,t) - t, where t = tprev + Θ*dt is
