@@ -189,6 +189,7 @@ function DiffEqBase.__init(
                                     integrator.opts.qsteady_min,
                                     integrator.opts.failfactor, integrator.opts.dtmax,
                                     integrator.opts.dtmin, integrator.opts.internalnorm,
+                                    integrator.opts.internalopnorm,
                                     save_idxs, tstops_internal, saveat_internal,
                                     d_discontinuities_internal,
                                     tstops, saveat, d_discontinuities,
