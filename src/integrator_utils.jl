@@ -155,13 +155,13 @@ function build_solution_array(integrator::DDEIntegrator)
 
             # copy remaining time points of solution of ODE integrator
             # except of final time point
-            copy!(t, write_idx, integrator.sol.t, sol_idx, sol_length - sol_idx)
+            copyto!(t, write_idx, integrator.sol.t, sol_idx, sol_length - sol_idx)
             if typeof(integrator.opts.save_idxs) <: Nothing
-                copy!(u, write_idx, integrator.sol.u, sol_idx, sol_length - sol_idx)
+                copyto!(u, write_idx, integrator.sol.u, sol_idx, sol_length - sol_idx)
             else
-                copy!(u, write_idx,
-                      (u[integrator.opts.save_indxs] for u in integrator.sol.u),
-                      sol_idx, sol_length - sol_idx)
+                copyto!(u, write_idx,
+                        (u[integrator.opts.save_indxs] for u in integrator.sol.u),
+                        sol_idx, sol_length - sol_idx)
             end
 
             write_idx += sol_length - sol_idx
@@ -219,11 +219,11 @@ function build_solution_interpolation(integrator::DDEIntegrator, sol::DiffEqArra
     else # create not dense interpolation data if desired
         if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
             OrdinaryDiffEq.CompositeInterpolationData(
-                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(0),
+                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(undef, 0),
                 Int[], false, integrator.sol.interp.cache)
         else
             OrdinaryDiffEq.InterpolationData(
-                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(0),
+                integrator.sol.interp.f, sol.u, sol.t, typeof(integrator.sol.k)(undef, 0),
                 false, integrator.sol.interp.cache)
         end
     end
