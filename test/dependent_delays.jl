@@ -11,7 +11,7 @@
 
     @testset "constant lag function" begin
         # constant delay specified as lag function
-        prob2 = DDEProblem(DiffEqProblemLibrary.DDEProblemLibrary.f_1delay,
+        prob2 = DDEProblem(DiffEqProblemLibrary.DDEProblemLibrary.ff_1delay,
                            [1.0],
                            (p, t) -> [0.0], (0., 10.),
                            dependent_lags = [(u,p,t) -> 1])
@@ -43,7 +43,7 @@
 
     # without any delays specified is worse
     @testset "without delays" begin
-        prob2 = DDEProblem(DiffEqProblemLibrary.DDEProblemLibrary.f_1delay,
+        prob2 = DDEProblem(DiffEqProblemLibrary.DDEProblemLibrary.ff_1delay,
                            [1.0],
                            (p, t) -> [0.0], (0., 10.))
         sol2 = solve(prob2, alg)
