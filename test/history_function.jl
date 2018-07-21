@@ -130,7 +130,8 @@
 
         # test integrator extrapolation
         @testset "integrator extrapolation (deriv=$deriv, idxs=$idxs)" for
-            deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
+            deriv in (Val{0}, Val{1}), idxs in (0, [2])
+            idxs == 0 && (idxs = nothing)
             # expected value
             trueval = OrdinaryDiffEq.current_interpolant(1, integrator, idxs, deriv)
 
