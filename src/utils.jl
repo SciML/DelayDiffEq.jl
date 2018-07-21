@@ -28,10 +28,10 @@ Return type of FSAL of `integrator`.
 """
 function fsal_typeof(integrator::ODEIntegrator{<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,
                                                uType,tType,P,eigenType,tTypeNoUnits,tdirType,ksEltype,
-                                               SolType,F,ProgressType,CacheType,O,
+                                               SolType,F,CacheType,O,
                                                FSALType}) where {uType,tType,P,eigenType,tTypeNoUnits,
                                                                  tdirType,ksEltype,SolType,
-                                                                 F,ProgressType,CacheType,O,
+                                                                 F,CacheType,O,
                                                                  FSALType}
     return FSALType
 end

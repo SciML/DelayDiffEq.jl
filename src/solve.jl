@@ -233,7 +233,7 @@ function DiffEqBase.__init(
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
                             typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
-                            typeof(dde_f),typeof(integrator.prog),typeof(dde_cache),
+                            typeof(dde_f),typeof(dde_cache),
                             typeof(integrator),typeof(fixedpoint_norm),typeof(opts),
                             typeof(saveat_copy),fsal_typeof(integrator)}(
                                 sol, u, integrator.k, integrator.t, dt, dde_f, p, uprev,
@@ -248,7 +248,7 @@ function DiffEqBase.__init(
                                 integrator.q11, integrator.erracc, integrator.dtacc,
                                 integrator.success_iter, integrator.iter,
                                 integrator.saveiter, integrator.saveiter_dense,
-                                integrator.prog, dde_cache, integrator.kshortsize,
+                                dde_cache, integrator.kshortsize,
                                 integrator.force_stepfail, integrator.just_hit_tstop,
                                 integrator.last_stepfail, integrator.event_last_time,
                                 integrator.accept_step,
