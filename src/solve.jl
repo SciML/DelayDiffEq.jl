@@ -33,8 +33,7 @@ function DiffEqBase.__init(
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(du,u,p,t) or f(u,p,t) without history function
-    ode_prob = ODEProblem{iip}(prob.f, prob.u0, prob.tspan, p,
-                                     mass_matrix = prob.mass_matrix)
+    ode_prob = ODEProblem{iip}(prob.f, prob.u0, prob.tspan, p)
     integrator = init(ode_prob, alg.alg; initialize_integrator=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
 
@@ -77,9 +76,11 @@ function DiffEqBase.__init(
     # of the form f(du,u,p,t) or f(u,p,t) such that ODE algorithms can be applied
     dde_h = HistoryFunction(prob.h, sol, integrator)
     if iip
-        dde_f = ODEFunction((du,u,p,t) -> prob.f(du,u,dde_h,p,t))
+        dde_f = ODEFunction((du,u,p,t) -> prob.f(du,u,dde_h,p,t),
+                            mass_matrix = prob.f.mass_matrix)
     else
-        dde_f = ODEFunction((u,p,t) -> prob.f(u,dde_h,p,t))
+        dde_f = ODEFunction((u,p,t) -> prob.f(u,dde_h,p,t),
+                            mass_matrix = prob.f.mass_matrix)
     end
 
     # absolut tolerance for fixed-point iterations has to be of same type as elements of u

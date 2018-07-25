@@ -407,8 +407,7 @@ function auto_dt_reset!(dde_int::DDEIntegrator)
 
     # determine initial time step
     ode_prob = ODEProblem(dde_int.f, dde_int.sol.prob.u0, dde_int.sol.prob.tspan,
-                          dde_int.sol.prob.p;
-                          mass_matrix = dde_int.sol.prob.mass_matrix)
+                          dde_int.sol.prob.p)
     dde_int.dt = OrdinaryDiffEq.ode_determine_initdt(dde_int.u, dde_int.t, dde_int.tdir,
                                                      dtmax, dde_int.opts.abstol,
                                                      dde_int.opts.reltol,
