@@ -36,7 +36,7 @@
                 prob = prob_dde_1delay
                 sol2 = solve(prob, alg)
 
-                @test sol.t == sol2.t && sol.u == sol2[1, :]
+                @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
             end
 
             @testset "long time span" begin
@@ -74,7 +74,7 @@
                 prob = prob_dde_2delays
                 sol2 = solve(prob, alg)
 
-                @test sol.t == sol2.t && sol.u == sol2[1, :]
+                @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
             end
 
             @testset "long time span" begin
