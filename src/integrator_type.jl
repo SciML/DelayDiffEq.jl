@@ -43,7 +43,7 @@ mutable struct DDEIntegrator{algType<:OrdinaryDiffEq.OrdinaryDiffEqAlgorithm,
     force_stepfail::Bool
     last_stepfail::Bool
     just_hit_tstop::Bool
-    event_last_time::Bool
+    event_last_time::Int
     accept_step::Bool
     isout::Bool
     reeval_fsal::Bool
