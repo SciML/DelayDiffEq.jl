@@ -11,6 +11,7 @@
             Kvaerno5(), KenCarp5()]
 
     @testset for alg in algs
+        @show alg
         stepsalg = MethodOfSteps(alg)
         solve(prob_inplace, stepsalg)
         solve(prob_notinplace, stepsalg)

@@ -8,6 +8,7 @@
             Ros4LStab(), Rodas4(), Rodas42(), Rodas4P(), Rodas5()]
 
     @testset for alg in algs
+        @show alg
         stepsalg = MethodOfSteps(alg)
         solve(prob_inplace, stepsalg)
         solve(prob_notinplace, stepsalg)
