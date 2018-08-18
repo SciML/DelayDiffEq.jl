@@ -120,3 +120,15 @@ assign_expr(::Val{name}, ::Type{<:NLSolversBase.OnceDifferentiable},
 assign_expr(::Val{name}, ::Type{<:NLSolversBase.OnceDifferentiable},
             ::Type{<:OrdinaryDiffEq.OrdinaryDiffEqConstantCache}) where name =
                 :($name = alg.nlsolve(Val{:init},rhs,uhold))
+
+# create nlsolve
+function assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.AbstractNLsolveSolver}, ::Type) where name
+    @gensym nlcache
+    quote
+        $nlcache = cache.nlsolve.cache
+        $name = typeof(cache.nlsolve)(OrdinaryDiffEq.NLSolverCache($nlcache.κ,
+        $nlcache.tol, $nlcache.min_iter, $nlcache.max_iter,$nlcache.nl_iters,
+        $nlcache.new_W, $nlcache.z, $nlcache.W, $nlcache.γ, $nlcache.c, $nlcache.ηold,
+        $nlcache.z₊, $nlcache.dz, $nlcache.tmp, $nlcache.b, $nlcache.k))
+    end
+end
