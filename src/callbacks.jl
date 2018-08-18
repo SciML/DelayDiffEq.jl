@@ -65,14 +65,14 @@ tolerance `reltol`.
 function DiscontinuityCallback(lags, discontinuities::Vector{<:Discontinuity};
                                interp_points::Int=10, abstol=1e-12, reltol=0)
     DiscontinuityCallback(lags, discontinuities, interp_points, abstol,
-                          reltol, initialize!)
+                          reltol, initialize!, nothing)
 end
 
 # do not initialize discontinuity callback
 initialize!(c::DiscontinuityCallback, u, t, integrator::DEIntegrator) = (integrator.u_modified=false)
 
 # find time of first discontinuity in the current time interval (if existent)
-function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCallback)
+function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCallback, counter)
     # initialize time and order of first discontinuity in the current time interval
     tmin = zero(integrator.t)
     order = 0
@@ -162,7 +162,11 @@ function find_discontinuity_time(integrator::DDEIntegrator, callback::Discontinu
             bottom_θ = typeof(integrator.t)(0)
         end
 
-        Θ = prevfloat(find_zero(f,(bottom_θ,top_Θ),FalsePosition(),abstol = callback.abstol/10))
+        if f(top_Θ) == 0
+          Θ = top_Θ
+        else
+          Θ = prevfloat(find_zero(f,(bottom_θ,top_Θ),Roots.AlefeldPotraShi(),atol = callback.abstol/100))
+        end
         #Θ = prevfloat(...)
         # prevfloat guerentees that the new time is either 1 floating point
         # numbers just before the event or directly at zero, but not after.

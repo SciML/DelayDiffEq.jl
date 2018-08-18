@@ -37,7 +37,7 @@
                                                       integrator)
 
         # test evaluation of history function
-        @testset "evaluation (idxs=$idxs)" for idxs in (nothing, [2])
+        @testset "evaluation" for idxs in (nothing, [2]) # (idxs=$idxs)
             # expected value
             trueval = h_notinplace(nothing, -1; idxs = idxs)
 
@@ -55,7 +55,7 @@
         end
 
         # test constant extrapolation
-        @testset "constant extrapolation (deriv=$deriv, idxs=$idxs)" for
+        @testset "constant extrapolation" for #  (deriv=$deriv, idxs=$idxs)
             deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
             # expected value
             trueval = deriv == Val{0} ?
@@ -88,7 +88,7 @@
         end
 
         # test integrator interpolation
-        @testset "integrator interpolation (deriv=$deriv, idxs=$idxs)" for
+        @testset "integrator interpolation" for # (deriv=$deriv, idxs=$idxs)
             deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
             # expected value
             trueval = OrdinaryDiffEq.current_interpolant(0.01, integrator, idxs, deriv)
@@ -113,7 +113,7 @@
         end
 
         # test solution interpolation
-        @testset "solution interpolation (deriv=$deriv, idxs=$idxs)" for
+        @testset "solution interpolation" for # (deriv=$deriv, idxs=$idxs)
             deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
             # expected value
             trueval = integrator.sol.interp(0.01, idxs, deriv, integrator.p)
@@ -129,7 +129,7 @@
         end
 
         # test integrator extrapolation
-        @testset "integrator extrapolation (deriv=$deriv, idxs=$idxs)" for
+        @testset "integrator extrapolation" for # (deriv=$deriv, idxs=$idxs)
             deriv in (Val{0}, Val{1}), idxs in (0, [2])
             idxs == 0 && (idxs = nothing)
             # expected value
