@@ -37,19 +37,6 @@ function fsal_typeof(integrator::ODEIntegrator{<:OrdinaryDiffEq.OrdinaryDiffEqAl
 end
 
 """
-    build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt)
-
-Create cache for algorithm `alg` from existing cache `cache` with updated `u`, `uprev`,
-`uprev2`, `f`, `t`, and `dt`.
-"""
-@generated function build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt,p)
-    assignments = [assign_expr(Val{name}(), fieldtype(cache, name), cache)
-                   for name in fieldnames(cache) if name ∉ [:u, :uprev, :uprev2, :t, :dt]]
-
-    :($(assignments...); $(DiffEqBase.parameterless_type(cache))($(fieldnames(cache)...)))
-end
-
-"""
     assign_expr(::Val{name}, ::Type{T}, ::Type{cache})
 
 Create expression that extracts field `name` of type `T` from cache of type `cache`
@@ -121,14 +108,15 @@ assign_expr(::Val{name}, ::Type{<:NLSolversBase.OnceDifferentiable},
             ::Type{<:OrdinaryDiffEq.OrdinaryDiffEqConstantCache}) where name =
                 :($name = alg.nlsolve(Val{:init},rhs,uhold))
 
-# create nlsolve
-function assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.AbstractNLsolveSolver}, ::Type) where name
-    @gensym nlcache
-    quote
-        $nlcache = cache.nlsolve.cache
-        $name = typeof(cache.nlsolve)(OrdinaryDiffEq.NLSolverCache($nlcache.κ,
-        $nlcache.tol, $nlcache.min_iter, $nlcache.max_iter,$nlcache.nl_iters,
-        $nlcache.new_W, $nlcache.z, $nlcache.W, $nlcache.γ, $nlcache.c, $nlcache.ηold,
-        $nlcache.z₊, $nlcache.dz, $nlcache.tmp, $nlcache.b, $nlcache.k))
-    end
+"""
+    build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt)
+
+Create cache for algorithm `alg` from existing cache `cache` with updated `u`, `uprev`,
+`uprev2`, `f`, `t`, and `dt`.
+"""
+@generated function build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt,p)
+    assignments = [assign_expr(Val{name}(), fieldtype(cache, name), cache)
+                   for name in fieldnames(cache) if name ∉ [:u, :uprev, :uprev2, :t, :dt]]
+
+    :($(assignments...); $(DiffEqBase.parameterless_type(cache))($(fieldnames(cache)...)))
 end
