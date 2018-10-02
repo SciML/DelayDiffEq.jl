@@ -106,7 +106,7 @@ function DiffEqBase.__init(
     if typeof(alg.fixedpoint_reltol) <: Nothing
         fixedpoint_reltol_internal = convert.(eltype(uType), integrator.opts.reltol)
     else
-        fixedpoint_reltol_internal = convert.(eltype(uType), alg.fixedpoint_reltol)
+        fixedpoint_reltol_internal = convert.(eltype(uType), oneunit.(integrator.u).*alg.fixedpoint_reltol)
     end
 
     # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
