@@ -45,6 +45,7 @@ struct DiscontinuityCallback{F,D<:Discontinuity,A,R,I} <: AbstractContinuousCall
     abstol::A
     reltol::R
     initialize::I
+    idxs::Nothing
 end
 
 """

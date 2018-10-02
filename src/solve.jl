@@ -104,9 +104,9 @@ function DiffEqBase.__init(
     # without units
     # in particular important for calculations with units
     if typeof(alg.fixedpoint_reltol) <: Nothing
-        fixedpoint_reltol_internal = convert.(uEltypeNoUnits, integrator.opts.reltol)
+        fixedpoint_reltol_internal = convert.(eltype(uType), integrator.opts.reltol)
     else
-        fixedpoint_reltol_internal = convert.(uEltypeNoUnits, alg.fixedpoint_reltol)
+        fixedpoint_reltol_internal = convert.(eltype(uType), alg.fixedpoint_reltol)
     end
 
     # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
@@ -173,7 +173,7 @@ function DiffEqBase.__init(
                                                        discontinuity_interp_points,
                                                        discontinuity_abstol,
                                                        discontinuity_reltol,
-                                                       initialize!)
+                                                       initialize!, nothing)
         callbacks = CallbackSet(callback, prob.callback, discontinuity_callback)
     else
         callbacks = CallbackSet(callback, prob.callback)
