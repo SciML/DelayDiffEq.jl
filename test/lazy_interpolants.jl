@@ -14,7 +14,7 @@
 
             sol2 = solve(prob_notinplace, MethodOfSteps(Vern6()))
 
-            @test_broken sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
         end
 
         # Vern7
@@ -53,7 +53,7 @@
 
             sol2 = solve(prob_notinplace, MethodOfSteps(Vern9()))
 
-            @test_broken sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
         end
     end
 
