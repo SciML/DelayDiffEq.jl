@@ -435,3 +435,5 @@ end
 @inline function DiffEqBase.get_du!(out,integrator::DDEIntegrator)
   out .= integrator.fsallast
 end
+
+DiffEqBase.isnative(integrator::DDEIntegrator) = true
