@@ -17,12 +17,12 @@ import DiffEqBase: solve!, resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!,
                    has_reinit, reinit!, auto_dt_reset!, AbstractContinuousCallback,
                    AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem,
-                   reeval_internals_due_to_modification!, find_callback_time, apply_callback!
+                   find_callback_time
 
 using OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
     TrapezoidCache
 
-using DiffEqBase: check_error!
+using DiffEqBase: check_error!, apply_callback!, addsteps!
 
 include("discontinuity_type.jl")
 include("integrator_type.jl")
