@@ -150,13 +150,13 @@ Calculate next step of `integrator`.
             # has to be done before updates to ODE integrator, otherwise history function
             # is incorrect
             if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
-                OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+                OrdinaryDiffEq.addsteps!(integrator.k, integrator.t, integrator.uprev,
                                              integrator.u, integrator.dt, integrator.f,
                                              integrator.p,
                                              integrator.cache.caches[integrator.cache.current],
                                              false, true, true)
             else
-                OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+                OrdinaryDiffEq.addsteps!(integrator.k, integrator.t, integrator.uprev,
                                              integrator.u, integrator.dt, integrator.f,
                                              integrator.p,
                                              integrator.cache, false, true,
@@ -205,7 +205,7 @@ function initialize!(integrator::DDEIntegrator)
     # is always maximal when calculating the next step
     # exact values do not matter since in the initial time step always a constant
     # extrapolation is used
-    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
+    OrdinaryDiffEq.addsteps!(integrator.integrator, integrator.f)
 end
 
 """
