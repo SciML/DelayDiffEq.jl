@@ -436,7 +436,6 @@ end
   out .= integrator.fsallast
 end
 
-DiffEqBase.isnative(integrator::DDEIntegrator) = true
 DiffEqBase.addsteps!(integrator::DDEIntegrator,args...) = OrdinaryDiffEq._ode_addsteps!(integrator,args...)
 DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
                                         t,modify_save_endpoint::Type{Val{T}}=Val{false}) where T =
