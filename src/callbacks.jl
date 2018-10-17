@@ -12,7 +12,7 @@ end
 
 Recalculate interpolation data and update ODE integrator after changes by callbacks.
 """
-function reeval_internals_due_to_modification!(integrator::DDEIntegrator,
+function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegrator,
             x::Type{Val{not_initialization}} = Val{true}) where not_initialization
 
     # update interpolation data of DDE integrator using old interpolation data
