@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Parameterized functions" begin
     # Test parameterized delayed logistic equation
 

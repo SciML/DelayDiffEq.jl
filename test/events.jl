@@ -1,3 +1,4 @@
+include("common.jl")
 using DiffEqDevTools, DiffEqCallbacks, Test
 
 @testset "Events" begin

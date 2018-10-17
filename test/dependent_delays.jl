@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Dependent delays" begin
     alg = MethodOfSteps(BS3())
     dde_int = init(prob_dde_1delay, alg)

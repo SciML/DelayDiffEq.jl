@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Composite solutions" begin
     T = OrdinaryDiffEq.ODECompositeSolution
 

@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "save_idxs" begin
     # out-of-place problem
     function f_notinplace(u,h,p,t)

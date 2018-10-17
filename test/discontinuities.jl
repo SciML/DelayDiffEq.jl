@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Discontinuity" begin
     # total order
     @testset "total order" begin

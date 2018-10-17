@@ -1,3 +1,4 @@
+include("common.jl")
 using RecursiveArrayTools
 
 @testset "Reinitialization" begin
