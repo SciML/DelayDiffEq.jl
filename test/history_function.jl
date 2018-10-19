@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "HistoryFunction" begin
     # check constant extrapolation with problem with vanishing delays at t = 0
     @testset "vanishing delays" begin

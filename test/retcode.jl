@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Return code" begin
     @testset for composite in (true, false)
         alg = MethodOfSteps(composite ? AutoTsit5(Rosenbrock23()) : Tsit5();

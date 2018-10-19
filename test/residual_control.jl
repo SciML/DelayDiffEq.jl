@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Residual control" begin
     alg = MethodOfSteps(RK4(); constrained=false)
 

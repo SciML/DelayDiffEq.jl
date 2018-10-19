@@ -150,13 +150,13 @@ Calculate next step of `integrator`.
             # has to be done before updates to ODE integrator, otherwise history function
             # is incorrect
             if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
-                OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+                addsteps!(integrator.k, integrator.t, integrator.uprev,
                                              integrator.u, integrator.dt, integrator.f,
                                              integrator.p,
                                              integrator.cache.caches[integrator.cache.current],
                                              false, true, true)
             else
-                OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+                addsteps!(integrator.k, integrator.t, integrator.uprev,
                                              integrator.u, integrator.dt, integrator.f,
                                              integrator.p,
                                              integrator.cache, false, true,
@@ -205,7 +205,7 @@ function initialize!(integrator::DDEIntegrator)
     # is always maximal when calculating the next step
     # exact values do not matter since in the initial time step always a constant
     # extrapolation is used
-    OrdinaryDiffEq.ode_addsteps!(integrator.integrator, integrator.f)
+    addsteps!(integrator.integrator, integrator.f)
 end
 
 """
@@ -233,7 +233,7 @@ Set the time step that `integrator` will take after the current step to `dt`.
 """
 @inline set_proposed_dt!(integrator::DDEIntegrator, dt) = (integrator.dtpropose = dt)
 
-@inline DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) = (integrator.cache.tmp,)
+@inline DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) = DiffEqBase.get_tmp_cache(integrator,integrator.alg,integrator.cache)
 user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
@@ -435,3 +435,8 @@ end
 @inline function DiffEqBase.get_du!(out,integrator::DDEIntegrator)
   out .= integrator.fsallast
 end
+
+DiffEqBase.addsteps!(integrator::DDEIntegrator,args...) = OrdinaryDiffEq._ode_addsteps!(integrator,args...)
+DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
+                                        t,modify_save_endpoint::Type{Val{T}}=Val{false}) where T =
+                                          OrdinaryDiffEq._change_t_via_interpolation!(integrator,t,modify_save_endpoint)

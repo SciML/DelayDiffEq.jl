@@ -12,14 +12,14 @@ end
 
 Recalculate interpolation data and update ODE integrator after changes by callbacks.
 """
-function reeval_internals_due_to_modification!(integrator::DDEIntegrator,
+function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegrator,
             x::Type{Val{not_initialization}} = Val{true}) where not_initialization
 
     # update interpolation data of DDE integrator using old interpolation data
     # of ODE integrator in evaluation of history function that was calculated in
     # `perform_step!`
     if not_initialization
-        OrdinaryDiffEq.ode_addsteps!(integrator, integrator.f, true, true, true)
+        addsteps!(integrator, integrator.f, true, true, true)
         # copy interpolation data to ODE integrator
         recursivecopy!(integrator.integrator.k, integrator.k)
     end
@@ -81,7 +81,7 @@ function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCa
 
     # update interpolation data and calculate interpolation points
     if callback.interp_points != 0
-      ode_addsteps!(integrator)
+      addsteps!(integrator)
     end
     Θs = range(0, stop=one(integrator.t), length=callback.interp_points)
 
@@ -223,7 +223,7 @@ Handle discontinuity of order `order` at time `integrator.tprev + cb_time` in th
 time interval of `integrator` that was found by `callback`. Cause the current step to fail,
 and add the found discontinuity to both the heap of discontinuities and of time stops.
 """
-function apply_callback!(integrator::DDEIntegrator, callback::DiscontinuityCallback,
+function DiffEqBase.apply_callback!(integrator::DDEIntegrator, callback::DiscontinuityCallback,
                          cb_time, order)
     # do not accept current step
     integrator.t = integrator.tprev

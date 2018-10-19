@@ -245,13 +245,13 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
     # has to be done before updates to ODE integrator, otherwise history function
     # is incorrect
     if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
-        OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+        addsteps!(integrator.k, integrator.t, integrator.uprev,
                                      integrator.u, integrator.dt, integrator.f,
                                      integrator.p,
                                      integrator.cache.caches[integrator.cache.current],
                                      false, true, true)
     else
-        OrdinaryDiffEq.ode_addsteps!(integrator.k, integrator.t, integrator.uprev,
+        addsteps!(integrator.k, integrator.t, integrator.uprev,
                                      integrator.u, integrator.dt, integrator.f,
                                      integrator.p,
                                      integrator.cache, false, true,

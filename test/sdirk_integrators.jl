@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "SDIRK integrators" begin
     prob_inplace = prob_dde_1delay
     prob_notinplace = prob_dde_1delay_scalar_notinplace

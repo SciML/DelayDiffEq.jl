@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Unconstrained time step" begin
     # Check that numerical solutions approximate analytical solutions,
     # independent of problem structure

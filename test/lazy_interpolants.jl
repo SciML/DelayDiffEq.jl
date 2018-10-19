@@ -1,3 +1,4 @@
+include("common.jl")
 @testset "Lazy interpolants" begin
     ## simple problems
     @testset "simple problems" begin
