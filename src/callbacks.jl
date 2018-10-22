@@ -73,7 +73,7 @@ end
 initialize!(c::DiscontinuityCallback, u, t, integrator::DEIntegrator) = (integrator.u_modified=false)
 
 # find time of first discontinuity in the current time interval (if existent)
-function find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCallback, counter)
+function DiffEqBase.find_callback_time(integrator::DDEIntegrator, callback::DiscontinuityCallback, counter)
     # initialize time and order of first discontinuity in the current time interval
     tmin = zero(integrator.t)
     order = 0
