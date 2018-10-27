@@ -1,8 +1,3 @@
-"""
-    savevalues!(integrator::DDEIntegrator, force_save=false)
-
-Update solution of `integrator`, if necessary or forced by `force_save`.
-"""
 function savevalues!(integrator::DDEIntegrator, force_save=false)
     # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
     # integrator.EEst has unitless type of integrator.t
@@ -27,7 +22,7 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     end
 
     # update solution
-    savevalues!(integrator.integrator, force_save, false) # reduce_size = false
+    saved_tuple = savevalues!(integrator.integrator, force_save, false) # reduce_size = false
 
     # update prev2_idx to indices of tprev and u(tprev) in solution
     # allows reset of ODE integrator (and hence history function) to the last
@@ -58,6 +53,8 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     # used for inter- and extrapolation of future values and saving of the solution but does
     # not affect whether time steps are accepted
     integrator.integrator.accept_step = true
+
+    return saved_tuple
 end
 
 """
