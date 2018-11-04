@@ -16,7 +16,9 @@ struct HistoryFunction{F1,F2,F3<:ODEIntegrator} <: Function
 end
 
 function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
-    @inbounds if t < f.sol.t[1]
+    integrator = f.integrator
+
+    @inbounds if integrator.tdir * t < integrator.tdir * f.sol.t[1]
         if deriv == 0 && typeof(idxs) <: Nothing
             return f.h(p, t)
         elseif typeof(idxs) <: Nothing
@@ -26,11 +28,9 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
         else
             return f.h(p, t, Val{deriv}; idxs = idxs)
         end
-    elseif t <= f.sol.t[end] # Put equals back
+    elseif integrator.tdir * t <= integrator.tdir * f.sol.t[end] # Put equals back
         return f.sol.interp(t, idxs, Val{deriv}, f.integrator.p)
     end
-
-    integrator = f.integrator
 
     # set boolean that indicates that history function was evaluated at time point past the
     # final time point of the current solution
@@ -48,7 +48,9 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
 end
 
 function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
-    @inbounds if t < f.sol.t[1]
+    integrator = f.integrator
+
+    @inbounds if integrator.tdir * t < integrator.tdir * f.sol.t[1]
         if deriv == 0 && typeof(idxs) <: Nothing
             return f.h(val, p, t)
         elseif typeof(idxs) <: Nothing
@@ -58,11 +60,9 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
         else
             return f.h(val, p, t, Val{deriv}; idxs = idxs)
         end
-    elseif t <= f.sol.t[end] # Put equals back
+    elseif integrator.tdir * t <= integrator.tdir * f.sol.t[end] # Put equals back
         return f.sol.interp(val, t, idxs, Val{deriv}, f.integrator.p)
     end
-
-    integrator = f.integrator
 
     # set boolean that indicates that history function was evaluated at time point past the
     # final time point of the current solution
