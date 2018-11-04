@@ -265,22 +265,6 @@ function DiffEqBase.__init(
                                 integrator.isout, integrator.reeval_fsal,
                                 integrator.u_modified, opts, integrator)
 
-    # if time step is not set and DDE integrator has adaptive step size,
-    # automatically determine initial time step
-    if iszero(dde_int.dt) && dde_int.opts.adaptive
-        auto_dt_reset!(dde_int)
-        if sign(dde_int.dt)!=dde_int.tdir && dde_int.dt!=tType(0) && !isnan(dde_int.dt)
-            error("Automatic dt setting has the wrong sign. Exiting. Please report this error.")
-        end
-        if isnan(dde_int.dt)
-            if verbose
-                @warn("Automatic dt set the starting dt as NaN, causing instability.")
-            end
-        end
-    elseif dde_int.opts.adaptive && dde_int.dt > zero(dde_int.dt) && dde_int.tdir < 0
-        dde_int.dt *= dde_int.tdir # Allow positive dt, but auto-convert
-    end
-
     # initialize DDE integrator and callbacks
     if initialize_integrator
         initialize_callbacks!(dde_int, initialize_save)
@@ -288,6 +272,9 @@ function DiffEqBase.__init(
         typeof(alg.alg) <: OrdinaryDiffEq.CompositeAlgorithm &&
             copyat_or_push!(dde_int.sol.alg_choice, 1, dde_int.cache.current)
     end
+
+    # take care of time step dt = 0 and dt with incorrect sign
+    OrdinaryDiffEq.handle_dt!(dde_int)
 
     dde_int
 end
