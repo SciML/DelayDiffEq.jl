@@ -45,7 +45,7 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
         reduce_solution!(integrator,
                          # function values at later time points might be necessary for
                          # calculation of next step, thus keep those interpolation data
-                         integrator.t - maximum(constant_lags))
+                         integrator.t - integrator.tdir * maximum(abs, constant_lags))
     end
 
     # prevent reset of ODE integrator to cached values in the calculation of the next step
@@ -400,7 +400,7 @@ function auto_dt_reset!(dde_int::DDEIntegrator)
     # determine maximal time step
     constant_lags = dde_int.sol.prob.constant_lags
     dtmax = (constant_lags == nothing || isempty(constant_lags)) ? dde_int.opts.dtmax :
-        minimum(constant_lags)
+        dde_int.tdir * minimum(abs, constant_lags)
 
     # determine initial time step
     ode_prob = ODEProblem(dde_int.f, dde_int.sol.prob.u0, dde_int.sol.prob.tspan,

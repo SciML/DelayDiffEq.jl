@@ -38,6 +38,14 @@ function DiffEqBase.__init(
     integrator = init(ode_prob, alg.alg; initialize_integrator=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
 
+    # check that constant lags match the given time direction
+    if constant_lags != nothing
+        for lag in constant_lags
+            integrator.tdir * lag > zero(tType) ||
+                error("Constant lags and time direction do not match. Exiting.")
+        end
+    end
+
     # ensure that ODE integrator satisfies tprev + dt == t
     integrator.dt = zero(integrator.dt)
     integrator.dtcache = zero(integrator.dt)
@@ -261,6 +269,16 @@ function DiffEqBase.__init(
     # automatically determine initial time step
     if iszero(dde_int.dt) && dde_int.opts.adaptive
         auto_dt_reset!(dde_int)
+        if sign(dde_int.dt)!=dde_int.tdir && dde_int.dt!=tType(0) && !isnan(dde_int.dt)
+            error("Automatic dt setting has the wrong sign. Exiting. Please report this error.")
+        end
+        if isnan(dde_int.dt)
+            if verbose
+                @warn("Automatic dt set the starting dt as NaN, causing instability.")
+            end
+        end
+    elseif dde_int.opts.adaptive && dde_int.dt > zero(dde_int.dt) && dde_int.tdir < 0
+        dde_int.dt *= dde_int.tdir # Allow positive dt, but auto-convert
     end
 
     # initialize DDE integrator and callbacks
@@ -424,11 +442,11 @@ end
 function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan, initial_order, alg_maximum_order, constant_lags, tType)
     # add discontinuities propagated from initial discontinuity
     if initial_order ≤ alg_maximum_order && constant_lags != nothing && !isempty(constant_lags)
-        maxlag = tspan[2] - tspan[1]
+        maxlag = abs(tspan[end] - tspan[1])
         d_discontinuities_internal = unique(
             Discontinuity{tType}[d_discontinuities;
                                  (Discontinuity(tspan[1] + lag, initial_order + 1)
-                                  for lag in constant_lags if lag < maxlag)...])
+                                  for lag in constant_lags if abs(lag) < maxlag)...])
     else
         d_discontinuities_internal = unique(d_discontinuities)
     end

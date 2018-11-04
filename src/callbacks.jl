@@ -121,7 +121,7 @@ function DiffEqBase.find_callback_time(integrator::DDEIntegrator, callback::Disc
             t,contains_discontinuity = find_discontinuity_time(integrator, callback, prev_sign, next_sign, Θs, g)
 
             # update time and order of first discontinuity in the current time interval
-            if contains_discontinuity && (t < tmin || iszero(tmin))
+            if contains_discontinuity && (integrator.tdir * t < integrator.tdir * tmin || iszero(tmin))
                 tmin = t
                 order = d.order + 1
             end
