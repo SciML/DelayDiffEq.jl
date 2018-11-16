@@ -288,7 +288,9 @@ function solve!(integrator::DDEIntegrator)
 
             # abort integration following same criteria as for ODEs:
             # maxiters exceeded, dt <= dtmin, integration unstable
-            OrdinaryDiffEq.@ode_exit_conditions
+            if check_error!(integrator) != :Success
+              return integrator.sol
+            end
 
             # calculate next step
             perform_step!(integrator)
