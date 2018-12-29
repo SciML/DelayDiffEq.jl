@@ -238,7 +238,7 @@ function DiffEqBase.__init(
     # information, the new solution, the parameters of the ODE integrator, and
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
-    dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,typeof(p),
+    dde_int = DDEIntegrator{typeof(integrator.alg),iip,uType,tType,typeof(p),
                             typeof(integrator.eigen_est),
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
