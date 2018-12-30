@@ -58,7 +58,7 @@ mutable struct DDEIntegrator{alg, IIP, uType, tType,
     fsallast::FSALType
 
     # incomplete initialization without fsalfirst and fsallast
-    function DDEIntegrator{algType,uType,tType,P,eigenType,absType,relType,
+    function DDEIntegrator{alg, IIP, uType, tType, P,eigenType,absType,relType,
                            residType,tTypeNoUnits,
                            tdirType,ksEltype,SolType,F,CacheType,IType,
                            NType,O,tstopsType,FSALType,EventErrorType}(
