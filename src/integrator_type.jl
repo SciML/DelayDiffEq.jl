@@ -71,7 +71,7 @@ mutable struct DDEIntegrator{alg, IIP, uType, tType,
                                just_hit_tstop,event_last_time,last_event_error,
                                accept_step,isout,reeval_fsal,u_modified,opts,
                                integrator) where
-        {algType,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
+        {algType,IIP,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
         tdirType,ksEltype,
          SolType,F,CacheType,IType,NType,O,tstopsType,FSALType,EventErrorType}
 
