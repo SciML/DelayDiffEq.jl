@@ -349,7 +349,7 @@ function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
 
     # copy time points at which solution is saved if solution should be
     # reduced during integration
-    if integrator.saveat != nothing
+    if integrator.saveat !== nothing
         integrator.saveat = deepcopy(integrator.opts.saveat)
     end
 
@@ -399,7 +399,7 @@ Automatically determine initial time step of `dde_int`.
 function auto_dt_reset!(dde_int::DDEIntegrator)
     # determine maximal time step
     constant_lags = dde_int.sol.prob.constant_lags
-    dtmax = (constant_lags == nothing || isempty(constant_lags)) ? dde_int.opts.dtmax :
+    dtmax = (constant_lags === nothing || isempty(constant_lags)) ? dde_int.opts.dtmax :
         dde_int.tdir * minimum(abs, constant_lags)
 
     # determine initial time step

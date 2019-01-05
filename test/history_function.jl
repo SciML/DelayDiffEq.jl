@@ -60,8 +60,8 @@ include("common.jl")
             deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
             # expected value
             trueval = deriv == Val{0} ?
-                (idxs == nothing ? integrator.u : integrator.u[[2]]) :
-                (idxs == nothing ? zeros(2) : [0.0])
+                (idxs === nothing ? integrator.u : integrator.u[[2]]) :
+                (idxs === nothing ? zeros(2) : [0.0])
 
             # out-of-place
             integrator.isout = false

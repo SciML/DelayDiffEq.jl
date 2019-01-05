@@ -35,13 +35,13 @@ function constant_extrapolant!(val, t, integrator::DEIntegrator, idxs, deriv)
 end
 
 function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs, T::Type{Val{0}})
-    if val == nothing
-        if idxs == nothing
+    if val === nothing
+        if idxs === nothing
             return integrator.u
         else
             return integrator.u[idxs]
         end
-    elseif idxs == nothing
+    elseif idxs === nothing
         @. val = integrator.u
     else
         @views @. val = integrator.u[idxs]
@@ -49,13 +49,13 @@ function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs, T
 end
 
 function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs, T::Type{Val{1}})
-    if val == nothing
-        if idxs == nothing
+    if val === nothing
+        if idxs === nothing
             return zero(integrator.u)./oneunit(t)
         else
             return zero(integrator.u[idxs])./oneunit(t)
         end
-    elseif idxs == nothing
+    elseif idxs === nothing
         val .= zero(integrator.u)./oneunit(t)
     else
         @views val .= zero(integrator.u[idxs])./oneunit(t)

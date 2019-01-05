@@ -3,7 +3,7 @@ function DiffEqBase.__init(
               alg::algType,
               timeseries_init=uType[], ts_init=eltype(tupType)[], ks_init=[];
               d_discontinuities=Discontinuity{eltype(tupType)}[],
-              dtmax = (prob.constant_lags == nothing || isempty(prob.constant_lags)) ?
+              dtmax = (prob.constant_lags === nothing || isempty(prob.constant_lags)) ?
               prob.tspan[2]-prob.tspan[1] : eltype(tupType)(7*minimum(prob.constant_lags)),
               dt=zero(eltype(tupType)), saveat=eltype(tupType)[],
               tstops = eltype(tupType)[],
@@ -28,7 +28,7 @@ function DiffEqBase.__init(
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
-    if isconstrained(alg) && constant_lags != nothing && !isempty(constant_lags)
+    if isconstrained(alg) && constant_lags !== nothing && !isempty(constant_lags)
         dtmax = min(dtmax, constant_lags...)
     end
 
@@ -39,7 +39,7 @@ function DiffEqBase.__init(
                       dt=one(tType), dtmax=dtmax, kwargs...)
 
     # check that constant lags match the given time direction
-    if constant_lags != nothing
+    if constant_lags !== nothing
         for lag in constant_lags
             integrator.tdir * lag > zero(tType) ||
                 error("Constant lags and time direction do not match. Exiting.")
@@ -222,7 +222,7 @@ function DiffEqBase.__init(
     # selected time points saved, and all constant and no dependent lags are given
     # WARNING: can impact quality of solution if not all constant lags specified
     minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep &&
-        constant_lags != nothing && !isempty(constant_lags) &&
+        constant_lags !== nothing && !isempty(constant_lags) &&
         (typeof(dependent_lags) <: Nothing || isempty(dependent_lags))
 
     # need copy of heap of additional time points (nodes will be deleted!) in order to
@@ -361,7 +361,7 @@ function solve!(integrator::DDEIntegrator)
     end
 
     # calculate errors of solution
-    if sol.u_analytic != nothing
+    if sol.u_analytic !== nothing
         DiffEqBase.calculate_solution_errors!(sol; fill_uanalytic=false,
                                    timeseries_errors=integrator.opts.timeseries_errors,
                                    dense_errors=integrator.opts.dense_errors)
@@ -430,7 +430,7 @@ end
 
 function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan, initial_order, alg_maximum_order, constant_lags, tType)
     # add discontinuities propagated from initial discontinuity
-    if initial_order ≤ alg_maximum_order && constant_lags != nothing && !isempty(constant_lags)
+    if initial_order ≤ alg_maximum_order && constant_lags !== nothing && !isempty(constant_lags)
         maxlag = abs(tspan[end] - tspan[1])
         d_discontinuities_internal = unique(
             Discontinuity{tType}[d_discontinuities;

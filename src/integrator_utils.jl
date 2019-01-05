@@ -358,7 +358,7 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
     order > alg_maximum_order(integrator.alg) && !neutral && return nothing
 
     # discontinuities caused by constant lags
-    if constant_lags != nothing
+    if constant_lags !== nothing
         maxlag = abs(integrator.sol.prob.tspan[end] - t)
         for lag in constant_lags
             if abs(lag) < maxlag

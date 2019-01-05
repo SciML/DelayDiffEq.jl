@@ -20,7 +20,7 @@ include("common.jl")
                            save_start=save_start, minimal_solution=true)
 
         # solution of ODE integrator will be reduced
-        @test dde_int_min.saveat != nothing
+        @test dde_int_min.saveat !== nothing
 
         sol_min = solve!(dde_int_min)
 
@@ -41,7 +41,7 @@ include("common.jl")
                             save_start=save_start, minimal_solution=false)
 
         # solution of ODE integrator will not be reduced
-        @test dde_int_full.saveat == nothing
+        @test dde_int_full.saveat === nothing
 
         sol_full = solve!(dde_int_full)
 
@@ -56,7 +56,7 @@ include("common.jl")
                              save_start=save_start, dense=true)
 
         # solution of ODE integrator will not be reduced
-        @test dde_int_dense.saveat == nothing
+        @test dde_int_dense.saveat === nothing
 
         sol_dense = solve!(dde_int_dense)
 
@@ -81,14 +81,14 @@ include("common.jl")
                            save_start=save_start, minimal_solution=true)
 
         # solution of ODE integrator will not be reduced
-        @test dde_int_min.saveat == nothing
+        @test dde_int_min.saveat === nothing
 
         ## full ODE solution
         dde_int_full = init(prob, alg; saveat=[25.0, 50.0, 75.0], save_everystep=true,
                             save_start=save_start, minimal_solution=false)
 
         # solution of ODE integrator will not be reduced
-        @test dde_int_full.saveat == nothing
+        @test dde_int_full.saveat === nothing
 
         sol_full = solve!(dde_int_full)
 
@@ -108,7 +108,7 @@ include("common.jl")
                              dense=true)
 
         # solution of ODE integrator will not be reduced
-        @test dde_int_dense.saveat == nothing
+        @test dde_int_dense.saveat === nothing
 
         sol_dense = solve!(dde_int_dense)
 
