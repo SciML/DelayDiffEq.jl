@@ -96,7 +96,7 @@ function build_solution_array(integrator::DDEIntegrator)
     else
         # calculate number of additional time points of solution
         saveat_length = count(
-            x -> integrator.tdir * x ≤ integrator.tdir * integrator.sol.t[end],
+            x -> integrator.tdir * x < integrator.tdir * integrator.sol.t[end],
             integrator.opts.saveat.valtree)
 
         # create vectors of time points and corresponding values which form final solution
