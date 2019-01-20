@@ -92,12 +92,16 @@ function DiffEqBase.__init(
                             mass_matrix = prob.f.mass_matrix)
     end
 
-    # absolut tolerance for fixed-point iterations has to be of same type as elements of u
-    # in particular important for calculations with units
-    if typeof(alg.fixedpoint_abstol) <: Nothing
-        fixedpoint_abstol_internal = map(eltype(uType), integrator.opts.abstol)
+    # define absolute tolerance for fixed-point iterations
+    if alg.fixedpoint_abstol === nothing
+        abstol = integrator.opts.abstol
+        if typeof(abstol) <: Number
+            fixedpoint_abstol_internal = abstol
+        else
+            fixedpoint_abstol_internal = recursivecopy(abstol)
+        end
     else
-        fixedpoint_abstol_internal = map(eltype(uType), alg.fixedpoint_abstol)
+        fixedpoint_abstol_internal = real.(alg.fixedpoint_abstol)
     end
 
     # use norm of ODE integrator if no norm for fixed-point iterations is specified
@@ -105,18 +109,21 @@ function DiffEqBase.__init(
         fixedpoint_norm = integrator.opts.internalnorm
     end
 
-    # derive unitless types
-    uEltypeNoUnits = typeof(recursive_one(integrator.u))
-    tTypeNoUnits = typeof(recursive_one(prob.tspan[1]))
-
-    # relative tolerance for fixed-point iterations has to be of same type as elements of u
-    # without units
-    # in particular important for calculations with units
-    if typeof(alg.fixedpoint_reltol) <: Nothing
-        fixedpoint_reltol_internal = convert.(eltype(uType), integrator.opts.reltol)
+    # define relative tolerance for fixed-point iterations
+    if alg.fixedpoint_reltol === nothing
+        reltol = integrator.opts.reltol
+        if typeof(reltol) <: Number
+            fixedpoint_reltol_internal = reltol
+        else
+            fixedpoint_reltol_internal = recursivecopy(reltol)
+        end
     else
-        fixedpoint_reltol_internal = convert.(eltype(uType), oneunit.(integrator.u).*alg.fixedpoint_reltol)
+        fixedpoint_reltol_internal = real.(alg.fixedpoint_reltol)
     end
+
+    # derive unitless types
+    uEltypeNoUnits = recursive_unitless_eltype(prob.u0)
+    tTypeNoUnits = typeof(one(tType))
 
     # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
     # containers for residuals and to cache uprev with correct dimensions and types
