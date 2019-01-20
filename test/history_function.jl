@@ -9,10 +9,10 @@ include("common.jl")
 
     @testset "general" begin
         # naive history functions
-        h_notinplace(p, t; idxs=nothing) = typeof(idxs) <: Nothing ? [t, -t] : [t, -t][idxs]
+        h_notinplace(p, t; idxs=nothing) = idxs === nothing ? [t, -t] : [t, -t][idxs]
 
         function h_inplace(val, p, t; idxs=nothing)
-            if typeof(idxs) <: Nothing
+            if idxs === nothing
                 val[1] = t
                 val[2] = -t
             else

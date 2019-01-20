@@ -19,9 +19,9 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
     integrator = f.integrator
 
     @inbounds if integrator.tdir * t < integrator.tdir * f.sol.t[1]
-        if deriv == 0 && typeof(idxs) <: Nothing
+        if deriv == 0 && idxs === nothing
             return f.h(p, t)
-        elseif typeof(idxs) <: Nothing
+        elseif idxs === nothing
             return f.h(p, t, Val{deriv})
         elseif deriv == 0
             return f.h(p, t; idxs = idxs)
@@ -51,9 +51,9 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
     integrator = f.integrator
 
     @inbounds if integrator.tdir * t < integrator.tdir * f.sol.t[1]
-        if deriv == 0 && typeof(idxs) <: Nothing
+        if deriv == 0 && idxs === nothing
             return f.h(val, p, t)
-        elseif typeof(idxs) <: Nothing
+        elseif idxs === nothing
             return f.h(val, p, t, Val{deriv})
         elseif deriv == 0
             return f.h(val, p, t; idxs = idxs)

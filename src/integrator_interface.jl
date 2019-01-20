@@ -37,7 +37,7 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     integrator.integrator.dtcache = integrator.integrator.dt
 
     # reduce ODE solution
-    if !(typeof(integrator.saveat) <: Nothing)
+    if integrator.saveat !== nothing
         # obtain constant lags
         constant_lags = integrator.sol.prob.constant_lags
 
@@ -67,8 +67,7 @@ function postamble!(integrator::DDEIntegrator)
     postamble!(integrator.integrator)
 
     # reduce solution if possible
-    !(typeof(integrator.saveat) <: Nothing) && reduce_solution!(integrator,
-                                                             integrator.sol.t[end])
+    integrator.saveat !== nothing && reduce_solution!(integrator, integrator.sol.t[end])
 end
 
 """
