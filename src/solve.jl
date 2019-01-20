@@ -94,7 +94,12 @@ function DiffEqBase.__init(
 
     # define absolute tolerance for fixed-point iterations
     if alg.fixedpoint_abstol === nothing
-        fixedpoint_abstol_internal = integrator.opts.abstol
+        abstol = integrator.opts.abstol
+        if typeof(abstol) <: Number
+            fixedpoint_abstol_internal = abstol
+        else
+            fixedpoint_abstol_internal = recursivecopy(abstol)
+        end
     else
         fixedpoint_abstol_internal = real.(alg.fixedpoint_abstol)
     end
@@ -106,7 +111,12 @@ function DiffEqBase.__init(
 
     # define relative tolerance for fixed-point iterations
     if alg.fixedpoint_reltol === nothing
-        fixedpoint_reltol_internal = integrator.opts.reltol
+        reltol = integrator.opts.reltol
+        if typeof(reltol) <: Number
+            fixedpoint_reltol_internal = reltol
+        else
+            fixedpoint_reltol_internal = recursivecopy(reltol)
+        end
     else
         fixedpoint_reltol_internal = real.(alg.fixedpoint_reltol)
     end
