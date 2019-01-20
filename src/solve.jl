@@ -92,7 +92,7 @@ function DiffEqBase.__init(
                             mass_matrix = prob.f.mass_matrix)
     end
 
-    # define absolut tolerance for fixed-point iterations
+    # define absolute tolerance for fixed-point iterations
     if alg.fixedpoint_abstol === nothing
         fixedpoint_abstol_internal = integrator.opts.abstol
     else
