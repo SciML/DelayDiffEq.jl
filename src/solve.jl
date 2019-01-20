@@ -101,7 +101,7 @@ function DiffEqBase.__init(
     end
 
     # use norm of ODE integrator if no norm for fixed-point iterations is specified
-    if typeof(alg.fixedpoint_norm) <: Nothing
+    if alg.fixedpoint_norm === nothing
         fixedpoint_norm = integrator.opts.internalnorm
     end
 
@@ -143,7 +143,7 @@ function DiffEqBase.__init(
     end
 
     # check if all indices should be returned
-    if !(typeof(save_idxs) <: Nothing) && collect(save_idxs) == collect(1:length(integrator.u))
+    if save_idxs !== nothing && collect(save_idxs) == collect(1:length(integrator.u))
         save_idxs = nothing # prevents indexing of ODE solution and saves memory
     end
 
@@ -176,7 +176,7 @@ function DiffEqBase.__init(
     end
 
     # create additional callback to track dependent delays
-    if !(typeof(dependent_lags) <: Nothing) && !isempty(dependent_lags)
+    if dependent_lags !== nothing && !isempty(dependent_lags)
         discontinuity_callback = DiscontinuityCallback(dependent_lags,
                                                        tracked_discontinuities,
                                                        discontinuity_interp_points,
@@ -223,7 +223,7 @@ function DiffEqBase.__init(
     # WARNING: can impact quality of solution if not all constant lags specified
     minimal_solution = minimal_solution && !opts.dense && !opts.save_everystep &&
         constant_lags !== nothing && !isempty(constant_lags) &&
-        (typeof(dependent_lags) <: Nothing || isempty(dependent_lags))
+        (dependent_lags === nothing || isempty(dependent_lags))
 
     # need copy of heap of additional time points (nodes will be deleted!) in order to
     # remove unneeded time points of ODE solution as soon as possible and keep track
@@ -321,7 +321,7 @@ function solve!(integrator::DDEIntegrator)
 
     # calculate analytical solutions to problem if existent
     if DiffEqBase.has_analytic(prob.f)
-        if typeof(integrator.opts.save_idxs) <: Nothing
+        if integrator.opts.save_idxs === nothing
             u_analytic = [prob.f(Val{:analytic}, integrator.sol[1], integrator.p, t) for t in sol_array.t]
         else
             u_analytic = [@view(prob.f(
