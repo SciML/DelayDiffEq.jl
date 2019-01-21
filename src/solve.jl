@@ -94,12 +94,7 @@ function DiffEqBase.__init(
 
     # define absolute tolerance for fixed-point iterations
     if alg.fixedpoint_abstol === nothing
-        abstol = integrator.opts.abstol
-        if typeof(abstol) <: Number
-            fixedpoint_abstol_internal = abstol
-        else
-            fixedpoint_abstol_internal = recursivecopy(abstol)
-        end
+        fixedpoint_abstol_internal = recursivecopy(integrator.opts.abstol)
     else
         fixedpoint_abstol_internal = real.(alg.fixedpoint_abstol)
     end
@@ -111,30 +106,21 @@ function DiffEqBase.__init(
 
     # define relative tolerance for fixed-point iterations
     if alg.fixedpoint_reltol === nothing
-        reltol = integrator.opts.reltol
-        if typeof(reltol) <: Number
-            fixedpoint_reltol_internal = reltol
-        else
-            fixedpoint_reltol_internal = recursivecopy(reltol)
-        end
+        fixedpoint_reltol_internal = recursivecopy(integrator.opts.reltol)
     else
         fixedpoint_reltol_internal = real.(alg.fixedpoint_reltol)
     end
 
-    # derive unitless types
-    uEltypeNoUnits = recursive_unitless_eltype(prob.u0)
-    tTypeNoUnits = typeof(one(tType))
-
     # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
-    # containers for residuals and to cache uprev with correct dimensions and types
-    # in particular for calculations with units residuals have to be unitless
+    # to cache uprev with correct dimensions and types
+    u = recursivecopy(integrator.u)
+    uprev = recursivecopy(integrator.uprev)
+
+    # create container for residuals (has to be unitless)
+    uEltypeNoUnits = recursive_unitless_eltype(u)
     if typeof(integrator.u) <: AbstractArray
-        u = recursivecopy(integrator.u)
-        uprev = recursivecopy(integrator.uprev)
         resid = similar(integrator.u, uEltypeNoUnits)
     else
-        u = deepcopy(integrator.u)
-        uprev = deepcopy(integrator.uprev)
         resid = one(uEltypeNoUnits)
     end
 
@@ -235,16 +221,13 @@ function DiffEqBase.__init(
     # need copy of heap of additional time points (nodes will be deleted!) in order to
     # remove unneeded time points of ODE solution as soon as possible and keep track
     # of passed time points
-    if minimal_solution
-        saveat_copy = deepcopy(opts.saveat)
-    else
-        saveat_copy = nothing
-    end
+    saveat_copy = minimal_solution ? deepcopy(opts.saveat) : nothing
 
     # create DDE integrator combining the new defined problem function with history
     # information, the new solution, the parameters of the ODE integrator, and
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
+    tTypeNoUnits = typeof(one(tType))
     dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,typeof(p),
                             typeof(integrator.eigen_est),
                             typeof(fixedpoint_abstol_internal),
