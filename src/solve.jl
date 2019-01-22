@@ -128,11 +128,7 @@ function DiffEqBase.__init(
     if integrator.uprev === integrator.uprev2
         uprev2 = uprev
     else
-        if uType <: Array
-            uprev2 = copy(uprev)
-        else
-            uprev2 = deepcopy(uprev)
-        end
+        uprev2 = recursivecopy(uprev)
     end
 
     # check if all indices should be returned
