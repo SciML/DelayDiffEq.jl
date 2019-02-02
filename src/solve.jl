@@ -224,7 +224,7 @@ function DiffEqBase.__init(
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
     tTypeNoUnits = typeof(one(tType))
-    dde_int = DDEIntegrator{typeof(integrator.alg),uType,tType,typeof(p),
+    dde_int = DDEIntegrator{typeof(integrator.alg),isinplace(prob),uType,tType,typeof(p),
                             typeof(integrator.eigen_est),
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
