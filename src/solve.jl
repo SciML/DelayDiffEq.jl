@@ -180,7 +180,7 @@ function DiffEqBase.__init(
     # separate options of integrator and ODE integrator since ODE integrator always saves
     # every step and every index (necessary for history function)
     opts = OrdinaryDiffEq.DEOptions(integrator.opts.maxiters,
-                                    integrator.opts.timeseries_steps, save_everystep,
+                                    save_everystep,
                                     integrator.opts.adaptive, integrator.opts.abstol,
                                     integrator.opts.reltol, integrator.opts.gamma,
                                     integrator.opts.qmax, integrator.opts.qmin,
