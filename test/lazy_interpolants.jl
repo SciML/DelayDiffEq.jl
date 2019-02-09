@@ -15,7 +15,8 @@ include("common.jl")
 
             sol2 = solve(prob_notinplace, MethodOfSteps(Vern6()))
 
-            @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            # fails on Haswell CPUs: https://github.com/JuliaDiffEq/DelayDiffEq.jl/issues/97
+            Sys.CPU_NAME == "haswell" || @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
         end
 
         # Vern7
@@ -54,7 +55,8 @@ include("common.jl")
 
             sol2 = solve(prob_notinplace, MethodOfSteps(Vern9()))
 
-            @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            # fails on Haswell CPUs: https://github.com/JuliaDiffEq/DelayDiffEq.jl/issues/97
+            Sys.CPU_NAME == "haswell" || @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
         end
     end
 
