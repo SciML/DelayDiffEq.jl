@@ -4,6 +4,7 @@ include("common.jl")
     @testset "simple problems" begin
         prob_inplace = prob_dde_1delay
         prob_notinplace = prob_dde_1delay_scalar_notinplace
+        ts = 0:0.1:10
 
         # Vern6
         @testset "Vern6" begin
@@ -15,7 +16,9 @@ include("common.jl")
 
             sol2 = solve(prob_notinplace, MethodOfSteps(Vern6()))
 
-            @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            # fails due to floating point issues on Haswell CPUs: https://github.com/JuliaDiffEq/DelayDiffEq.jl/issues/97
+            # @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            @test sol(ts, idxs=1) ≈ sol2(ts) atol = 1e-8
         end
 
         # Vern7
@@ -54,7 +57,9 @@ include("common.jl")
 
             sol2 = solve(prob_notinplace, MethodOfSteps(Vern9()))
 
-            @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            # fails due to floating point issues on Haswell CPUs: https://github.com/JuliaDiffEq/DelayDiffEq.jl/issues/97
+            # @test sol.t ≈ sol2.t && sol[1, :] ≈ sol2.u
+            @test sol(ts, idxs=1) ≈ sol2(ts) atol = 1e-12
         end
     end
 
