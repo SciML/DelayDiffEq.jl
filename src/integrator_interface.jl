@@ -140,7 +140,7 @@ Calculate next step of `integrator`.
             # this prevents acceptance of steps with poor performance in fixed-point
             # iteration
             integrator.EEst = max(integrator.EEst,
-                                  integrator.fixedpoint_norm(integrator.resid))
+                                  integrator.fixedpoint_norm(integrator.resid,integrator.t))
 
             # complete interpolation data of DDE integrator for time interval [t, t+dt]
             # and copy it to ODE integrator
