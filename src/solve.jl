@@ -16,7 +16,7 @@ function DiffEqBase.__init(
               discontinuity_abstol=eltype(tupType)(1//Int64(10)^12), discontinuity_reltol=0,
               initial_order=agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
               initialize_integrator = true, initialize_save = true,
-              callback=nothing, kwargs... ) where
+              callback=nothing, alias_u0=false, kwargs... ) where
     {uType,tupType,lType,iip,algType<:AbstractMethodOfStepsAlgorithm}
 
     tType = eltype(tupType)
@@ -35,7 +35,7 @@ function DiffEqBase.__init(
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(du,u,p,t) or f(u,p,t) without history function
     ode_prob = ODEProblem{iip}(prob.f, prob.u0, prob.tspan, p)
-    integrator = init(ode_prob, alg.alg; initialize_integrator=false,
+    integrator = init(ode_prob, alg.alg; initialize_integrator=false, alias_u0=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
 
     # check that constant lags match the given time direction
@@ -113,8 +113,16 @@ function DiffEqBase.__init(
 
     # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
     # to cache uprev with correct dimensions and types
-    u = recursivecopy(integrator.u)
-    uprev = recursivecopy(integrator.uprev)
+    if typeof(prob.u0) <: Tuple
+        u = ArrayPartition(prob.u0,Val{true})
+    else
+        if alias_u0
+            u = prob.u0
+        else
+            u = recursivecopy(prob.u0)
+        end
+    end
+    uprev = recursivecopy(u)
 
     # create container for residuals (has to be unitless)
     uEltypeNoUnits = recursive_unitless_eltype(u)
