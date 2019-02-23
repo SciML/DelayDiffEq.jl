@@ -49,6 +49,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     reeval_fsal::Bool
     u_modified::Bool
     opts::O
+    destats::DiffEqBase.DEStats
     integrator::IType
     fsalfirst::FSALType
     fsallast::FSALType
@@ -65,7 +66,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
                                cache,kshortsize,force_stepfail,last_stepfail,
                                just_hit_tstop,event_last_time,last_event_error,
-                               accept_step,isout,reeval_fsal,u_modified,opts,
+                               accept_step,isout,reeval_fsal,u_modified,opts,destats,
                                integrator) where
         {algType,IIP,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
         tdirType,ksEltype,
@@ -80,7 +81,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
             tracked_discontinuities,alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,
             EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,cache,
             kshortsize,force_stepfail,last_stepfail,just_hit_tstop,accept_step,
-            event_last_time,last_event_error,isout,reeval_fsal,u_modified,opts,integrator)
+            event_last_time,last_event_error,isout,reeval_fsal,u_modified,opts,destats,integrator)
     end
 end
 
