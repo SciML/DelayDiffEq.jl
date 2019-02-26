@@ -73,11 +73,12 @@ function DiffEqBase.__init(
         sol = DiffEqBase.build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
                              dense=integrator.sol.dense, k=integrator.sol.k,
                              interp=interp_data, alg_choice=integrator.sol.alg_choice,
-                             calculate_error = false)
+                             calculate_error = false, destats = integrator.sol.destats)
     else
         sol = DiffEqBase.build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
                              dense=integrator.sol.dense, k=integrator.sol.k,
-                             interp=interp_data, calculate_error = false)
+                             interp=interp_data, calculate_error = false,
+                             destats = integrator.sol.destats)
     end
 
     # use this improved solution together with the given history function and the integrator
