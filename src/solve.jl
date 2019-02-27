@@ -73,11 +73,12 @@ function DiffEqBase.__init(
         sol = DiffEqBase.build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
                              dense=integrator.sol.dense, k=integrator.sol.k,
                              interp=interp_data, alg_choice=integrator.sol.alg_choice,
-                             calculate_error = false)
+                             calculate_error = false, destats = integrator.sol.destats)
     else
         sol = DiffEqBase.build_solution(prob, integrator.sol.alg, integrator.sol.t, integrator.sol.u,
                              dense=integrator.sol.dense, k=integrator.sol.k,
-                             interp=interp_data, calculate_error = false)
+                             interp=interp_data, calculate_error = false,
+                             destats = integrator.sol.destats)
     end
 
     # use this improved solution together with the given history function and the integrator
@@ -257,7 +258,7 @@ function DiffEqBase.__init(
                                 integrator.last_stepfail, integrator.event_last_time,
                                 integrator.last_event_error, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
-                                integrator.u_modified, opts, integrator)
+                                integrator.u_modified, opts, integrator.destats, integrator)
 
     # initialize DDE integrator and callbacks
     if initialize_integrator
@@ -343,7 +344,7 @@ function solve!(integrator::DDEIntegrator)
             typeof(prob),typeof(integrator.sol.alg),typeof(interp)}(
                 sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
                 prob, integrator.sol.alg, interp, interp.alg_choice,
-                interp.dense, integrator.sol.tslocation, :Success)
+                interp.dense, integrator.sol.tslocation, integrator.integrator.sol.destats, :Success)
     else
         sol = ODESolution{
             eltype(sol_array),N,typeof(sol_array.u),typeof(u_analytic),
@@ -351,7 +352,7 @@ function solve!(integrator::DDEIntegrator)
             typeof(prob),typeof(integrator.sol.alg),typeof(interp)}(
                 sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
                 prob, integrator.sol.alg, interp, interp.dense,
-                integrator.sol.tslocation, :Success)
+                integrator.sol.tslocation, integrator.integrator.sol.destats, :Success)
     end
 
     # calculate errors of solution
