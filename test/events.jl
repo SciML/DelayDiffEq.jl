@@ -36,8 +36,7 @@ using DiffEqDevTools, DiffEqCallbacks, Test
         prob = DDEProblem(f, [0.0], nothing, (0.0, 1.0))
 
         condition(u, t, integrator) = t == 0.5
-        iter = 0
-        function affect!(integrator) integrator.u[1] += 100; global iter = integrator.iter end
+        function affect!(integrator) integrator.u[1] += 100; iter = integrator.iter end
         cb = DiscreteCallback(condition, affect!)
         sol = solve(prob, MethodOfSteps(Tsit5()), callback=cb, tstops=[0.5])
         @test sol.t[iter+1] == sol.t[iter+2]
