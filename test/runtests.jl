@@ -23,7 +23,8 @@ if group == "All" || group == "Interface"
    for test in tests
        @time include(test)
    end
-elseif group == "All" || group == "Integrators"
+end
+if group == "All" || group == "Integrators"
   tests =   ["constrained.jl",
              "unconstrained.jl",
              "residual_control.jl",
