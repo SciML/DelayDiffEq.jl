@@ -186,6 +186,15 @@ function DiffEqBase.__init(
         callbacks = CallbackSet(callback, prob.callback)
     end
 
+
+    max_len_cb = DiffEqBase.max_vector_callback_length(callbacks)
+    if max_len_cb isa VectorContinuousCallback
+      callback_cache = DiffEqBase.CallbackCache(max_len_cb.len,uBottomEltype,uBottomEltype)
+    else
+      callback_cache = nothing
+    end
+
+
     # separate options of integrator and ODE integrator since ODE integrator always saves
     # every step and every index (necessary for history function)
     opts = OrdinaryDiffEq.DEOptions(integrator.opts.maxiters,
@@ -240,7 +249,7 @@ function DiffEqBase.__init(
                             typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
                             typeof(dde_f),typeof(dde_cache),
                             typeof(integrator),typeof(fixedpoint_norm),typeof(opts),
-                            typeof(saveat_copy),fsal_typeof(integrator),typeof(integrator.last_event_error)}(
+                            typeof(saveat_copy),fsal_typeof(integrator),typeof(integrator.last_event_error),typeof(callback_cache)}(
                                 sol, u, integrator.k, integrator.t, dt, dde_f, p, uprev,
                                 uprev2, integrator.tprev, 1, 1, fixedpoint_abstol_internal,
                                 fixedpoint_reltol_internal, resid, fixedpoint_norm,
@@ -253,9 +262,9 @@ function DiffEqBase.__init(
                                 integrator.q11, integrator.erracc, integrator.dtacc,
                                 integrator.success_iter, integrator.iter,
                                 integrator.saveiter, integrator.saveiter_dense,
-                                dde_cache, integrator.kshortsize,
+                                dde_cache, callback_cache, integrator.kshortsize,
                                 integrator.force_stepfail, integrator.just_hit_tstop,
-                                integrator.last_stepfail, integrator.event_last_time,
+                                integrator.last_stepfail, integrator.event_last_time, 1,
                                 integrator.last_event_error, integrator.accept_step,
                                 integrator.isout, integrator.reeval_fsal,
                                 integrator.u_modified, opts, integrator.destats, integrator)
