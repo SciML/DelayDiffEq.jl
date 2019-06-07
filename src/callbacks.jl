@@ -128,7 +128,7 @@ function DiffEqBase.find_callback_time(integrator::DDEIntegrator, callback::Disc
         end
     end
 
-    tmin, order, contains_discontinuity
+    tmin, order, contains_discontinuity, 1
 end
 
 """
@@ -224,7 +224,7 @@ time interval of `integrator` that was found by `callback`. Cause the current st
 and add the found discontinuity to both the heap of discontinuities and of time stops.
 """
 function DiffEqBase.apply_callback!(integrator::DDEIntegrator, callback::DiscontinuityCallback,
-                         cb_time, order)
+                         cb_time, order, event_idx)
     # do not accept current step
     integrator.t = integrator.tprev
     integrator.force_stepfail = true

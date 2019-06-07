@@ -2,7 +2,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
                              residType,tTypeNoUnits,tdirType,ksEltype,
                              SolType,F,CacheType,
                              IType,NType,O,tstopsType,
-                             FSALType,EventErrorType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
+                             FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
     sol::SolType
     u::uType
     k::ksEltype
@@ -38,11 +38,13 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     saveiter::Int
     saveiter_dense::Int
     cache::CacheType
+    callback_cache::CallbackCacheType
     kshortsize::Int
     force_stepfail::Bool
     last_stepfail::Bool
     just_hit_tstop::Bool
     event_last_time::Int
+    vector_event_last_time::Int
     last_event_error::EventErrorType
     accept_step::Bool
     isout::Bool
@@ -58,30 +60,30 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     function DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                            residType,tTypeNoUnits,
                            tdirType,ksEltype,SolType,F,CacheType,IType,
-                           NType,O,tstopsType,FSALType,EventErrorType}(
+                           NType,O,tstopsType,FSALType,EventErrorType,CallbackCacheType}(
                                sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,
                                fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,
                                max_fixedpoint_iters,saveat,tracked_discontinuities,alg,
                                dtcache,dtchangeable,dtpropose,tdir,eigen_est,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
-                               cache,kshortsize,force_stepfail,last_stepfail,
-                               just_hit_tstop,event_last_time,last_event_error,
+                               cache,callback_cache,kshortsize,force_stepfail,last_stepfail,
+                               just_hit_tstop,event_last_time,vector_event_last_time,last_event_error,
                                accept_step,isout,reeval_fsal,u_modified,opts,destats,
                                integrator) where
         {algType,IIP,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
         tdirType,ksEltype,
-         SolType,F,CacheType,IType,NType,O,tstopsType,FSALType,EventErrorType}
+         SolType,F,CacheType,IType,NType,O,tstopsType,FSALType,EventErrorType,CallbackCacheType}
 
         new{algType,IIP,uType,tType,P,eigenType,absType,relType,
                                residType,tTypeNoUnits,
                                tdirType,ksEltype,SolType,F,CacheType,IType,
-                               NType,O,tstopsType,FSALType,EventErrorType}(
+                               NType,O,tstopsType,FSALType,EventErrorType,CallbackCacheType}(
             sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,fixedpoint_abstol,
             fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,saveat,
             tracked_discontinuities,alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,
             EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,cache,
-            kshortsize,force_stepfail,last_stepfail,just_hit_tstop,accept_step,
-            event_last_time,last_event_error,isout,reeval_fsal,u_modified,opts,destats,integrator)
+            callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,accept_step,
+            event_last_time,vector_event_last_time,last_event_error,isout,reeval_fsal,u_modified,opts,destats,integrator)
     end
 end
 

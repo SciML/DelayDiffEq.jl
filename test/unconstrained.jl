@@ -61,9 +61,9 @@ include("common.jl")
                 prob = prob_dde_2delays_scalar_notinplace
                 sol = solve(prob, alg)
 
-                @test sol.errors[:l∞] < 1.9e-6
-                @test sol.errors[:final] < 1.2e-6
-                @test sol.errors[:l2] < 1.0e-6
+                @test sol.errors[:l∞] < 2.5e-6
+                @test sol.errors[:final] < 2.2e-6
+                @test sol.errors[:l2] < 1.2e-6
 
                 ### Not in-place function with vectorized history function
                 prob = prob_dde_2delays_notinplace
