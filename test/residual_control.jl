@@ -19,15 +19,15 @@ include("common.jl")
     @testset "residual control" begin
         sol = solve(prob, alg)
 
-        @test sol.errors[:l∞] < 1.1e-4
+        @test sol.errors[:l∞] < 1.8e-4
         @test sol.errors[:final] < 4.1e-6
-        @test sol.errors[:l2] < 3.7e-5
+        @test sol.errors[:l2] < 9.0e-5
 
         sol = solve(prob, alg, abstol=1e-9,reltol=1e-6)
 
-        @test sol.errors[:l∞] < 3.3e-8
+        @test sol.errors[:l∞] < 1.5e-7
         @test sol.errors[:final] < 4.1e-9
-        @test sol.errors[:l2] < 9.2e-9
+        @test sol.errors[:l2] < 7.5e-8
 
         sol = solve(prob, alg, abstol=1e-13,reltol=1e-13)
 
