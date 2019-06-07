@@ -7,6 +7,7 @@ include("common.jl")
         ts = 0:0.1:10
 
         # Vern6
+        println("Vern6")
         @testset "Vern6" begin
             sol = solve(prob_inplace, MethodOfSteps(Vern6()))
 
@@ -22,6 +23,7 @@ include("common.jl")
         end
 
         # Vern7
+        println("Vern7")
         @testset "Vern7" begin
             sol = solve(prob_inplace, MethodOfSteps(Vern7()))
 
@@ -35,6 +37,7 @@ include("common.jl")
         end
 
         # Vern8
+        println("Vern8")
         @testset "Vern8" begin
             sol = solve(prob_inplace, MethodOfSteps(Vern8()))
 
@@ -48,6 +51,7 @@ include("common.jl")
         end
 
         # Vern9
+        println("Vern9")
         @testset "Vern9" begin
             sol = solve(prob_inplace, MethodOfSteps(Vern9()))
 
@@ -64,6 +68,7 @@ include("common.jl")
     end
 
     # model of Mackey and Glass
+    println("Mackey and Glass")
     @testset "Mackey and Glass" begin
         prob = prob_dde_mackey
 
