@@ -124,3 +124,20 @@ Create cache for algorithm `alg` from existing cache `cache` with updated `u`, `
 
     :($(assignments...); $(DiffEqBase.parameterless_type(cache))($(fieldnames(cache)...)))
 end
+
+function unwrap_alg(integrator::DDEIntegrator, is_stiff)
+  alg = integrator.alg
+  iscomp = typeof(alg) <: CompositeAlgorithm
+  if !iscomp
+    return alg
+  elseif typeof(alg.choice_function) <: AutoSwitch
+    num = is_stiff ? 2 : 1
+    return alg.algs[num]
+  else
+    return alg.algs[integrator.cache.current]
+  end
+end
+
+
+DiffEqBase.nlsolve_f(integrator::DDEIntegrator) =
+  DiffEqBase.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
