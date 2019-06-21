@@ -384,20 +384,22 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem{uType,tupType,lT
 end
 
 function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
+    t = dde_int.t
     u = dde_int.u
     integrator = dde_int.integrator
+    callbacks = dde_int.opts.callback
     # set up additional initial values of newly created DDE integrator
     # (such as fsalfirst) and its callbacks
 
     dde_int.u_modified = true
 
-    u_modified = initialize!(integrator.opts.callback,dde_int.t,u,dde_int)
+    u_modified = initialize!(callbacks,u,t,dde_int)
 
     # if the user modifies u, we need to fix previous values before initializing
     # FSAL in order for the starting derivatives to be correct
     if u_modified
 
-        if iip
+        if isinplace(dde_int.sol.prob)
             recursivecopy!(dde_int.uprev,dde_int.u)
         else
             dde_int.uprev = dde_int.u
@@ -419,8 +421,8 @@ function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
         reeval_internals_due_to_modification!(dde_int,Val{false})
 
         if initialize_save &&
-          (any((c)->c.save_positions[2],integrator.opts.callback.discrete_callbacks) ||
-          any((c)->c.save_positions[2],integrator.opts.callback.continuous_callbacks))
+          (any((c)->c.save_positions[2],callbacks.discrete_callbacks) ||
+          any((c)->c.save_positions[2],callbacks.continuous_callbacks))
           savevalues!(dde_int,true)
         end
 
