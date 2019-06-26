@@ -358,7 +358,7 @@ function solve!(integrator::DDEIntegrator)
         sol = ODESolution{
             eltype(sol_array),N,typeof(sol_array.u),typeof(u_analytic),
             typeof(errors),typeof(sol_array.t),typeof(interp.ks),
-            typeof(prob),typeof(integrator.sol.alg),typeof(interp)}(
+            typeof(prob),typeof(integrator.sol.alg),typeof(interp),typeof(integrator.sol.destats)}(
                 sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
                 prob, integrator.sol.alg, interp, interp.dense,
                 integrator.sol.tslocation, integrator.integrator.sol.destats, :Success)
