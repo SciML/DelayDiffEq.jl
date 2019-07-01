@@ -1,11 +1,8 @@
 include("common.jl")
-@testset "Unique times" begin
-    prob = prob_dde_1delay_long
 
-    @testset for constrained in (false, true)
-        alg = MethodOfSteps(Tsit5(), constrained=constrained)
-        sol = solve(prob, alg)
+@testset for constrained in (false, true)
+  sol = solve(prob_dde_constant_1delay_long_ip,
+              MethodOfSteps(Tsit5(), constrained=constrained))
 
-        @test allunique(sol.t)
-    end
+  @test allunique(sol.t)
 end
