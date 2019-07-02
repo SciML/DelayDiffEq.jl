@@ -44,7 +44,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
     if isconstrained(alg) && constant_lags !== nothing && !isempty(constant_lags)
-        dtmax = min(dtmax, constant_lags...)
+        dtmax = min(dtmax, minimum(constant_lags))
     end
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
