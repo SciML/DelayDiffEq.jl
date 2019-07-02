@@ -34,7 +34,7 @@ function DiffEqBase.__init(
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(du,u,p,t) or f(u,p,t) without history function
-    ode_prob = ODEProblem{iip}(prob.f, prob.u0, prob.tspan, p)
+    ode_prob = ODEProblem{isinplace(prob)}(prob.f, prob.u0, prob.tspan, p)
     integrator = init(ode_prob, alg.alg; initialize_integrator=false, alias_u0=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
 
@@ -55,8 +55,8 @@ function DiffEqBase.__init(
     # history function of the DDE problem, the current solution of the integrator, and
     # the extrapolation of the integrator for the future
     interp_h = HistoryFunction(prob.h, integrator.sol, integrator)
-    if iip
         interp_f = (du,u,p,t) -> prob.f(du,u,interp_h,p,t)
+    if isinplace(prob)
     else
         interp_f = (u,p,t) -> prob.f(u,interp_h,p,t)
     end
@@ -85,9 +85,9 @@ function DiffEqBase.__init(
     # to create a problem function of the DDE with all available history information that is
     # of the form f(du,u,p,t) or f(u,p,t) such that ODE algorithms can be applied
     dde_h = HistoryFunction(prob.h, sol, integrator)
-    if iip
         dde_f = ODEFunction((du,u,p,t) -> prob.f(du,u,dde_h,p,t),
                             mass_matrix = prob.f.mass_matrix)
+    if isinplace(prob)
     else
         dde_f = ODEFunction((u,p,t) -> prob.f(u,dde_h,p,t),
                             mass_matrix = prob.f.mass_matrix)
@@ -367,7 +367,7 @@ function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
         end
 
         if OrdinaryDiffEq.alg_extrapolates(dde_int.alg)
-            if iip
+            if isinplace(dde_int.sol.prob)
                 recursivecopy!(dde_int.uprev2,dde_int.uprev)
             else
                 dde_int.uprev2 = dde_int.uprev
