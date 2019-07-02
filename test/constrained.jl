@@ -22,7 +22,7 @@ const alg = MethodOfSteps(BS3(); constrained=true)
   ## In-place function
   sol_ip = solve(prob_dde_constant_1delay_ip, alg; dt=0.1)
 
-  @test sol_scalar.t == sol_ip.t && sol_scalar.u == sol_ip[1, :]
+  @test sol_scalar.t ≈ sol_ip.t && sol_scalar.u ≈ sol_ip[1, :]
 end
 
 # Two constant delays
@@ -42,5 +42,5 @@ end
   ## In-place function
   sol_ip = solve(prob_dde_constant_2delays_ip, alg; dt=0.1)
 
-  @test sol_scalar.t == sol_ip.t && sol_scalar.u == sol_ip[1, :]
+  @test sol_scalar.t ≈ sol_ip.t && sol_scalar.u ≈ sol_ip[1, :]
 end
