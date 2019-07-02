@@ -18,13 +18,9 @@ function DiffEqBase.__init(
               initialize_integrator = true, initialize_save = true,
               callback=nothing, alias_u0=false, kwargs... ) where
     {uType,tupType,lType,iip,algType<:AbstractMethodOfStepsAlgorithm}
-
     tType = eltype(tupType)
-
-    neutral = prob.neutral
-    constant_lags = prob.constant_lags
-    dependent_lags = prob.dependent_lags
-    p = prob.p
+  # unpack problem
+  @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
@@ -34,7 +30,7 @@ function DiffEqBase.__init(
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(du,u,p,t) or f(u,p,t) without history function
-    ode_prob = ODEProblem{isinplace(prob)}(prob.f, prob.u0, prob.tspan, p)
+    ode_prob = ODEProblem{isinplace(prob)}(f, u0, tspan, p)
     integrator = init(ode_prob, alg.alg; initialize_integrator=false, alias_u0=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
 
@@ -54,11 +50,11 @@ function DiffEqBase.__init(
     # expected form f(du,u,p,t) or f(u,p,t) which already includes information about the
     # history function of the DDE problem, the current solution of the integrator, and
     # the extrapolation of the integrator for the future
-    interp_h = HistoryFunction(prob.h, integrator.sol, integrator)
-        interp_f = (du,u,p,t) -> prob.f(du,u,interp_h,p,t)
+    interp_h = HistoryFunction(h, integrator.sol, integrator)
     if isinplace(prob)
+        interp_f = (du,u,p,t) -> f(du,u,interp_h,p,t)
     else
-        interp_f = (u,p,t) -> prob.f(u,interp_h,p,t)
+        interp_f = (u,p,t) -> f(u,interp_h,p,t)
     end
 
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
@@ -84,13 +80,11 @@ function DiffEqBase.__init(
     # use this improved solution together with the given history function and the integrator
     # to create a problem function of the DDE with all available history information that is
     # of the form f(du,u,p,t) or f(u,p,t) such that ODE algorithms can be applied
-    dde_h = HistoryFunction(prob.h, sol, integrator)
-        dde_f = ODEFunction((du,u,p,t) -> prob.f(du,u,dde_h,p,t),
-                            mass_matrix = prob.f.mass_matrix)
+    dde_h = HistoryFunction(h, sol, integrator)
     if isinplace(prob)
+        dde_f = ODEFunction((du,u,p,t) -> f(du,u,dde_h,p,t), mass_matrix = f.mass_matrix)
     else
-        dde_f = ODEFunction((u,p,t) -> prob.f(u,dde_h,p,t),
-                            mass_matrix = prob.f.mass_matrix)
+        dde_f = ODEFunction((u,p,t) -> f(u,dde_h,p,t), mass_matrix = f.mass_matrix)
     end
 
     # define absolute tolerance for fixed-point iterations
@@ -114,13 +108,13 @@ function DiffEqBase.__init(
 
     # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
     # to cache uprev with correct dimensions and types
-    if typeof(prob.u0) <: Tuple
-        u = ArrayPartition(prob.u0,Val{true})
+    if typeof(u0) <: Tuple
+        u = ArrayPartition(u0, Val{true})
     else
         if alias_u0
-            u = prob.u0
+            u = u0
         else
-            u = recursivecopy(prob.u0)
+            u = recursivecopy(u0)
         end
     end
     uprev = recursivecopy(u)
@@ -148,12 +142,12 @@ function DiffEqBase.__init(
     # new cache with updated u, uprev, uprev2, and function f
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
         caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
-                                                 prob.tspan[1], dt, p),
+                                                 tspan[1], dt, p),
                      integrator.cache.caches, alg.alg.algs)
         dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
         dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
-                                       prob.tspan[1], dt, p)
+                                       tspan[1], dt, p)
     end
 
     # filter provided discontinuities
@@ -162,13 +156,13 @@ function DiffEqBase.__init(
     # retrieve time stops, time points at which solutions is saved, and discontinuities
     tstops_internal, saveat_internal, d_discontinuities_internal =
         tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
-                                   prob.tspan, initial_order, alg_maximum_order(alg), constant_lags, tType)
+                                   tspan, initial_order, alg_maximum_order(alg), constant_lags, tType)
 
     # create array of tracked discontinuities
     # used to find propagated discontinuities with callbacks and to keep track of all
     # passed discontinuities
     if initial_order ≤ alg_maximum_order(alg)
-        tracked_discontinuities = [Discontinuity(prob.tspan[1], initial_order)]
+        tracked_discontinuities = [Discontinuity(tspan[1], initial_order)]
     else
         tracked_discontinuities = Discontinuity{tType}[]
     end
@@ -242,7 +236,7 @@ function DiffEqBase.__init(
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
     tTypeNoUnits = typeof(one(tType))
-    dde_int = DDEIntegrator{typeof(integrator.alg),isinplace(prob),uType,tType,typeof(p),
+    dde_int = DDEIntegrator{typeof(integrator.alg),isinplace(prob),typeof(u),tType,typeof(p),
                             typeof(integrator.eigen_est),
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
