@@ -19,6 +19,13 @@ function DiffEqBase.__init(
               callback=nothing, alias_u0=false, kwargs... ) where
     {uType,tupType,lType,iip,algType<:AbstractMethodOfStepsAlgorithm}
     tType = eltype(tupType)
+function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem,
+                            alg::AbstractMethodOfStepsAlgorithm, args...;
+                            kwargs...)
+  integrator = DiffEqBase.__init(prob, alg, args...; kwargs...)
+  solve!(integrator)
+end
+
   # unpack problem
   @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
 
@@ -327,15 +334,6 @@ function solve!(integrator::DDEIntegrator)
                               dense_errors = integrator.opts.dense_errors,
                               calculate_error = true, k = interp.ks, interp = interp,
                               retcode = retcode, destats = integrator.sol.destats)
-end
-
-function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem{uType,tupType,lType,iip},
-               alg::algType,
-               timeseries_init=uType[], ts_init=eltype(tupType)[], ks_init=[]; kwargs...) where
-    {uType,tupType,iip,algType<:AbstractMethodOfStepsAlgorithm,lType}
-
-    integrator = DiffEqBase.__init(prob, alg, timeseries_init, ts_init, ks_init; kwargs...)
-    solve!(integrator)
 end
 
 function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
