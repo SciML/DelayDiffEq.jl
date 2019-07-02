@@ -23,9 +23,9 @@ using OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
 using DiffEqBase: check_error!, apply_callback!, addsteps!
 
 include("discontinuity_type.jl")
-include("integrator_type.jl")
-include("integrator_utils.jl")
-include("integrator_interface.jl")
+include("integrators/type.jl")
+include("integrators/utils.jl")
+include("integrators/interface.jl")
 include("cache_utils.jl")
 include("interpolants.jl")
 include("history_function.jl")
