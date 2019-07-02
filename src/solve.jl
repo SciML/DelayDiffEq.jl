@@ -1,24 +1,3 @@
-function DiffEqBase.__init(
-              prob::AbstractDDEProblem{uType,tupType,lType,iip},
-              alg::algType,
-              timeseries_init=uType[], ts_init=eltype(tupType)[], ks_init=[];
-              d_discontinuities=Discontinuity{eltype(tupType)}[],
-              dtmax = (prob.constant_lags === nothing || isempty(prob.constant_lags)) ?
-              prob.tspan[2]-prob.tspan[1] : eltype(tupType)(7*minimum(prob.constant_lags)),
-              dt=zero(eltype(tupType)), saveat=eltype(tupType)[],
-              tstops = eltype(tupType)[],
-              save_idxs=nothing, save_everystep=isempty(saveat),
-              save_start = save_everystep || isempty(saveat) || typeof(saveat) <: Number ? true : prob.tspan[1] in saveat,
-              save_end = save_everystep || isempty(saveat) || typeof(saveat) <: Number ? true : prob.tspan[2] in saveat,
-              save_on = true,
-              dense = save_everystep && !(typeof(alg) <: FunctionMap) && isempty(saveat),
-              minimal_solution=true, discontinuity_interp_points::Int=10,
-              discontinuity_abstol=eltype(tupType)(1//Int64(10)^12), discontinuity_reltol=0,
-              initial_order=agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
-              initialize_integrator = true, initialize_save = true,
-              callback=nothing, alias_u0=false, kwargs... ) where
-    {uType,tupType,lType,iip,algType<:AbstractMethodOfStepsAlgorithm}
-    tType = eltype(tupType)
 function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem,
                             alg::AbstractMethodOfStepsAlgorithm, args...;
                             kwargs...)
@@ -26,8 +5,41 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem,
   solve!(integrator)
 end
 
+function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
+                           alg::AbstractMethodOfStepsAlgorithm,
+                           timeseries_init = typeof(prob.u0)[],
+                           ts_init = eltype(prob.tspan)[],
+                           ks_init = [];
+                           saveat = eltype(prob.tspan)[],
+                           tstops = eltype(prob.tspan)[],
+                           d_discontinuities = Discontinuity{eltype(prob.tspan)}[],
+                           save_idxs = nothing,
+                           save_everystep = isempty(saveat),
+                           save_on = true,
+                           save_start = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[1] in saveat,
+                           save_end = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[2] in saveat,
+                           callback = nothing,
+                           dense = save_everystep && isempty(saveat),
+                           calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
+                                   (prob.callback !== nothing && prob.callback != CallbackSet()) || # Empty prob.callback
+                                   (!isempty(setdiff(saveat,tstops)) || dense), # and no dense output
+                           dt = zero(eltype(prob.tspan)),
+                           dtmax = eltype(prob.tspan)(prob.tspan[end]-prob.tspan[1]),
+                           initialize_save = true,
+                           initialize_integrator = true,
+                           alias_u0 = false,
+                           # keyword arguments for DDEs
+                           minimal_solution = true,
+                           discontinuity_interp_points::Int = 10,
+                           discontinuity_abstol = eltype(prob.tspan)(1//Int64(10)^12),
+                           discontinuity_reltol = 0,
+                           initial_order = agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
+                           kwargs... )
   # unpack problem
   @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
+
+  # determine type of time
+  tType = eltype(tspan)
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
