@@ -17,9 +17,9 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 
 [compat]
 DataStructures = "≥ 0.4.6"
-DiffEqBase = "≥ 5.3.2"
+DiffEqBase = "≥ 5.12.0"
 DiffEqDiffTools = "≥ 0.3.0"
-DiffEqProblemLibrary = "≥ 4.2.0"
+DiffEqProblemLibrary = "≥ 4.3.0"
 NLSolversBase = "≥ 4.2.0"
 OrdinaryDiffEq = "≥ 5.2.0"
 RecursiveArrayTools = "≥ 0.18.6"
