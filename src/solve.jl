@@ -30,8 +30,14 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            discontinuity_interp_points::Int = 10,
                            discontinuity_abstol = eltype(prob.tspan)(1//Int64(10)^12),
                            discontinuity_reltol = 0,
-                           initial_order = agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
                            kwargs... )
+  if haskey(kwargs, :initial_order)
+    @warn "initial_order has been deprecated. Please specify order_discontinuity_t0 in the DDEProblem instead."
+    order_discontinuity_t0 = kwargs[:initial_order]
+  else
+    order_discontinuity_t0 = prob.order_discontinuity_t0
+  end
+
   # unpack problem
   @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
 
@@ -172,13 +178,14 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     # retrieve time stops, time points at which solutions is saved, and discontinuities
     tstops_internal, saveat_internal, d_discontinuities_internal =
         tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
-                                   tspan, initial_order, alg_maximum_order(alg), constant_lags, tType)
+                                   tspan, order_discontinuity_t0, alg_maximum_order(alg),
+                                   constant_lags, tType)
 
     # create array of tracked discontinuities
     # used to find propagated discontinuities with callbacks and to keep track of all
     # passed discontinuities
-    if initial_order ≤ alg_maximum_order(alg)
-        tracked_discontinuities = [Discontinuity(tspan[1], initial_order)]
+    if order_discontinuity_t0 ≤ alg_maximum_order(alg)
+        tracked_discontinuities = [Discontinuity(tspan[1], order_discontinuity_t0)]
     else
         tracked_discontinuities = Discontinuity{tType}[]
     end
@@ -396,13 +403,14 @@ function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
     dde_int.u_modified = false
 end
 
-function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan, initial_order, alg_maximum_order, constant_lags, tType)
+function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan,
+                                    order_discontinuity_t0, alg_maximum_order, constant_lags, tType)
     # add discontinuities propagated from initial discontinuity
-    if initial_order ≤ alg_maximum_order && constant_lags !== nothing && !isempty(constant_lags)
+    if order_discontinuity_t0 ≤ alg_maximum_order && constant_lags !== nothing && !isempty(constant_lags)
         maxlag = abs(tspan[end] - tspan[1])
         d_discontinuities_internal = unique(
             Discontinuity{tType}[d_discontinuities;
-                                 (Discontinuity(tspan[1] + lag, initial_order + 1)
+                                 (Discontinuity(tspan[1] + lag, order_discontinuity_t0 + 1)
                                   for lag in constant_lags if abs(lag) < maxlag)...])
     else
         d_discontinuities_internal = unique(d_discontinuities)
