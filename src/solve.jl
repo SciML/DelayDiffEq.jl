@@ -20,9 +20,6 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            save_end = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[2] in saveat,
                            callback = nothing,
                            dense = save_everystep && isempty(saveat),
-                           calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
-                                   (prob.callback !== nothing && prob.callback != CallbackSet()) || # Empty prob.callback
-                                   (!isempty(setdiff(saveat,tstops)) || dense), # and no dense output
                            dt = zero(eltype(prob.tspan)),
                            dtmax = eltype(prob.tspan)(prob.tspan[end]-prob.tspan[1]),
                            initialize_save = true,
