@@ -1,59 +1,46 @@
 include("common.jl")
-@testset "Constrained time step" begin
-    # Check that numerical solutions approximate analytical solutions,
-    # independent of problem structure
 
-    alg = MethodOfSteps(BS3(); constrained=true)
+# Check that numerical solutions approximate analytical solutions,
+# independent of problem structure
 
-    # Single constant delay
-    @testset "single constant delay" begin
-        ## Not in-place function with scalar history function
-        prob = prob_dde_1delay_scalar_notinplace
-        dde_int = init(prob, alg; dt=0.1)
-        sol = solve!(dde_int)
+const alg = MethodOfSteps(BS3(); constrained=true)
 
-        @test sol.errors[:l∞] < 3e-5
-        @test sol.errors[:final] < 2.1e-5
-        @test sol.errors[:l2] < 1.3e-5
+# Single constant delay
+@testset "single constant delay" begin
+  ## Scalar function
+  sol_scalar = solve(prob_dde_constant_1delay_scalar, alg; dt=0.1)
 
-        ## Not in-place function with vectorized history function
-        prob = prob_dde_1delay_notinplace
-        dde_int = init(prob, alg; dt=0.1)
-        sol2 = solve!(dde_int)
+  @test sol_scalar.errors[:l∞] < 3e-5
+  @test sol_scalar.errors[:final] < 2.1e-5
+  @test sol_scalar.errors[:l2] < 1.3e-5
 
-        @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
+  ## Out-of-place function
+  sol_oop = solve(prob_dde_constant_1delay_oop, alg; dt=0.1)
 
-        ## In-place function
-        prob = prob_dde_1delay
-        dde_int = init(prob, alg; dt=0.1)
-        sol2 = solve!(dde_int)
+  @test sol_scalar.t ≈ sol_oop.t && sol_scalar.u ≈ sol_oop[1, :]
 
-        @test sol.t == sol2.t && sol.u == sol2[1, :]
-    end
+  ## In-place function
+  sol_ip = solve(prob_dde_constant_1delay_ip, alg; dt=0.1)
 
-    # Two constant delays
-    @testset "two constant delays" begin
-        ## Not in-place function with scalar history function
-        prob = prob_dde_2delays_scalar_notinplace
-        dde_int = init(prob, alg; dt=0.1)
-        sol = solve!(dde_int)
+  @test sol_scalar.t ≈ sol_ip.t && sol_scalar.u ≈ sol_ip[1, :]
+end
 
-        @test sol.errors[:l∞] < 4.1e-6
-        @test sol.errors[:final] < 1.5e-6
-        @test sol.errors[:l2] < 2.3e-6
+# Two constant delays
+@testset "two constant delays" begin
+  ## Scalar function
+  sol_scalar = solve(prob_dde_constant_2delays_scalar, alg; dt=0.1)
 
-        ## Not in-place function with vectorized history function
-        prob = prob_dde_2delays_notinplace
-        dde_int = init(prob, alg; dt=0.1)
-        sol2 = solve!(dde_int)
+  @test sol_scalar.errors[:l∞] < 4.1e-6
+  @test sol_scalar.errors[:final] < 1.5e-6
+  @test sol_scalar.errors[:l2] < 2.3e-6
 
-        @test sol.t ≈ sol2.t && sol.u ≈ sol2[1, :]
+  ## Out-of-place function
+  sol_oop = solve(prob_dde_constant_2delays_oop, alg; dt=0.1)
 
-        ## In-place function
-        prob = prob_dde_2delays
-        dde_int = init(prob, alg; dt=0.1)
-        sol2 = solve!(dde_int)
+  @test sol_scalar.t ≈ sol_oop.t && sol_scalar.u ≈ sol_oop[1, :]
 
-        @test sol.t == sol2.t && sol.u == sol2[1, :]
-    end
+  ## In-place function
+  sol_ip = solve(prob_dde_constant_2delays_ip, alg; dt=0.1)
+
+  @test sol_scalar.t ≈ sol_ip.t && sol_scalar.u ≈ sol_ip[1, :]
 end

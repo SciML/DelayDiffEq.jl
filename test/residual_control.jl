@@ -1,62 +1,58 @@
 include("common.jl")
-@testset "Residual control" begin
-    alg = MethodOfSteps(RK4(); constrained=false)
 
-    # reference solution with delays specified
-    @testset "reference" begin
-        prob = prob_dde_1delay_scalar_notinplace
-        sol = solve(prob, alg)
+const alg = MethodOfSteps(RK4(); constrained=false)
 
-        @test sol.errors[:l∞] < 5.6e-5
-        @test sol.errors[:final] < 1.8e-6
-        @test sol.errors[:l2] < 2.0e-5
-    end
+# reference solution with delays specified
+@testset "reference" begin
+  sol = solve(prob_dde_constant_1delay_scalar, alg)
 
-    # problem without delays specified
-    prob = DDEProblem(prob.f,prob.u0,prob.h,prob.tspan)
+  @test sol.errors[:l∞] < 5.6e-5
+  @test sol.errors[:final] < 1.8e-6
+  @test sol.errors[:l2] < 2.0e-5
+end
 
-    # solutions with residual control
-    @testset "residual control" begin
-        sol = solve(prob, alg)
+# problem without delays specified
+const prob = remake(prob_dde_constant_1delay_scalar; constant_lags = nothing)
 
-        @test sol.errors[:l∞] < 1.8e-4
-        @test sol.errors[:final] < 4.1e-6
-        @test sol.errors[:l2] < 9.0e-5
+# solutions with residual control
+@testset "residual control" begin
+  sol = solve(prob, alg)
 
-        sol = solve(prob, alg, abstol=1e-9,reltol=1e-6)
+  @test sol.errors[:l∞] < 1.8e-4
+  @test sol.errors[:final] < 4.1e-6
+  @test sol.errors[:l2] < 9.0e-5
 
-        @test sol.errors[:l∞] < 1.5e-7
-        @test sol.errors[:final] < 4.1e-9
-        @test sol.errors[:l2] < 7.5e-8
+  sol = solve(prob, alg, abstol=1e-9,reltol=1e-6)
 
-        sol = solve(prob, alg, abstol=1e-13,reltol=1e-13)
+  @test sol.errors[:l∞] < 1.5e-7
+  @test sol.errors[:final] < 4.1e-9
+  @test sol.errors[:l2] < 7.5e-8
 
-        @test sol.errors[:l∞] < 7.0e-11
-        @test sol.errors[:final] < 1.1e-11
-        @test sol.errors[:l2] < 9.3e-12
-    end
+  sol = solve(prob, alg, abstol=1e-13,reltol=1e-13)
 
-    ######## Now show that non-residual control is worse
-    # solutions without residual control
-    @testset "non-residual control" begin
-        alg = MethodOfSteps(OwrenZen5(); constrained=false)
-        sol = solve(prob, alg)
+  @test sol.errors[:l∞] < 7.0e-11
+  @test sol.errors[:final] < 1.1e-11
+  @test sol.errors[:l2] < 9.3e-12
+end
 
-        @test sol.errors[:l∞] > 1e-1
-        @test sol.errors[:final] > 1e-3
-        @test sol.errors[:l2] > 4e-2
+######## Now show that non-residual control is worse
+# solutions without residual control
+@testset "non-residual control" begin
+  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained=false))
 
-        alg = MethodOfSteps(OwrenZen5(); constrained=true)
-        sol = solve(prob, alg)
+  @test sol.errors[:l∞] > 1e-1
+  @test sol.errors[:final] > 1e-3
+  @test sol.errors[:l2] > 4e-2
 
-        @test sol.errors[:l∞] > 1e-1
-        @test sol.errors[:final] > 1e-3
-        @test sol.errors[:l2] > 4e-2
+  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained=true))
 
-        sol = solve(prob, alg,abstol=1e-13,reltol=1e-13)
+  @test sol.errors[:l∞] > 1e-1
+  @test sol.errors[:final] > 1e-3
+  @test sol.errors[:l2] > 4e-2
 
-        @test sol.errors[:l∞] > 1e-1
-        @test sol.errors[:final] > 1e-3
-        @test sol.errors[:l2] > 5e-2
-    end
+  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained=true); abstol=1e-13, reltol=1e-13)
+
+  @test sol.errors[:l∞] > 1e-1
+  @test sol.errors[:final] > 1e-3
+  @test sol.errors[:l2] > 5e-2
 end

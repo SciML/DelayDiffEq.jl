@@ -323,55 +323,16 @@ function solve!(integrator::DDEIntegrator)
     # obtain DDE problem
     prob = integrator.sol.prob
 
-    # calculate analytical solutions to problem if existent
-    if DiffEqBase.has_analytic(prob.f)
-        if integrator.opts.save_idxs === nothing
-            u_analytic = [prob.f(Val{:analytic}, integrator.sol[1], integrator.p, t) for t in sol_array.t]
-        else
-            u_analytic = [@view(prob.f(
-                Val{:analytic}, integrator.sol[1], integrator.p, t)[integrator.opts.save_idxs])
-                          for t in sol_array.t]
-        end
-        errors = Dict{Symbol,eltype(integrator.u)}()
-    else
-        u_analytic = nothing
-        errors = nothing
-    end
+    # set return code
+    retcode = integrator.sol.retcode != :Default ? integrator.sol.retcode : :Success
 
-    # combine arrays of time points and values, interpolation data, and analytical solution
-    # to solution
-    if typeof(prob.u0) <: Tuple
-      N = length((size(ArrayPartition(prob.u0))..., length(sol_array.u)))
-    else
-      N = length((size(prob.u0)..., length(sol_array.u)))
-    end
-
-    if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
-        sol = OrdinaryDiffEq.ODECompositeSolution{
-            eltype(sol_array),N,typeof(sol_array.u),typeof(u_analytic),
-            typeof(errors),typeof(sol_array.t),typeof(interp.ks),
-            typeof(prob),typeof(integrator.sol.alg),typeof(interp)}(
-                sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
-                prob, integrator.sol.alg, interp, interp.alg_choice,
-                interp.dense, integrator.sol.tslocation, integrator.integrator.sol.destats, :Success)
-    else
-        sol = ODESolution{
-            eltype(sol_array),N,typeof(sol_array.u),typeof(u_analytic),
-            typeof(errors),typeof(sol_array.t),typeof(interp.ks),
-            typeof(prob),typeof(integrator.sol.alg),typeof(interp),typeof(integrator.sol.destats)}(
-                sol_array.u, u_analytic, errors, sol_array.t, interp.ks,
-                prob, integrator.sol.alg, interp, interp.dense,
-                integrator.sol.tslocation, integrator.integrator.sol.destats, :Success)
-    end
-
-    # calculate errors of solution
-    if sol.u_analytic !== nothing
-        DiffEqBase.calculate_solution_errors!(sol; fill_uanalytic=false,
-                                   timeseries_errors=integrator.opts.timeseries_errors,
-                                   dense_errors=integrator.opts.dense_errors)
-    end
-
-    return sol
+    # build solution
+    DiffEqBase.build_solution(prob, integrator.alg, sol_array.t, sol_array.u;
+                              timeseries_errors = integrator.opts.timeseries_errors,
+                              dense = interp.dense,
+                              dense_errors = integrator.opts.dense_errors,
+                              calculate_error = true, k = interp.ks, interp = interp,
+                              retcode = retcode, destats = integrator.sol.destats)
 end
 
 function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem{uType,tupType,lType,iip},
