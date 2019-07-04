@@ -1,40 +1,52 @@
-function DiffEqBase.__init(
-              prob::AbstractDDEProblem{uType,tupType,lType,iip},
-              alg::algType,
-              timeseries_init=uType[], ts_init=eltype(tupType)[], ks_init=[];
-              d_discontinuities=Discontinuity{eltype(tupType)}[],
-              dtmax = (prob.constant_lags === nothing || isempty(prob.constant_lags)) ?
-              prob.tspan[2]-prob.tspan[1] : eltype(tupType)(7*minimum(prob.constant_lags)),
-              dt=zero(eltype(tupType)), saveat=eltype(tupType)[],
-              tstops = eltype(tupType)[],
-              save_idxs=nothing, save_everystep=isempty(saveat),
-              save_start = save_everystep || isempty(saveat) || typeof(saveat) <: Number ? true : prob.tspan[1] in saveat,
-              save_end = save_everystep || isempty(saveat) || typeof(saveat) <: Number ? true : prob.tspan[2] in saveat,
-              save_on = true,
-              dense = save_everystep && !(typeof(alg) <: FunctionMap) && isempty(saveat),
-              minimal_solution=true, discontinuity_interp_points::Int=10,
-              discontinuity_abstol=eltype(tupType)(1//Int64(10)^12), discontinuity_reltol=0,
-              initial_order=agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
-              initialize_integrator = true, initialize_save = true,
-              callback=nothing, alias_u0=false, kwargs... ) where
-    {uType,tupType,lType,iip,algType<:AbstractMethodOfStepsAlgorithm}
+function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem,
+                            alg::AbstractMethodOfStepsAlgorithm, args...;
+                            kwargs...)
+  integrator = DiffEqBase.__init(prob, alg, args...; kwargs...)
+  solve!(integrator)
+end
 
-    tType = eltype(tupType)
+function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
+                           alg::AbstractMethodOfStepsAlgorithm,
+                           timeseries_init = typeof(prob.u0)[],
+                           ts_init = eltype(prob.tspan)[],
+                           ks_init = [];
+                           saveat = eltype(prob.tspan)[],
+                           tstops = eltype(prob.tspan)[],
+                           d_discontinuities = Discontinuity{eltype(prob.tspan)}[],
+                           save_idxs = nothing,
+                           save_everystep = isempty(saveat),
+                           save_on = true,
+                           save_start = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[1] in saveat,
+                           save_end = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[2] in saveat,
+                           callback = nothing,
+                           dense = save_everystep && isempty(saveat),
+                           dt = zero(eltype(prob.tspan)),
+                           dtmax = eltype(prob.tspan)(prob.tspan[end]-prob.tspan[1]),
+                           initialize_save = true,
+                           initialize_integrator = true,
+                           alias_u0 = false,
+                           # keyword arguments for DDEs
+                           minimal_solution = true,
+                           discontinuity_interp_points::Int = 10,
+                           discontinuity_abstol = eltype(prob.tspan)(1//Int64(10)^12),
+                           discontinuity_reltol = 0,
+                           initial_order = agrees(prob.h, prob.u0, prob.p, prob.tspan[1]) ? 1 : 0,
+                           kwargs... )
+  # unpack problem
+  @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
 
-    neutral = prob.neutral
-    constant_lags = prob.constant_lags
-    dependent_lags = prob.dependent_lags
-    p = prob.p
+  # determine type of time
+  tType = eltype(tspan)
 
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
     if isconstrained(alg) && constant_lags !== nothing && !isempty(constant_lags)
-        dtmax = min(dtmax, constant_lags...)
+        dtmax = min(dtmax, minimum(constant_lags))
     end
 
     # bootstrap the integrator using an ODE problem, but do not initialize it since
     # ODE solvers only accept functions f(du,u,p,t) or f(u,p,t) without history function
-    ode_prob = ODEProblem{iip}(prob.f, prob.u0, prob.tspan, p)
+    ode_prob = ODEProblem{isinplace(prob)}(f, u0, tspan, p)
     integrator = init(ode_prob, alg.alg; initialize_integrator=false, alias_u0=false,
                       dt=one(tType), dtmax=dtmax, kwargs...)
 
@@ -54,11 +66,11 @@ function DiffEqBase.__init(
     # expected form f(du,u,p,t) or f(u,p,t) which already includes information about the
     # history function of the DDE problem, the current solution of the integrator, and
     # the extrapolation of the integrator for the future
-    interp_h = HistoryFunction(prob.h, integrator.sol, integrator)
-    if iip
-        interp_f = (du,u,p,t) -> prob.f(du,u,interp_h,p,t)
+    interp_h = HistoryFunction(h, integrator.sol, integrator)
+    if isinplace(prob)
+        interp_f = (du,u,p,t) -> f(du,u,interp_h,p,t)
     else
-        interp_f = (u,p,t) -> prob.f(u,interp_h,p,t)
+        interp_f = (u,p,t) -> f(u,interp_h,p,t)
     end
 
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
@@ -84,13 +96,11 @@ function DiffEqBase.__init(
     # use this improved solution together with the given history function and the integrator
     # to create a problem function of the DDE with all available history information that is
     # of the form f(du,u,p,t) or f(u,p,t) such that ODE algorithms can be applied
-    dde_h = HistoryFunction(prob.h, sol, integrator)
-    if iip
-        dde_f = ODEFunction((du,u,p,t) -> prob.f(du,u,dde_h,p,t),
-                            mass_matrix = prob.f.mass_matrix)
+    dde_h = HistoryFunction(h, sol, integrator)
+    if isinplace(prob)
+        dde_f = ODEFunction((du,u,p,t) -> f(du,u,dde_h,p,t), mass_matrix = f.mass_matrix)
     else
-        dde_f = ODEFunction((u,p,t) -> prob.f(u,dde_h,p,t),
-                            mass_matrix = prob.f.mass_matrix)
+        dde_f = ODEFunction((u,p,t) -> f(u,dde_h,p,t), mass_matrix = f.mass_matrix)
     end
 
     # define absolute tolerance for fixed-point iterations
@@ -114,13 +124,13 @@ function DiffEqBase.__init(
 
     # create separate copies u and uprev, not pointing to integrator.u or integrator.uprev,
     # to cache uprev with correct dimensions and types
-    if typeof(prob.u0) <: Tuple
-        u = ArrayPartition(prob.u0,Val{true})
+    if typeof(u0) <: Tuple
+        u = ArrayPartition(u0, Val{true})
     else
         if alias_u0
-            u = prob.u0
+            u = u0
         else
-            u = recursivecopy(prob.u0)
+            u = recursivecopy(u0)
         end
     end
     uprev = recursivecopy(u)
@@ -148,12 +158,12 @@ function DiffEqBase.__init(
     # new cache with updated u, uprev, uprev2, and function f
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
         caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
-                                                 prob.tspan[1], dt, p),
+                                                 tspan[1], dt, p),
                      integrator.cache.caches, alg.alg.algs)
         dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
         dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
-                                       prob.tspan[1], dt, p)
+                                       tspan[1], dt, p)
     end
 
     # filter provided discontinuities
@@ -162,13 +172,13 @@ function DiffEqBase.__init(
     # retrieve time stops, time points at which solutions is saved, and discontinuities
     tstops_internal, saveat_internal, d_discontinuities_internal =
         tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
-                                   prob.tspan, initial_order, alg_maximum_order(alg), constant_lags, tType)
+                                   tspan, initial_order, alg_maximum_order(alg), constant_lags, tType)
 
     # create array of tracked discontinuities
     # used to find propagated discontinuities with callbacks and to keep track of all
     # passed discontinuities
     if initial_order ≤ alg_maximum_order(alg)
-        tracked_discontinuities = [Discontinuity(prob.tspan[1], initial_order)]
+        tracked_discontinuities = [Discontinuity(tspan[1], initial_order)]
     else
         tracked_discontinuities = Discontinuity{tType}[]
     end
@@ -242,7 +252,7 @@ function DiffEqBase.__init(
     # parameters of fixed-point iteration
     # do not initialize fsalfirst and fsallast
     tTypeNoUnits = typeof(one(tType))
-    dde_int = DDEIntegrator{typeof(integrator.alg),isinplace(prob),uType,tType,typeof(p),
+    dde_int = DDEIntegrator{typeof(integrator.alg),isinplace(prob),typeof(u),tType,typeof(p),
                             typeof(integrator.eigen_est),
                             typeof(fixedpoint_abstol_internal),
                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
@@ -335,15 +345,6 @@ function solve!(integrator::DDEIntegrator)
                               retcode = retcode, destats = integrator.sol.destats)
 end
 
-function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem{uType,tupType,lType,iip},
-               alg::algType,
-               timeseries_init=uType[], ts_init=eltype(tupType)[], ks_init=[]; kwargs...) where
-    {uType,tupType,iip,algType<:AbstractMethodOfStepsAlgorithm,lType}
-
-    integrator = DiffEqBase.__init(prob, alg, timeseries_init, ts_init, ks_init; kwargs...)
-    solve!(integrator)
-end
-
 function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
     t = dde_int.t
     u = dde_int.u
@@ -367,7 +368,7 @@ function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
         end
 
         if OrdinaryDiffEq.alg_extrapolates(dde_int.alg)
-            if iip
+            if isinplace(dde_int.sol.prob)
                 recursivecopy!(dde_int.uprev2,dde_int.uprev)
             else
                 dde_int.uprev2 = dde_int.uprev
