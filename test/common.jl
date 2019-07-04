@@ -1,4 +1,4 @@
-using DelayDiffEq, DiffEqProblemLibrary, Test
+using DelayDiffEq, Test
 using DiffEqProblemLibrary.DDEProblemLibrary
 
 DDEProblemLibrary.importddeproblems()
