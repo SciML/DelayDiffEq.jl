@@ -31,9 +31,8 @@ end
                         [25.0, 50.0, 75.0, 100.0])
 
     # solution of ODE integrator is reduced:
-    # [0.0, ≈24.67, ≈25.89, ≈49.23, ≈50.47, ≈73.91, ≈75.14, 100.0]
-    @test dde_int_min.sol.t ≈ [0.0, 24.67, 25.89, 49.23, 50.47, 73.91,
-                               75.14, 100.0] atol=1.1e-2
+    # [0.0, ≈24.73, ≈25.88, ≈49.43, ≈50.67, ≈74.11, ≈75.34, 100.0]
+    @test dde_int_min.sol.t ≈ [0.0, 24.73, 25.88, 49.43, 50.67, 74.11, 75.34, 100.0] atol=1e-2
 
     # solution lies on interpolation of full solution above
     @test sol(sol_min.t).u == sol_min.u
