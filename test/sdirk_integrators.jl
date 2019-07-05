@@ -2,6 +2,7 @@ include("common.jl")
 
 const prob_ip = prob_dde_constant_1delay_ip
 const prob_scalar = prob_dde_constant_1delay_scalar
+const ts = 0:0.1:10
 
 # ODE algorithms
 const algs = [GenericImplicitEuler(), GenericTrapezoid(),
@@ -18,5 +19,6 @@ const algs = [GenericImplicitEuler(), GenericTrapezoid(),
   sol_ip = solve(prob_ip, stepsalg)
   sol_scalar = solve(prob_scalar, stepsalg)
 
+  @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
   @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
 end
