@@ -1,27 +1,4 @@
 """
-    agrees(h, u, p, t)
-
-Determine whether history function evaluates to `u` at time point `t`
-for parameters `p`.
-"""
-function agrees(h, u, p, t)
-    # Obtain signatures of h
-    sigs = [m.sig for m in methods(h)]
-
-    # Compare evaluation of h at time point t with u
-    if any(sig<:Tuple{Any, Any, Any} for sig in sigs)
-        return h(p, t) == u
-    elseif any(sig<:Tuple{Any, Any, Any, Any} for sig in sigs)
-        val = recursivecopy(u)
-        h(val, p, t)
-        return val == u
-    end
-
-    return false
-end
-
-
-"""
     fsal_typeof(integrator::ODEIntegrator)
 
 Return type of FSAL of `integrator`.

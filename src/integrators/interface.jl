@@ -309,7 +309,7 @@ function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
                  tstops = integrator.opts.tstops_cache,
                  saveat = integrator.opts.saveat_cache,
                  d_discontinuities = integrator.opts.d_discontinuities_cache,
-                 initial_order = agrees(integrator.sol.prob.h, u0, integrator.sol.prob.p, t0) ? 1 : 0,
+                 order_discontinuity_t0 = t0 == integrator.sol.prob.tspan[1] && u0 == integrator.sol.prob.u0 ? integrator.sol.prob.order_discontinuity_t0 : 0,
                  reset_dt = iszero(integrator.dtcache) && integrator.opts.adaptive,
                  reinit_callbacks = true, initialize_save = true,
                  reinit_cache = true)
@@ -344,7 +344,7 @@ function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
     # reinit time stops, time points at which solution is saved, and discontinuities
     integrator.opts.tstops, integrator.opts.saveat, integrator.opts.d_discontinuities =
         tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
-                                   (t0,tf), initial_order, alg_maximum_order(integrator.alg),
+                                   (t0,tf), order_discontinuity_t0, alg_maximum_order(integrator.alg),
                                    integrator.sol.prob.constant_lags, typeof(integrator.t))
 
     # copy time points at which solution is saved if solution should be
@@ -355,9 +355,9 @@ function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
 
     if erase_sol
         # erase array of tracked discontinuities
-        if initial_order ≤ alg_maximum_order(integrator.alg)
+        if order_discontinuity_t0 ≤ alg_maximum_order(integrator.alg)
             resize!(integrator.tracked_discontinuities, 1)
-            integrator.tracked_discontinuities[1] = Discontinuity(t0, initial_order)
+            integrator.tracked_discontinuities[1] = Discontinuity(t0, order_discontinuity_t0)
         else
             resize!(integrator.tracked_discontinuities, 0)
         end

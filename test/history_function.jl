@@ -19,11 +19,6 @@ end
     end
   end
 
-  @testset "agrees (h=$h)" for h in (h_notinplace, h_inplace)
-    @test DelayDiffEq.agrees(h, zeros(2), nothing, 0)
-    @test !DelayDiffEq.agrees(h, ones(2), nothing, 1)
-  end
-
   # ODE integrator
   prob = ODEProblem((du,u,p,t)->@.(du=p*u), ones(2), (0.0, 1.0),1.01)
   integrator = init(prob, Tsit5())
