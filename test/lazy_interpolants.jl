@@ -1,6 +1,6 @@
 include("common.jl")
 
-## simple problems
+# simple problems
 @testset "simple problems" begin
   prob_ip = prob_dde_constant_1delay_ip
   prob_scalar = prob_dde_constant_1delay_scalar
@@ -18,9 +18,14 @@ include("common.jl")
 
     sol_scalar = solve(prob_scalar, alg)
 
-    # fails due to floating point issues on Win32 and Haswell CPUs: https://github.com/JuliaDiffEq/DelayDiffEq.jl/issues/97
-    # @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
-    (Sys.iswindows() && Sys.WORD_SIZE == 32) || (@test sol_ip(ts, idxs=1) ≈ sol_scalar(ts) atol = 1e-8)
+    # fails due to floating point issues
+    if Sys.WORD_SIZE == 32
+      @test_broken sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
+      @test_broken sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    else
+      @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
+      @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    end
   end
 
   # Vern7
@@ -35,8 +40,14 @@ include("common.jl")
 
     sol_scalar = solve(prob_scalar, alg)
 
-    # fails due to floating point issues on Win32
-    (Sys.iswindows() && Sys.WORD_SIZE == 32) || (@test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u)
+    @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
+
+    # fails due to floating point issues
+    if Sys.WORD_SIZE == 32
+      @test_broken sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    else
+      @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    end
   end
 
   # Vern8
@@ -51,8 +62,14 @@ include("common.jl")
 
     sol_scalar = solve(prob_scalar, alg)
 
+    @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
+
     # fails due to floating point issues on Win32
-    (Sys.iswindows() && Sys.WORD_SIZE == 32) || (@test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u)
+    if Sys.WORD_SIZE == 32
+      @test_broken sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    else
+      @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    end
   end
 
   # Vern9
@@ -67,9 +84,14 @@ include("common.jl")
 
     sol_scalar = solve(prob_scalar, alg)
 
-    # fails due to floating point issues on Haswell CPUs: https://github.com/JuliaDiffEq/DelayDiffEq.jl/issues/97
-    # @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
-    @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts) atol = 1e-12
+    @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
+
+    # fails due to floating point issues
+    if Sys.WORD_SIZE == 32
+      @test_broken sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    else
+      @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
+    end
   end
 end
 
