@@ -1,7 +1,7 @@
 mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                              residType,tTypeNoUnits,tdirType,ksEltype,
                              SolType,F,CacheType,
-                             IType,NType,O,tstopsType,
+                             IType,NType,O,tstopsType,dAbsType,dRelType,
                              FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
     sol::SolType
     u::uType
@@ -22,6 +22,9 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     max_fixedpoint_iters::Int
     saveat::tstopsType
     tracked_discontinuities::Vector{Discontinuity{tType}}
+    discontinuity_interp_points::Int
+    discontinuity_abstol::dAbsType
+    discontinuity_reltol::dRelType
     alg::algType
     dtcache::tType
     dtchangeable::Bool
@@ -60,30 +63,35 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     function DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                            residType,tTypeNoUnits,
                            tdirType,ksEltype,SolType,F,CacheType,IType,
-                           NType,O,tstopsType,FSALType,EventErrorType,CallbackCacheType}(
+                           NType,O,tstopsType,dAbsType,dRelType,FSALType,EventErrorType,
+                           CallbackCacheType}(
                                sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,
                                fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,
-                               max_fixedpoint_iters,saveat,tracked_discontinuities,alg,
-                               dtcache,dtchangeable,dtpropose,tdir,eigen_est,EEst,qold,
+                               max_fixedpoint_iters,saveat,tracked_discontinuities,
+                               discontinuity_interp_points,discontinuity_abstol,discontinuity_reltol,
+                               alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
                                cache,callback_cache,kshortsize,force_stepfail,last_stepfail,
                                just_hit_tstop,event_last_time,vector_event_last_time,last_event_error,
                                accept_step,isout,reeval_fsal,u_modified,opts,destats,
                                integrator) where
         {algType,IIP,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
-        tdirType,ksEltype,
-         SolType,F,CacheType,IType,NType,O,tstopsType,FSALType,EventErrorType,CallbackCacheType}
+         tdirType,ksEltype,SolType,F,CacheType,IType,NType,O,tstopsType,
+         dAbsType,dRelType,FSALType,EventErrorType,CallbackCacheType}
 
         new{algType,IIP,uType,tType,P,eigenType,absType,relType,
                                residType,tTypeNoUnits,
                                tdirType,ksEltype,SolType,F,CacheType,IType,
-                               NType,O,tstopsType,FSALType,EventErrorType,CallbackCacheType}(
+                               NType,O,tstopsType,dAbsType,dRelType,
+                               FSALType,EventErrorType,CallbackCacheType}(
             sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,fixedpoint_abstol,
             fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,saveat,
-            tracked_discontinuities,alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,
-            EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,cache,
-            callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,accept_step,
-            event_last_time,vector_event_last_time,last_event_error,isout,reeval_fsal,u_modified,opts,destats,integrator)
+            tracked_discontinuities,discontinuity_interp_points,discontinuity_abstol,
+            discontinuity_reltol,alg,dtcache,dtchangeable,dtpropose,tdir,
+            eigen_est,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
+            cache,callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
+            accept_step,event_last_time,vector_event_last_time,last_event_error,isout,
+            reeval_fsal,u_modified,opts,destats,integrator)
     end
 end
 

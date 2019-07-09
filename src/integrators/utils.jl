@@ -1,4 +1,110 @@
 """
+    discontinuity_function(integrator::DDEIntegrator, lag, T, t)
+
+Evaluate function ``f(x) = T + lag(u(x), p, x) - x`` at time point `t`, where `T` is time
+point of a previous discontinuity and `lag` is a dependent delay.
+"""
+function discontinuity_function(integrator::DDEIntegrator, lag, T, t)
+  tmp = get_tmp_cache(integrator)
+  cache = tmp === nothing ? nothing : first(tmp)
+
+  # estimate state at the given time
+  if cache === nothing
+    ut = integrator(t, Val{0})
+  else
+    integrator(cache, t, Val{0})
+    ut = cache
+  end
+
+  T + lag(ut, integrator.p, t) - t
+end
+
+"""
+    discontinuity_interval(integrator::DDEIntegrator, lag, T, Θs)
+
+Return an estimated subinterval of the current integration step of the `integrator` that
+contains a propagated discontinuity induced by the dependent delay `lag` and the
+discontinuity at time point `T`, or `nothing`.
+
+The interval is estimated by checking the signs of `T + lag(u(t), p, t) - t` for time points
+`integrator.t .+ θs` in the interval `[integrator.t, integrator.t + integrator.dt]`.
+"""
+function discontinuity_interval(integrator::DDEIntegrator, lag, T, Θs)
+  # use start and end point of last time interval to check for discontinuities
+  previous_condition = discontinuity_function(integrator, lag, T, integrator.t)
+  if isapprox(previous_condition, 0;
+              rtol = integrator.discontinuity_reltol,
+              atol = integrator.discontinuity_abstol)
+    prev_sign = 0
+  else
+    prev_sign = cmp(previous_condition, zero(previous_condition))
+  end
+  new_condition = discontinuity_function(integrator, lag, T, integrator.t + integrator.dt)
+  new_sign = cmp(new_condition, zero(new_condition))
+
+  # if signs are different we already know that a discontinuity exists
+  if prev_sign * new_sign < 0
+    return (zero(eltype(Θs)), one(eltype(Θs)))
+  end
+
+  # recheck interpolation intervals if no discontinuity found yet
+  prev_Θ = zero(eltype(Θs))
+
+  for i in 2:length(Θs)
+    # evaluate sign at next interpolation point
+    new_Θ = Θs[i]
+    new_t = integrator.t + new_Θ * integrator.dt
+    new_condition = discontinuity_function(integrator, lag, T, new_t)
+    new_sign = cmp(new_condition, zero(new_condition))
+
+    # return estimated interval if we find a root or observe a switch of signs
+    if new_sign == 0
+      return (new_Θ, new_Θ)
+    elseif prev_sign * new_sign < 0
+      return (prev_Θ, new_Θ)
+    else
+      # otherwise update lower estimate of subinterval
+      prev_sign = new_sign
+      prev_Θ = new_Θ
+    end
+  end
+
+  nothing
+end
+
+"""
+    discontinuity_time(integrator::DDEIntegrator, lag, T, interval)
+
+Estimate time point of the propagated discontinuity induced by the dependent delay
+`lag` and the discontinuity at time point `T` inside the `interval` of the current
+integration step of the `integrator`.
+"""
+function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_Θ))
+  if bottom_Θ == top_Θ
+    # in that case we have already found the time point of a discontinuity
+    Θ = top_Θ
+  else
+    # define function for root finding
+    zero_func(Θ) = discontinuity_function(integrator, lag, T,
+                                          integrator.t + Θ * integrator.dt)
+
+    Θ = prevfloat(find_zero(zero_func, (bottom_Θ, top_Θ), Roots.AlefeldPotraShi();
+                            atol = integrator.discontinuity_abstol / 100))
+  end
+
+  # Θ = prevfloat(...)
+  # prevfloat guerentees that the new time is either 1 floating point
+  # numbers just before the event or directly at zero, but not after.
+  # If there's a barrier which is never supposed to be crossed,
+  # then this will ensure that
+  # The item never leaves the domain. Otherwise Roots.jl can return
+  # a float which is slightly after, making it out of the domain, causing
+  # havoc.
+
+  integrator.t + Θ * integrator.dt
+end
+
+"""
     reduce_solution!(integrator::DDEIntegrator, tmax)
 
 Remove time points of ODE solution of `integrator` up to time `tmax` that are not required
