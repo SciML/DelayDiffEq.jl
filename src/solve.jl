@@ -164,7 +164,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     # new cache with updated u, uprev, uprev2, and function f
     if typeof(alg.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
         caches = map((x,y) -> build_linked_cache(x, y, u, uprev, uprev2, dde_f,
-                                                 tspan[1], dt, p),
+                                                 tspan[1], dt, p, uEltypeNoUnits),
                      integrator.cache.caches, alg.alg.algs)
         dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
