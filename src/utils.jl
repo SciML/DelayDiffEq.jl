@@ -70,6 +70,13 @@ assign_expr(::Val{name}, ::Type{<:DiffEqDiffTools.GradientCache},
           ::Type) where {name} =
               :($name = OrdinaryDiffEq.build_grad_config(alg, f, tf, du1, t))
 
+# nlsolver
+assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.NLSolver{true}}, ::Type) where name =
+    :($name = DiffEqBase.iipnlsolve(alg,u,uprev,p,t,dt,f,W,
+                                    cache.$name.du1,uEltypeNoUnits,
+                                    uEltypeNoUnits,cache.$name.γ,cache.$name.c))
+    # Second uEltypeNoUnits should be uBottomEltypeNoUnits
+
 # update implicit RHS
 assign_expr(::Val{name}, ::Type{<:OrdinaryDiffEq.ImplicitRHS}, ::Type) where name =
     :($name = OrdinaryDiffEq.ImplicitRHS(f, cache.tmp, t, t, t, cache.dual_cache,p))
@@ -95,10 +102,9 @@ assign_expr(::Val{name}, ::Type{<:NLSolversBase.OnceDifferentiable},
 Create cache for algorithm `alg` from existing cache `cache` with updated `u`, `uprev`,
 `uprev2`, `f`, `t`, and `dt`.
 """
-@generated function build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt,p)
+@generated function build_linked_cache(cache, alg, u, uprev, uprev2, f, t, dt, p, uEltypeNoUnits)
     assignments = [assign_expr(Val{name}(), fieldtype(cache, name), cache)
                    for name in fieldnames(cache) if name ∉ [:u, :uprev, :uprev2, :t, :dt]]
-
     :($(assignments...); $(DiffEqBase.parameterless_type(cache))($(fieldnames(cache)...)))
 end
 

@@ -169,7 +169,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         dde_cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
     else
         dde_cache = build_linked_cache(integrator.cache, alg.alg, u, uprev, uprev2, dde_f,
-                                       tspan[1], dt, p)
+                                       tspan[1], dt, p, uEltypeNoUnits)
     end
 
     # filter provided discontinuities
