@@ -1,3 +1,70 @@
+function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
+  OrdinaryDiffEq._loopfooter!(integrator)
+
+  # reset ODE integrator to the cached values if the last step failed
+  if !integrator.accept_step
+    if isinplace(integrator.sol.prob)
+      recursivecopy!(integrator.integrator.u, integrator.sol.u[end])
+    else
+      integrator.integrator.u = integrator.sol.u[end]
+    end
+    integrator.integrator.t = integrator.sol.t[end]
+    integrator.integrator.tprev = integrator.sol.t[integrator.prev2_idx]
+    integrator.integrator.dt = integrator.integrator.dtcache
+
+    # u(tprev) is not modified hence we do not have to copy it
+    integrator.integrator.uprev = integrator.sol.u[integrator.prev2_idx]
+
+    # do not have to reset interpolation data in initial time step since always a
+    # constant extrapolation is used (and interpolation data of solution at initial
+    # time point is not complete!)
+    if length(integrator.sol.t) > 1
+      recursivecopy!(integrator.integrator.k, integrator.sol.k[end])
+    end
+  end
+
+  # track propagated discontinuities for dependent delays
+  dependent_lags = integrator.sol.prob.dependent_lags
+  if dependent_lags !== nothing && !isempty(dependent_lags) && integrator.iter > 0
+    # if the step is not accepted, always try to figure out if we step over a discontinuity
+    if integrator.opts.adaptive && !integrator.accept_step
+      # calculate interpolation points
+      interp_points = integrator.discontinuity_interp_points
+      Θs = range(zero(integrator.t); stop = oneunit(integrator.t), length = interp_points)
+
+      # for dependent lags and previous discontinuities
+      for lag in dependent_lags, discontinuity in integrator.tracked_discontinuities
+        # obtain time of previous discontinuity
+        T = discontinuity.t
+
+        # estimate subinterval of current integration step that contains a propagated
+        # discontinuity induced by the lag and the previous discontinuity
+        interval = discontinuity_interval(integrator, lag, T, Θs)
+
+        # if a discontinuity exists in the current integration step
+        if interval !== nothing
+          # estimate time point of discontinuity
+          t = discontinuity_time(integrator, lag, T, interval)
+
+          # add new discontinuity of correct order at the estimated time point
+          if integrator.sol.prob.neutral
+            d = Discontinuity(t, discontinuity.order)
+          else
+            d = Discontinuity(t, discontinuity.order + 1)
+          end
+          push!(integrator.opts.d_discontinuities, d)
+          push!(integrator.opts.tstops, t)
+
+          # analogously to RADAR5 we do not strive for finding the first discontinuity
+          break
+        end
+      end
+    end
+  end
+
+  nothing
+end
+
 function savevalues!(integrator::DDEIntegrator, force_save=false)
     # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
     # integrator.EEst has unitless type of integrator.t
@@ -48,12 +115,6 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
                          integrator.t - integrator.tdir * maximum(abs, constant_lags))
     end
 
-    # prevent reset of ODE integrator to cached values in the calculation of the next step
-    # NOTE: does not interfere with usual use of accept_step since ODE integrator is only
-    # used for inter- and extrapolation of future values and saving of the solution but does
-    # not affect whether time steps are accepted
-    integrator.integrator.accept_step = true
-
     return saved_tuple
 end
 
@@ -76,28 +137,6 @@ end
 Calculate next step of `integrator`.
 """
 @muladd function perform_step!(integrator::DDEIntegrator)
-    # reset ODE integrator to cached values if last step failed
-    if !integrator.integrator.accept_step
-        if isinplace(integrator.sol.prob)
-            recursivecopy!(integrator.integrator.u, integrator.sol.u[end])
-        else
-            integrator.integrator.u = integrator.sol.u[end]
-        end
-        integrator.integrator.t = integrator.sol.t[end]
-        integrator.integrator.tprev = integrator.sol.t[integrator.prev2_idx]
-        integrator.integrator.dt = integrator.integrator.dtcache
-
-        # u(tprev) is not modified hence we do not have to copy it
-        integrator.integrator.uprev = integrator.sol.u[integrator.prev2_idx]
-
-        # do not have to reset interpolation data in initial time step since always a
-        # constant extrapolation is used (and interpolation data of solution at initial
-        # time point is not complete!)
-        if length(integrator.sol.t) > 1
-            recursivecopy!(integrator.integrator.k, integrator.sol.k[end])
-        end
-    end
-
     # reset boolean which indicates whether history function was evaluated at a time point
     # past the final point of the current solution
     # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
@@ -181,8 +220,7 @@ Calculate next step of `integrator`.
         advance_ode_integrator!(integrator)
     end
 
-    # is reset if time step is saved, prevents unnecessary copies and assignments
-    integrator.integrator.accept_step = false
+  nothing
 end
 
 """

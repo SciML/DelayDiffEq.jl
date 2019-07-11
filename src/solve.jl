@@ -18,7 +18,6 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            save_on = true,
                            save_start = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[1] in saveat,
                            save_end = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[2] in saveat,
-                           callback = nothing,
                            dense = save_everystep && isempty(saveat),
                            dt = zero(eltype(prob.tspan)),
                            dtmax = eltype(prob.tspan)(prob.tspan[end]-prob.tspan[1]),
@@ -190,28 +189,6 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         tracked_discontinuities = Discontinuity{tType}[]
     end
 
-    # create additional callback to track dependent delays
-    if dependent_lags !== nothing && !isempty(dependent_lags)
-        discontinuity_callback = DiscontinuityCallback(dependent_lags,
-                                                       tracked_discontinuities,
-                                                       discontinuity_interp_points,
-                                                       discontinuity_abstol,
-                                                       discontinuity_reltol,
-                                                       initialize!, nothing)
-        callbacks = CallbackSet(callback, prob.callback, discontinuity_callback)
-    else
-        callbacks = CallbackSet(callback, prob.callback)
-    end
-
-
-    max_len_cb = DiffEqBase.max_vector_callback_length(callbacks)
-    if max_len_cb isa VectorContinuousCallback
-      callback_cache = DiffEqBase.CallbackCache(max_len_cb.len,uBottomEltype,uBottomEltype)
-    else
-      callback_cache = nothing
-    end
-
-
     # separate options of integrator and ODE integrator since ODE integrator always saves
     # every step and every index (necessary for history function)
     opts = OrdinaryDiffEq.DEOptions(integrator.opts.maxiters,
@@ -235,7 +212,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                     integrator.opts.dense_errors, integrator.opts.beta1,
                                     integrator.opts.beta2, integrator.opts.qoldinit,
                                     dense && integrator.opts.dense, save_on, save_start, save_end,
-                                    callbacks, integrator.opts.isoutofdomain,
+                                    integrator.opts.callback, integrator.opts.isoutofdomain,
                                     integrator.opts.unstable_check,
                                     integrator.opts.verbose, integrator.opts.calck,
                                     integrator.opts.force_dtmin,
@@ -266,12 +243,15 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                             typeof(integrator.tdir),typeof(integrator.k),typeof(sol),
                             typeof(dde_f),typeof(dde_cache),
                             typeof(integrator),typeof(fixedpoint_norm),typeof(opts),
-                            typeof(saveat_copy),fsal_typeof(integrator),typeof(integrator.last_event_error),typeof(callback_cache)}(
+                            typeof(saveat_copy),typeof(discontinuity_abstol),
+                            typeof(discontinuity_reltol),fsal_typeof(integrator),
+                            typeof(integrator.last_event_error),typeof(integrator.callback_cache)}(
                                 sol, u, integrator.k, integrator.t, dt, dde_f, p, uprev,
                                 uprev2, integrator.tprev, 1, 1, fixedpoint_abstol_internal,
                                 fixedpoint_reltol_internal, resid, fixedpoint_norm,
                                 alg.max_fixedpoint_iters, saveat_copy,
-                                tracked_discontinuities, integrator.alg,
+                                tracked_discontinuities, discontinuity_interp_points,
+                                discontinuity_abstol, discontinuity_reltol, integrator.alg,
                                 integrator.dtcache,
                                 integrator.dtchangeable, integrator.dtpropose,
                                 integrator.tdir, integrator.eigen_est,
@@ -279,7 +259,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                 integrator.q11, integrator.erracc, integrator.dtacc,
                                 integrator.success_iter, integrator.iter,
                                 integrator.saveiter, integrator.saveiter_dense,
-                                dde_cache, callback_cache, integrator.kshortsize,
+                                dde_cache, integrator.callback_cache, integrator.kshortsize,
                                 integrator.force_stepfail, integrator.just_hit_tstop,
                                 integrator.last_stepfail, integrator.event_last_time, 1,
                                 integrator.last_event_error, integrator.accept_step,
