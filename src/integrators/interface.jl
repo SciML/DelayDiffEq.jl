@@ -266,13 +266,11 @@ function deleteat!(integrator::DDEIntegrator, i::Int)
     end
 end
 
-"""
-    terminate!(integrator::DDEIntegrator)
-
-Stop further calculations of `integrator`.
-"""
-function terminate!(integrator::DDEIntegrator)
-    integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
+# terminate integration
+function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = :Terminated)
+  integrator.sol = DiffEqBase.solution_new_retcode(integrator.sol, retcode)
+  integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
+  nothing
 end
 
 # DDE integrator can be reinitialized
