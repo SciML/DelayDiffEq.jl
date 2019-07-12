@@ -82,94 +82,84 @@ function postamble!(integrator::DDEIntegrator)
     integrator.saveat !== nothing && reduce_solution!(integrator, integrator.sol.t[end])
 end
 
-"""
-    perform_step!(integrator::DDEIntegrator)
+# perform next integration step
+function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
+  @unpack f, t, p, k, uprev, dt, resid, alg, cache, max_fixedpoint_iters = integrator
+  @unpack fixedpoint_abstol, fixedpoint_reltol, fixedpoint_norm = integrator
+  ode_integrator = integrator.integrator
+  internalnorm = integrator.opts.internalnorm
+  prob = integrator.sol.prob
 
-Calculate next step of `integrator`.
-"""
-@muladd function perform_step!(integrator::DDEIntegrator)
-    # reset boolean which indicates whether history function was evaluated at a time point
-    # past the final point of the current solution
-    # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
-    # inter- and extrapolation of future values and saving of the solution but does not
-    # affect whether time steps are accepted
-    integrator.integrator.isout = false
+  # reset boolean which indicates whether history function was evaluated at a time point
+  # past the final point of the current solution
+  # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
+  # inter- and extrapolation of future values and saving of the solution but does not
+  # affect whether time steps are accepted
+  ode_integrator.isout = false
 
-    # perform always at least one calculation
-    perform_step!(integrator, integrator.cache)
+  # perform always at least one calculation of the stages
+  OrdinaryDiffEq.perform_step!(integrator, cache)
 
-    # if the history function was evaluated at time points past the final time point of the
-    # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
-    if integrator.integrator.isout
-        # update ODE integrator to next time interval together with correct interpolation
-        advance_ode_integrator!(integrator)
+  # if the history function was evaluated at time points past the final time point of the
+  # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
+  if ode_integrator.isout
+    # update ODE integrator to next time interval together with correct interpolation
+    advance_ode_integrator!(integrator)
 
-        numiters = 1
+    numiters = 1
 
-        while true
-            # calculate next step
-            perform_step!(integrator, integrator.cache, true) # repeat_step=true
+    while true
+      # calculate next step
+      OrdinaryDiffEq.perform_step!(integrator, cache, true) # repeat_step=true
 
-            # calculate residuals of fixed-point iteration
-            if isinplace(integrator.sol.prob)
-                OrdinaryDiffEq.calculate_residuals!(integrator.resid,
-                                                    integrator.integrator.u,
-                                                    integrator.u,
-                                                    integrator.fixedpoint_abstol,
-                                                    integrator.fixedpoint_reltol,
-                                                    integrator.opts.internalnorm,
-                                                    integrator.t)
-            else
-                integrator.resid = OrdinaryDiffEq.calculate_residuals(
-                    integrator.integrator.u, integrator.u, integrator.fixedpoint_abstol,
-                    integrator.fixedpoint_reltol, integrator.opts.internalnorm,integrator.t)
-            end
+      # calculate residuals of fixed-point iteration
+      if isinplace(prob)
+        OrdinaryDiffEq.calculate_residuals!(resid, ode_integrator.u, integrator.u,
+                                            fixedpoint_abstol, fixedpoint_reltol,
+                                            internalnorm, t)
+      else
+        resid = OrdinaryDiffEq.calculate_residuals(ode_integrator.u, integrator.u,
+                                                   fixedpoint_abstol, fixedpoint_reltol,
+                                                   internalnorm, t)
+      end
 
-            # update error estimate of integrator with a combined error
-            # estimate of both integrator and fixed-point iteration
-            # this prevents acceptance of steps with poor performance in fixed-point
-            # iteration
-            integrator.EEst = max(integrator.EEst,
-                                  integrator.fixedpoint_norm(integrator.resid,integrator.t))
+      # update error estimate of integrator with a combined error
+      # estimate of both integrator and fixed-point iteration
+      # this prevents acceptance of steps with poor performance in fixed-point
+      # iteration
+      integrator.EEst = max(integrator.EEst, fixedpoint_norm(resid, t))
 
-            # complete interpolation data of DDE integrator for time interval [t, t+dt]
-            # and copy it to ODE integrator
-            # has to be done before updates to ODE integrator, otherwise history function
-            # is incorrect
-            if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
-                addsteps!(integrator.k, integrator.t, integrator.uprev,
-                                             integrator.u, integrator.dt, integrator.f,
-                                             integrator.p,
-                                             integrator.cache.caches[integrator.cache.current],
-                                             false, true, true)
-            else
-                addsteps!(integrator.k, integrator.t, integrator.uprev,
-                                             integrator.u, integrator.dt, integrator.f,
-                                             integrator.p,
-                                             integrator.cache, false, true,
-                                             true)
-            end
-            recursivecopy!(integrator.integrator.k, integrator.k)
+      # complete interpolation data of DDE integrator for time interval [t, t+dt]
+      # and copy it to ODE integrator
+      # has to be done before updates to ODE integrator, otherwise history function
+      # is incorrect
+      if iscomposite(alg)
+        DiffEqBase.addsteps!(k, t, uprev, integrator.u, dt, f, p,
+                             cache.caches[cache.current], false, true, true)
+      else
+        DiffEqBase.addsteps!(k, t, uprev, integrator.u, dt, f, p, cache, false, true, true)
+      end
+      recursivecopy!(ode_integrator.k, k)
 
-            # update value u(t+dt)
-            if isinplace(integrator.sol.prob)
-                recursivecopy!(integrator.integrator.u, integrator.u)
-            else
-                integrator.integrator.u = integrator.u
-            end
+      # update value u(t+dt)
+      if isinplace(prob)
+        recursivecopy!(ode_integrator.u, integrator.u)
+      else
+        ode_integrator.u = integrator.u
+      end
 
-            # stop fixed-point iteration when error estimate is small or maximal number of
-            # steps is exceeded
-            if integrator.EEst <= 1 || numiters > integrator.max_fixedpoint_iters
-                break
-            end
+      # stop fixed-point iteration when error estimate is small or maximal number of
+      # steps is exceeded
+      if integrator.EEst <= 1 || numiters > max_fixedpoint_iters
+        break
+      end
 
-            numiters += 1
-        end
-    else
-        # update ODE integrator to next time interval together with correct interpolation
-        advance_ode_integrator!(integrator)
+      numiters += 1
     end
+  else
+    # update ODE integrator to next time interval together with correct interpolation
+    advance_ode_integrator!(integrator)
+  end
 
   nothing
 end
