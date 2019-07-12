@@ -334,55 +334,52 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
   integrator.sol = DiffEqBase.solution_new_retcode(sol, :Success)
 end
 
-function initialize_callbacks!(dde_int::DDEIntegrator, initialize_save = true)
-    t = dde_int.t
-    u = dde_int.u
-    integrator = dde_int.integrator
-    callbacks = dde_int.opts.callback
-    # set up additional initial values of newly created DDE integrator
-    # (such as fsalfirst) and its callbacks
+function OrdinaryDiffEq.initialize_callbacks!(integrator::DDEIntegrator,
+                                              initialize_save = true)
+  callbacks = integrator.opts.callback
+  prob = integrator.sol.prob
 
-    dde_int.u_modified = true
+  # set up additional initial values of newly created DDE integrator
+  # (such as fsalfirst) and its callbacks
 
-    u_modified = initialize!(callbacks,u,t,dde_int)
+  integrator.u_modified = true
 
-    # if the user modifies u, we need to fix previous values before initializing
-    # FSAL in order for the starting derivatives to be correct
-    if u_modified
+  u_modified = initialize!(callbacks, integrator.u, integrator.t, integrator)
 
-        if isinplace(dde_int.sol.prob)
-            recursivecopy!(dde_int.uprev,dde_int.u)
-        else
-            dde_int.uprev = dde_int.u
-        end
+  # if the user modifies u, we need to fix previous values before initializing
+  # FSAL in order for the starting derivatives to be correct
+  if u_modified
 
-        if OrdinaryDiffEq.alg_extrapolates(dde_int.alg)
-            if isinplace(dde_int.sol.prob)
-                recursivecopy!(dde_int.uprev2,dde_int.uprev)
-            else
-                dde_int.uprev2 = dde_int.uprev
-            end
-        end
-
-        # update heap of discontinuities
-        # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
-        push!(dde_int.opts.d_discontinuities, Discontinuity(dde_int.t, 0))
-
-        # reset this as it is now handled so the integrators should proceed as normal
-        reeval_internals_due_to_modification!(dde_int,Val{false})
-
-        if initialize_save &&
-          (any((c)->c.save_positions[2],callbacks.discrete_callbacks) ||
-          any((c)->c.save_positions[2],callbacks.continuous_callbacks))
-          savevalues!(dde_int,true)
-        end
-
-        # recompute initial time step
-        auto_dt_reset!(dde_int)
+    if isinplace(prob)
+      recursivecopy!(integrator.uprev, integrator.u)
+    else
+      integrator.uprev = integrator.u
     end
 
+    if OrdinaryDiffEq.alg_extrapolates(integrator.alg)
+      if isinplace(prob)
+        recursivecopy!(integrator.uprev2, integrator.uprev)
+      else
+        integrator.uprev2 = integrator.uprev
+      end
+    end
+
+    # update heap of discontinuities
+    # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
+    push!(integrator.opts.d_discontinuities, Discontinuity(integrator.t, 0))
+
     # reset this as it is now handled so the integrators should proceed as normal
-    dde_int.u_modified = false
+    reeval_internals_due_to_modification!(integrator, Val{false})
+
+    if initialize_save &&
+      (any((c)->c.save_positions[2],callbacks.discrete_callbacks) ||
+       any((c)->c.save_positions[2],callbacks.continuous_callbacks))
+      savevalues!(integrator, true)
+    end
+  end
+
+  # reset this as it is now handled so the integrators should proceed as normal
+  integrator.u_modified = false
 end
 
 function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan,
