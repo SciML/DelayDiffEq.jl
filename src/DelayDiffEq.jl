@@ -6,7 +6,6 @@ using Reexport
 using DataStructures
 using DiffEqDiffTools
 using ForwardDiff
-using MuladdMacro
 using NLSolversBase
 using Parameters
 using RecursiveArrayTools
