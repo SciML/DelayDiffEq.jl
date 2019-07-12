@@ -2,7 +2,8 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem,
                             alg::AbstractMethodOfStepsAlgorithm, args...;
                             kwargs...)
   integrator = DiffEqBase.__init(prob, alg, args...; kwargs...)
-  solve!(integrator)
+  DiffEqBase.solve!(integrator)
+  integrator.sol
 end
 
 function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
