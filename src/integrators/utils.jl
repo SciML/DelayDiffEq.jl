@@ -140,6 +140,8 @@ function handle_discontinuities!(integrator::DDEIntegrator)
 
     # add discontinuities of next order to integrator
     add_next_discontinuities!(integrator, order)
+
+  nothing
 end
 
 """
@@ -175,4 +177,6 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
 
     # track propagated discontinuities with callback
     push!(integrator.tracked_discontinuities, Discontinuity(t, order))
+
+  nothing
 end

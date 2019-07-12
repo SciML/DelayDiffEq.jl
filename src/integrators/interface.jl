@@ -194,12 +194,11 @@ Get the time step that `integrator` will take after the current step.
 """
 @inline get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
 
-"""
-    set_proposed_dt!(integrator::DDEIntegrator, dt)
-
-Set the time step that `integrator` will take after the current step to `dt`.
-"""
-@inline set_proposed_dt!(integrator::DDEIntegrator, dt) = (integrator.dtpropose = dt)
+# set next integration time step
+function DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt)
+  integrator.dtpropose = dt
+  nothing
+end
 
 @inline DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) = DiffEqBase.get_tmp_cache(integrator,integrator.alg,integrator.cache)
 user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
