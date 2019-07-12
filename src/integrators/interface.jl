@@ -176,19 +176,22 @@ end
 
 # initialize the integrator
 function OrdinaryDiffEq.initialize!(integrator::DDEIntegrator)
+  ode_integrator = integrator.integrator
 
-    # initialize DDE integrator
-    initialize!(integrator, integrator.cache)
+  # initialize the cache
+  OrdinaryDiffEq.initialize!(integrator, integrator.cache)
 
-    # copy interpolation data to ODE integrator
-    integrator.integrator.kshortsize = integrator.kshortsize
-    integrator.integrator.k = recursivecopy(integrator.k)
+  # copy interpolation data to the ODE integrator
+  ode_integrator.kshortsize = integrator.kshortsize
+  ode_integrator.k = recursivecopy(integrator.k)
 
-    # add interpolation steps to ODE integrator to ensure that interpolation data
-    # is always maximal when calculating the next step
-    # exact values do not matter since in the initial time step always a constant
-    # extrapolation is used
-    addsteps!(integrator.integrator, integrator.f)
+  # add interpolation steps to ODE integrator to ensure that interpolation data
+  # is always maximal when calculating the next step
+  # exact values do not matter since in the initial time step always a constant
+  # extrapolation is used
+  DiffEqBase.addsteps!(ode_integrator, integrator.f)
+
+  nothing
 end
 
 """
