@@ -406,26 +406,34 @@ end
 
 
 
-"""
-    auto_dt_reset!(dde_int::DDEIntegrator)
 
-Automatically determine initial time step of `dde_int`.
-"""
-function auto_dt_reset!(dde_int::DDEIntegrator)
-    # determine maximal time step
-    constant_lags = dde_int.sol.prob.constant_lags
-    dtmax = (constant_lags === nothing || isempty(constant_lags)) ? dde_int.opts.dtmax :
-        dde_int.tdir * minimum(abs, constant_lags)
 
-    # determine initial time step
-    ode_prob = ODEProblem(dde_int.f, dde_int.sol.prob.u0, dde_int.sol.prob.tspan,
-                          dde_int.sol.prob.p)
-    dde_int.dt = OrdinaryDiffEq.ode_determine_initdt(dde_int.u, dde_int.t, dde_int.tdir,
-                                                     dtmax, dde_int.opts.abstol,
-                                                     dde_int.opts.reltol,
-                                                     dde_int.opts.internalnorm,
-                                                     ode_prob,
-                                                     dde_int)
+
+
+
+
+
+
+
+
+function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
+  @unpack f, u, t, tdir, opts, sol = integrator
+  @unpack prob = sol
+  @unpack abstol, reltol, internalnorm = opts
+
+  # determine maximal time step
+  if has_constant_lags(prob)
+    dtmax = tdir * min(abs(opts.dtmax), minimum(abs, prob.constant_lags))
+  else
+    dtmax = opts.dtmax
+  end
+
+  # determine initial time step
+  ode_prob = ODEProblem(f, prob.u0, prob.tspan, prob.p)
+  integrator.dt = OrdinaryDiffEq.ode_determine_initdt(
+    u, t, tdir, dtmax, opts.abstol, opts.reltol, opts.internalnorm, ode_prob, integrator)
+
+  nothing
 end
 
 function DiffEqBase.add_tstop!(integrator::DDEIntegrator,t)
