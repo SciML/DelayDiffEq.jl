@@ -69,17 +69,15 @@ function savevalues!(integrator::DDEIntegrator, force_save=false)
     return saved_tuple
 end
 
-"""
-    postamble!(integrator::DDEIntegrator)
 
-Clean up solution of `integrator`.
-"""
-function postamble!(integrator::DDEIntegrator)
-    # clean up solution of ODE integrator
-    postamble!(integrator.integrator)
 
-    # reduce solution if possible
-    integrator.saveat !== nothing && reduce_solution!(integrator, integrator.sol.t[end])
+# clean up the solution of the integrator
+function OrdinaryDiffEq.postamble!(integrator::DDEIntegrator)
+  # clean up solution of the ODE integrator
+  OrdinaryDiffEq.postamble!(integrator.integrator)
+
+  # clean solution of the DDE integrator
+  OrdinaryDiffEq._postamble!(integrator)
 end
 
 # perform next integration step
