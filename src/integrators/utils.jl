@@ -159,7 +159,7 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
     order > OrdinaryDiffEq.alg_maximum_order(integrator.alg) && !neutral && return
 
     # discontinuities caused by constant lags
-    if constant_lags !== nothing
+    if has_constant_lags(integrator)
         maxlag = abs(integrator.sol.prob.tspan[end] - t)
         for lag in constant_lags
             if abs(lag) < maxlag
