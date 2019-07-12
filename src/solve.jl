@@ -45,6 +45,10 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     order_discontinuity_t0 = prob.order_discontinuity_t0
   end
 
+  if !isempty(saveat) && dense
+    @warn("Dense output is incompatible with saveat. Please use the SavingCallback from the Callback Library to mix the two behaviors.")
+  end
+
   # unpack problem
   @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
 

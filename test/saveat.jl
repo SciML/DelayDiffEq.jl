@@ -8,124 +8,127 @@ const dde_int = init(prob, alg)
 const sol = solve!(dde_int)
 
 @testset "reference" begin
-  # solution equals solution of ODE integrator
+  # solution equals solution of DDE integrator
   @test sol.t == dde_int.sol.t
   @test sol.u == dde_int.sol.u
+
+  # solution equals solution of ODE integrator
+  @test sol.t == dde_int.integrator.sol.t
+  @test sol.u == dde_int.integrator.sol.u
 end
 
 # do not save every step
 @testset "not every step (save_start=$save_start)" for save_start in (false, true)
   # for time(s) as scalar (implicitly adds end point as well!) and vectors
   for saveat in (25.0, [25.0, 50.0, 75.0])
-    ## minimal ODE solution
-    dde_int_min = init(prob, alg; saveat=saveat, save_start=save_start,
-                       minimal_solution=true)
+    dde_int2 = init(prob, alg; saveat=saveat, save_start=save_start)
 
-    # solution of ODE integrator will be reduced
-    @test dde_int_min.saveat !== nothing
+    # end point is saved if saveat is a scalar
+    @test dde_int2.opts.save_end == (saveat isa Number)
 
-    sol_min = solve!(dde_int_min)
+    sol2 = solve!(dde_int2)
+
+    # solution is equal to solution of DDE integrator
+    @test sol2.t == dde_int2.sol.t
+    @test sol2.u == dde_int2.sol.u
 
     # time point of solution
-    @test sol_min.t == (save_start ? [0.0, 25.0, 50.0, 75.0, 100.0] :
-                        [25.0, 50.0, 75.0, 100.0])
+    if saveat isa Number
+      @test sol2.t == (save_start ? [0.0, 25.0, 50.0, 75.0, 100.0] : [25.0, 50.0, 75.0, 100.0])
+    else
+      @test sol2.t == (save_start ? [0.0, 25.0, 50.0, 75.0] : [25.0, 50.0, 75.0])
+    end
 
-    # solution of ODE integrator is reduced:
-    # [0.0, ≈24.73, ≈25.88, ≈49.43, ≈50.67, ≈74.11, ≈75.34, 100.0]
-    @test dde_int_min.sol.t ≈ [0.0, 24.73, 25.88, 49.43, 50.67, 74.11, 75.34, 100.0] atol=1e-2
+    # history is equal to solution above
+    @test sol.t == dde_int2.integrator.sol.t
+    @test sol.u == dde_int2.integrator.sol.u
+  end
+end
 
-    # solution lies on interpolation of full solution above
-    @test sol(sol_min.t).u == sol_min.u
+# do not save every step
+@testset "not every step (save_end=$save_end)" for save_end in (false, true)
+  # for time(s) as scalar (implicitly adds end point as well!) and vectors
+  for saveat in (25.0, [25.0, 50.0, 75.0])
+    dde_int2 = init(prob, alg; saveat=saveat, save_end=save_end)
 
-    ## full ODE solution
-    dde_int_full = init(prob, alg; saveat=saveat, save_start=save_start,
-                        minimal_solution=false)
+    # start point is saved if saveat is a scalar
+    @test dde_int2.opts.save_start == (saveat isa Number)
 
-    # solution of ODE integrator will not be reduced
-    @test dde_int_full.saveat === nothing
+    sol2 = solve!(dde_int2)
 
-    sol_full = solve!(dde_int_full)
+    # solution is equal to solution of DDE integrator
+    @test sol2.t == dde_int2.sol.t
+    @test sol2.u == dde_int2.sol.u
 
-    # solution of ODE integrator equals full solution above
-    @test sol.t == dde_int_full.sol.t && sol.u == dde_int_full.sol.u
+    # time point of solution
+    if saveat isa Number
+      @test sol2.t == [0.0, 25.0, 50.0, 75.0, 100.0]
+    else
+      @test sol2.t == (save_end ? [25.0, 50.0, 75.0, 100.0] : [25.0, 50.0, 75.0])
+    end
 
-    # solution equals reduced solution above
-    @test sol_min.t == sol_full.t && sol_min.u == sol_full.u
-
-    ## dense interpolation
-    dde_int_dense = init(prob, alg; saveat=saveat, save_start=save_start,
-                         dense=true)
-
-    # solution of ODE integrator will not be reduced
-    @test dde_int_dense.saveat === nothing
-
-    sol_dense = solve!(dde_int_dense)
-
-    # time steps of solution
-    @test sol_dense.t == (save_start ? [0.0, 25.0, 50.0, 75.0, 100.0] :
-                          [25.0, 50.0, 75.0, 100.0])
-
-    # solution of ODE integrator equals full solution above
-    @test sol.t == dde_int_dense.sol.t && sol.u == dde_int_dense.sol.u
-
-    # solution lies on interpolation of full solution above
-    @test sol(sol_dense.t).u == sol_dense.u
-
-    # full solution above lies on interpolation of solution
-    @test sol_dense(sol.t).u == sol.u
+    # history is equal to solution above
+    @test sol.t == dde_int2.integrator.sol.t
+    @test sol.u == dde_int2.integrator.sol.u
   end
 end
 
 # save every step
 @testset "every step (save_start=$save_start)" for save_start in (false, true)
-  # for time(s) as scalar (implicitly adds end point as well!) and vectors
   for saveat in (25.0, [25.0, 50.0, 75.0])
-    ## minimal ODE solution (is not possible to minimize ODE solution actually!)
-    dde_int_min = init(prob, alg; saveat=saveat, save_everystep=true,
-                       save_start=save_start, minimal_solution=true)
+    dde_int2 = init(prob, alg; saveat=saveat, save_everystep=true,
+                    save_start=save_start)
 
-    # solution of ODE integrator will not be reduced
-    @test dde_int_min.saveat === nothing
+    # end point is saved implicitly
+    @test dde_int2.opts.save_end
 
-    ## full ODE solution
-    dde_int_full = init(prob, alg; saveat=saveat, save_everystep=true,
-                        save_start=save_start, minimal_solution=false)
+    sol2 = solve!(dde_int2)
 
-    # solution of ODE integrator will not be reduced
-    @test dde_int_full.saveat === nothing
+    # solution is equal to solution of DDE integrator
+    @test sol2.t == dde_int2.sol.t
+    @test sol2.u == dde_int2.sol.u
 
-    sol_full = solve!(dde_int_full)
+    # time points of solution
+    if saveat isa Number
+      @test symdiff(sol.t, sol2.t) == (save_start ? [100.0, 25.0, 50.0, 75.0] :
+                                       [0.0, 100.0, 25.0, 50.0, 75.0])
+    else
+      @test symdiff(sol.t, sol2.t) == (save_start ? [25.0, 50.0, 75.0] :
+                                       [0.0, 25.0, 50.0, 75.0])
+    end
 
-    # time steps of solution
-    @test symdiff(sol.t, sol_full.t) == (save_start ? [25.0, 50.0, 75.0] :
-                                         [0.0, 25.0, 50.0, 75.0])
+    # history is equal to solution above
+    @test sol.t == dde_int2.integrator.sol.t
+    @test sol.u == dde_int2.integrator.sol.u
+  end
+end
 
-    # solution of ODE integrator equals full solution above
-    @test sol.t == dde_int_full.sol.t && sol.u == dde_int_full.sol.u
+# save every step
+@testset "every step (save_end=$save_end)" for save_end in (false, true)
+  for saveat in (25.0, [25.0, 50.0, 75.0])
+    dde_int2 = init(prob, alg; saveat=saveat, save_everystep=true,
+                    save_end=save_end)
 
-    # solution lies on interpolation of full solution above
-    @test sol(sol_full.t).u == sol_full.u
+    # start point is saved implicitly
+    @test dde_int2.opts.save_start
 
-    ## dense interpolation
-    dde_int_dense = init(prob, alg; saveat=saveat, save_everystep=true,
-                         save_start=save_start, dense=true)
+    sol2 = solve!(dde_int2)
 
-    # solution of ODE integrator will not be reduced
-    @test dde_int_dense.saveat === nothing
+    # solution is equal to solution of DDE integrator
+    @test sol2.t == dde_int2.sol.t
+    @test sol2.u == dde_int2.sol.u
 
-    sol_dense = solve!(dde_int_dense)
+    # time points of solution
+    if saveat isa Number
+      @test symdiff(sol.t, sol2.t) == (save_end ? [100.0, 25.0, 50.0, 75.0] :
+                                       [100.0, 25.0, 50.0, 75.0])
+    else
+      @test symdiff(sol.t, sol2.t) == (save_end ? [25.0, 50.0, 75.0] :
+                                       [25.0, 50.0, 75.0])
+    end
 
-    # time steps of solution
-    @test symdiff(sol.t, sol_dense.t) == (save_start ? [25.0, 50.0, 75.0] :
-                                          [0.0, 25.0, 50.0, 75.0])
-
-    # solution of ODE integrator equals full solution above
-    @test sol.t == dde_int_dense.sol.t && sol.u == dde_int_dense.sol.u
-
-    # solution lies on interpolation of full solution above
-    @test sol(sol_dense.t).u == sol_dense.u
-
-    # full solution above lies on interpolation of solution
-    @test sol_dense(sol.t).u == sol.u
+    # history is equal to solution above
+    @test sol.t == dde_int2.integrator.sol.t
+    @test sol.u == dde_int2.integrator.sol.u
   end
 end
