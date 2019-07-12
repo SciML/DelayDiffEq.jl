@@ -1,7 +1,7 @@
 mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                              residType,tTypeNoUnits,tdirType,ksEltype,
                              SolType,F,CacheType,
-                             IType,NType,O,tstopsType,dAbsType,dRelType,
+                             IType,NType,O,dAbsType,dRelType,
                              FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
     sol::SolType
     u::uType
@@ -20,7 +20,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     resid::residType # This would have to resize for resizing DDE to work
     fixedpoint_norm::NType
     max_fixedpoint_iters::Int
-    saveat::tstopsType
+    order_discontinuity_t0::Int
     tracked_discontinuities::Vector{Discontinuity{tType}}
     discontinuity_interp_points::Int
     discontinuity_abstol::dAbsType
@@ -63,11 +63,11 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     function DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                            residType,tTypeNoUnits,
                            tdirType,ksEltype,SolType,F,CacheType,IType,
-                           NType,O,tstopsType,dAbsType,dRelType,FSALType,EventErrorType,
+                           NType,O,dAbsType,dRelType,FSALType,EventErrorType,
                            CallbackCacheType}(
                                sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,
                                fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,
-                               max_fixedpoint_iters,saveat,tracked_discontinuities,
+                               max_fixedpoint_iters,order_discontinuity_t0,tracked_discontinuities,
                                discontinuity_interp_points,discontinuity_abstol,discontinuity_reltol,
                                alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
@@ -76,18 +76,18 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
                                accept_step,isout,reeval_fsal,u_modified,opts,destats,
                                integrator) where
         {algType,IIP,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
-         tdirType,ksEltype,SolType,F,CacheType,IType,NType,O,tstopsType,
+         tdirType,ksEltype,SolType,F,CacheType,IType,NType,O,
          dAbsType,dRelType,FSALType,EventErrorType,CallbackCacheType}
 
         new{algType,IIP,uType,tType,P,eigenType,absType,relType,
                                residType,tTypeNoUnits,
                                tdirType,ksEltype,SolType,F,CacheType,IType,
-                               NType,O,tstopsType,dAbsType,dRelType,
+                               NType,O,dAbsType,dRelType,
                                FSALType,EventErrorType,CallbackCacheType}(
             sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,fixedpoint_abstol,
-            fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,saveat,
-            tracked_discontinuities,discontinuity_interp_points,discontinuity_abstol,
-            discontinuity_reltol,alg,dtcache,dtchangeable,dtpropose,tdir,
+            fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,
+            order_discontinuity_t0,tracked_discontinuities,discontinuity_interp_points,
+            discontinuity_abstol,discontinuity_reltol,alg,dtcache,dtchangeable,dtpropose,tdir,
             eigen_est,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
             cache,callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
             accept_step,event_last_time,vector_event_last_time,last_event_error,isout,
