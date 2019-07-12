@@ -161,7 +161,7 @@ end
 Suggest that solution `sol` reserves capacity for a number of elements that
 depends on the parameter settings of the numerical solver.
 """
-function Base.sizehint!(sol::DESolution, alg, dt, tspan, tstops, saveat;
+function Base.sizehint!(sol::DESolution, alg, tspan, tstops, saveat;
                         save_everystep = isempty(saveat),
                         adaptive = isadaptive(alg),
                         internalnorm = DiffEqBase.ODE_DEFAULT_NORM,
