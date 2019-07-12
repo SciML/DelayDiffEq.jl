@@ -16,60 +16,54 @@ function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
   nothing
 end
 
-function savevalues!(integrator::DDEIntegrator, force_save=false)
-    # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
-    # integrator.EEst has unitless type of integrator.t
-    if typeof(integrator.EEst) <: AbstractFloat
-        if integrator.integrator.t != integrator.t
-            if abs(integrator.t - integrator.integrator.t) >= 10eps(integrator.t)
-                error("unexpected time discrepancy detected")
-            end
+# save current state of the integrator
+function OrdinaryDiffEq.savevalues!(integrator::DDEIntegrator, force_save = false,
+                                    reduce_size = false)::Tuple{Bool,Bool}
+  ode_integrator = integrator.integrator
 
-            integrator.integrator.t = integrator.t
-            integrator.integrator.dt = integrator.integrator.t - integrator.integrator.tprev
-        end
+  # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
+  # integrator.EEst has unitless type of integrator.t
+  if typeof(integrator.EEst) <: AbstractFloat
+    if ode_integrator.t != integrator.t
+      abs(integrator.t - ode_integrator.t) < 10eps(integrator.t) ||
+        error("unexpected time discrepancy detected")
+
+      ode_integrator.t = integrator.t
+      ode_integrator.dt = ode_integrator.t - ode_integrator.tprev
     end
+  end
 
-    # If forced, then the user or an event changed integrator.u directly.
-    if force_save
-        if typeof(integrator.cache) <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
-            integrator.integrator.u .= integrator.u
-        else
-            integrator.integrator.u = integrator.u
-        end
+  # if forced, then the user or an event changed the state u directly.
+  if force_save
+    if isinplace(integrator.sol.prob)
+      ode_integrator.u .= integrator.u
+    else
+      ode_integrator.u = integrator.u
     end
+  end
 
-    # update solution
-    saved_tuple = savevalues!(integrator.integrator, force_save, false) # reduce_size = false
+  # update history
+  saved, savedexactly = OrdinaryDiffEq.savevalues!(ode_integrator, force_save,
+                                                   false) # reduce_size = false
 
-    # update prev2_idx to indices of tprev and u(tprev) in solution
-    # allows reset of ODE integrator (and hence history function) to the last
-    # successful time step after failed steps
-    integrator.prev2_idx = integrator.prev_idx
+  # check that history was actually updated
+  saved || error("dense history could not be updated")
 
-    # cache dt of interval [tprev, t] of ODE integrator since it can only be retrieved by
-    # a possibly incorrect subtraction
-    # NOTE: does not interfere with usual use of dtcache for non-adaptive methods since ODE
-    # integrator is only used for inter- and extrapolation of future values and saving of
-    # the solution but does not affect the size of time steps
-    integrator.integrator.dtcache = integrator.integrator.dt
+  # update prev2_idx to indices of tprev and u(tprev) in solution
+  # allows reset of ODE integrator (and hence history function) to the last
+  # successful time step after failed steps
+  integrator.prev2_idx = integrator.prev_idx
 
-    # reduce ODE solution
-    if integrator.saveat !== nothing
-        # obtain constant lags
-        constant_lags = integrator.sol.prob.constant_lags
+  # cache dt of interval [tprev, t] of ODE integrator since it can only be retrieved by
+  # a possibly incorrect subtraction
+  # NOTE: does not interfere with usual use of dtcache for non-adaptive methods since ODE
+  # integrator is only used for inter- and extrapolation of future values and saving of
+  # the solution but does not affect the size of time steps
+  ode_integrator.dtcache = ode_integrator.dt
 
-        # delete part of ODE solution that is not required for DDE solution
-        reduce_solution!(integrator,
-                         # function values at later time points might be necessary for
-                         # calculation of next step, thus keep those interpolation data
-                         integrator.t - integrator.tdir * maximum(abs, constant_lags))
-    end
-
-    return saved_tuple
+  # update solution
+  OrdinaryDiffEq._savevalues!(integrator, force_save, reduce_size)
 end
-
-
 
 # clean up the solution of the integrator
 function OrdinaryDiffEq.postamble!(integrator::DDEIntegrator)
