@@ -176,23 +176,13 @@ function OrdinaryDiffEq.initialize!(integrator::DDEIntegrator)
   nothing
 end
 
-"""
-    u_modified!(integrator::DDEIntegrator, bool::Bool)
-
-Signal `integrator` whether state vector `u` was modified by a callback.
-
-A modified `u` will lead to recalculations in order to prevent discontinuities.
-"""
-@inline function u_modified!(integrator::DDEIntegrator, bool::Bool)
-    integrator.u_modified = bool
+# signal the integrator that state u was modified
+function DiffEqBase.u_modified!(integrator::DDEIntegrator, bool::Bool)
+  integrator.u_modified = bool
 end
 
-"""
-    get_proposed_dt(integrator::DDEIntegrator)
-
-Get the time step that `integrator` will take after the current step.
-"""
-@inline get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
+# return next integration time step
+DiffEqBase.get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
 
 # set next integration time step
 function DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt)
@@ -200,7 +190,8 @@ function DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt)
   nothing
 end
 
-@inline DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) = DiffEqBase.get_tmp_cache(integrator,integrator.alg,integrator.cache)
+DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) =
+  DiffEqBase.get_tmp_cache(integrator, integrator.alg, integrator.cache)
 user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
@@ -257,8 +248,8 @@ function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = :Terminated)
   nothing
 end
 
-# DDE integrator can be reinitialized
-has_reinit(integrator::DDEIntegrator) = true
+# integrator can be reinitialized
+DiffEqBase.has_reinit(integrator::DDEIntegrator) = true
 
 """
     reinit!(integrator::DDEIntegrator[, u0 = integrator.sol.prob.u0;

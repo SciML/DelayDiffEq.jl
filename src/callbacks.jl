@@ -1,5 +1,5 @@
 # update integrator when u is modified by callbacks
-function handle_callback_modifiers!(integrator::DDEIntegrator)
+function OrdinaryDiffEq.handle_callback_modifiers!(integrator::DDEIntegrator)
     integrator.reeval_fsal = true # recalculate fsalfirst after applying step
 
     # update heap of discontinuities

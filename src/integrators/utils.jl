@@ -100,12 +100,8 @@ discontinuity to `tracked_discontinuities` which is the array of old
 discontinuities that are checked by a `DiscontinuityCallback` (if existent).
 =#
 
-"""
-    handle_discontinuities!(integrator::DDEIntegrator)
-
-Handle discontinuities at the current time point of `integrator`.
-"""
-function handle_discontinuities!(integrator::DDEIntegrator)
+# handle discontinuities at the current time point of the `integrator`
+function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
     # remove all discontinuities at current time point and calculate minimal order
     # of these discontinuities
     d = pop!(integrator.opts.d_discontinuities)
@@ -160,7 +156,7 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
     constant_lags = integrator.sol.prob.constant_lags
 
     # only track discontinuities up to order of the applied method
-    order > alg_maximum_order(integrator.alg) && !neutral && return nothing
+    order > OrdinaryDiffEq.alg_maximum_order(integrator.alg) && !neutral && return
 
     # discontinuities caused by constant lags
     if constant_lags !== nothing

@@ -383,8 +383,9 @@ function OrdinaryDiffEq.initialize_callbacks!(integrator::DDEIntegrator,
   integrator.u_modified = false
 end
 
-function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tspan,
-                                    order_discontinuity_t0, alg_maximum_order, constant_lags, tType)
+function OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir,
+                                                   tspan,  order_discontinuity_t0,
+                                                   alg_maximum_order, constant_lags, tType)
     # add discontinuities propagated from initial discontinuity
     if order_discontinuity_t0 ≤ alg_maximum_order && constant_lags !== nothing && !isempty(constant_lags)
         maxlag = abs(tspan[end] - tspan[1])
@@ -396,5 +397,5 @@ function tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tdir, tsp
         d_discontinuities_internal = unique(d_discontinuities)
     end
 
-    return OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities_internal, tdir, tspan, tType)
+    OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities_internal, tdir, tspan, tType)
 end
