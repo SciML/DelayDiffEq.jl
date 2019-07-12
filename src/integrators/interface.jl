@@ -1,4 +1,6 @@
+# accept/reject computed integration step, propose next step, and apply callbacks
 function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
+  # apply same logic as in OrdinaryDiffEq
   OrdinaryDiffEq._loopfooter!(integrator)
 
   # reset ODE integrator to the cached values if the last step failed
@@ -23,42 +25,9 @@ function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
     end
   end
 
-  # track propagated discontinuities for dependent delays
-  dependent_lags = integrator.sol.prob.dependent_lags
-  if dependent_lags !== nothing && !isempty(dependent_lags) && integrator.iter > 0
-    # if the step is not accepted, always try to figure out if we step over a discontinuity
-    if integrator.opts.adaptive && !integrator.accept_step
-      # calculate interpolation points
-      interp_points = integrator.discontinuity_interp_points
-      Θs = range(zero(integrator.t); stop = oneunit(integrator.t), length = interp_points)
-
-      # for dependent lags and previous discontinuities
-      for lag in dependent_lags, discontinuity in integrator.tracked_discontinuities
-        # obtain time of previous discontinuity
-        T = discontinuity.t
-
-        # estimate subinterval of current integration step that contains a propagated
-        # discontinuity induced by the lag and the previous discontinuity
-        interval = discontinuity_interval(integrator, lag, T, Θs)
-
-        # if a discontinuity exists in the current integration step
-        if interval !== nothing
-          # estimate time point of discontinuity
-          t = discontinuity_time(integrator, lag, T, interval)
-
-          # add new discontinuity of correct order at the estimated time point
-          if integrator.sol.prob.neutral
-            d = Discontinuity(t, discontinuity.order)
-          else
-            d = Discontinuity(t, discontinuity.order + 1)
-          end
-          push!(integrator.opts.d_discontinuities, d)
-          push!(integrator.opts.tstops, t)
-
-          # analogously to RADAR5 we do not strive for finding the first discontinuity
-          break
-        end
-      end
+    # track propagated discontinuities for dependent delays
+    if integrator.opts.adaptive && integrator.iter > 0 && has_dependent_lags(integrator)
+      track_propagated_discontinuities!(integrator)
     end
   end
 
