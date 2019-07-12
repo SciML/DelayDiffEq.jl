@@ -1,51 +1,85 @@
 """
     advance_ode_integrator!(integrator::DDEIntegrator)
 
-Advance ODE integrator of `integrator` to next time interval, values and complete
-interpolation data of `integrator`.
+Advance the ODE integrator of `integrator` to the next time interval by updating its values
+and interpolation data with the current values and a full set of interpolation data of
+`integrator`.
 """
 function advance_ode_integrator!(integrator::DDEIntegrator)
-    # algorithm only works if current time of DDE integrator equals final time point
-    # of solution
-    integrator.t != integrator.sol.t[end] && error("cannot advance ODE integrator")
+  @unpack f, u, t, p, k, dt, uprev, alg, cache = integrator
+  ode_integrator = integrator.integrator
 
-    # complete interpolation data of DDE integrator for time interval [t, t+dt]
-    # and copy it to ODE integrator
-    # has to be done before updates to ODE integrator, otherwise history function
-    # is incorrect
-    if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
-        addsteps!(integrator.k, integrator.t, integrator.uprev,
-                                     integrator.u, integrator.dt, integrator.f,
-                                     integrator.p,
-                                     integrator.cache.caches[integrator.cache.current],
-                                     false, true, true)
-    else
-        addsteps!(integrator.k, integrator.t, integrator.uprev,
-                                     integrator.u, integrator.dt, integrator.f,
-                                     integrator.p,
-                                     integrator.cache, false, true,
-                                     true)
-    end
-    recursivecopy!(integrator.integrator.k, integrator.k)
+  # algorithm only works if current time of DDE integrator equals final time point
+  # of solution
+  t != ode_integrator.sol.t[end] && error("cannot advance ODE integrator")
 
-    # move ODE integrator to interval [t, t+dt]
-    integrator.integrator.t = integrator.t + integrator.dt
-    integrator.integrator.tprev = integrator.t
-    integrator.integrator.dt = integrator.dt
-    if typeof(integrator.alg) <: OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm
-      integrator.integrator.cache.current = integrator.cache.current
-    end
-    if isinplace(integrator.sol.prob)
-        recursivecopy!(integrator.integrator.u, integrator.u)
-    else
-        integrator.integrator.u = integrator.u
-    end
+  # complete interpolation data of DDE integrator for time interval [t, t+dt]
+  # and copy it to ODE integrator
+  # has to be done before updates to ODE integrator, otherwise history function
+  # is incorrect
+  if iscomposite(alg)
+    DiffEqBase.addsteps!(k, t, uprev, u, dt, f, p, cache.caches[cache.current],
+                         false, true, true)
+  else
+    DiffEqBase.addsteps!(k, t, uprev, u, dt, f, p, cache, false, true, true)
+  end
+  recursivecopy!(ode_integrator.k, k)
 
-    # u(t) is not modified hence we do not have to copy it
-    integrator.integrator.uprev = integrator.sol.u[end]
+  # move ODE integrator to interval [t, t+dt]
+  ode_integrator.t = t + dt
+  ode_integrator.tprev = t
+  ode_integrator.dt = dt
+  if iscomposite(alg)
+    ode_integrator.cache.current = cache.current
+  end
+  if isinplace(integrator.sol.prob)
+    recursivecopy!(ode_integrator.u, u)
+  else
+    ode_integrator.u = u
+  end
 
-    # update prev_idx to index of t and u(t) in solution
-    integrator.prev_idx = length(integrator.sol.t)
+  # u(t) is not modified hence we do not have to copy it
+  ode_integrator.uprev = ode_integrator.sol.u[end]
+
+  # update prev_idx to index of t and u(t) in solution
+  integrator.prev_idx = length(ode_integrator.sol.t)
+
+  nothing
+end
+
+"""
+    move_back_ode_integrator!(integrator::DDEIntegrator)
+
+Move the ODE integrator of `integrator` one integration step back by reverting its values
+and interpolation data to the values saved in the dense history.
+"""
+function move_back_ode_integrator!(integrator::DDEIntegrator)
+  ode_integrator = integrator.integrator
+  @unpack sol = ode_integrator
+
+  # set values of the ODE integrator back to the values in the solution
+  if isinplace(sol.prob)
+    recursivecopy!(ode_integrator.u, sol.u[end])
+  else
+    ode_integrator.u = sol.u[end]
+  end
+  ode_integrator.t = sol.t[end]
+  ode_integrator.tprev = sol.t[integrator.prev2_idx]
+
+  # u(tprev) is not modified hence we do not have to copy it
+  ode_integrator.uprev = sol.u[integrator.prev2_idx]
+
+  # revert to the previous time step
+  ode_integrator.dt = ode_integrator.dtcache
+
+  # we do not have to reset the interpolation data in the initial time step since always a
+  # constant extrapolation is used (and interpolation data of solution at initial
+  # time point is not complete!)
+  if length(sol.t) > 1
+    recursivecopy!(ode_integrator.k, sol.k[end])
+  end
+
+  nothing
 end
 
 #=

@@ -3,27 +3,9 @@ function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
   # apply same logic as in OrdinaryDiffEq
   OrdinaryDiffEq._loopfooter!(integrator)
 
-  # reset ODE integrator to the cached values if the last step failed
   if !integrator.accept_step
-    if isinplace(integrator.sol.prob)
-      recursivecopy!(integrator.integrator.u, integrator.sol.u[end])
-    else
-      integrator.integrator.u = integrator.sol.u[end]
-    end
-    integrator.integrator.t = integrator.sol.t[end]
-    integrator.integrator.tprev = integrator.sol.t[integrator.prev2_idx]
-    integrator.integrator.dt = integrator.integrator.dtcache
-
-    # u(tprev) is not modified hence we do not have to copy it
-    integrator.integrator.uprev = integrator.sol.u[integrator.prev2_idx]
-
-    # do not have to reset interpolation data in initial time step since always a
-    # constant extrapolation is used (and interpolation data of solution at initial
-    # time point is not complete!)
-    if length(integrator.sol.t) > 1
-      recursivecopy!(integrator.integrator.k, integrator.sol.k[end])
-    end
-  end
+    # reset ODE integrator to the cached values if the last step failed
+    move_back_ode_integrator!(integrator)
 
     # track propagated discontinuities for dependent delays
     if integrator.opts.adaptive && integrator.iter > 0 && has_dependent_lags(integrator)
