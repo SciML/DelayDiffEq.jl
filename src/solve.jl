@@ -325,7 +325,7 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
   end
 
   # clean up solution
-  OrdinaryDiffEq.postamble!(integrator)
+  DiffEqBase.postamble!(integrator)
 
   f = sol.prob.f
 

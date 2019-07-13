@@ -17,8 +17,8 @@ function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
 end
 
 # save current state of the integrator
-function OrdinaryDiffEq.savevalues!(integrator::DDEIntegrator, force_save = false,
-                                    reduce_size = false)::Tuple{Bool,Bool}
+function DiffEqBase.savevalues!(integrator::DDEIntegrator, force_save = false,
+                                reduce_size = false)::Tuple{Bool,Bool}
   ode_integrator = integrator.integrator
 
   # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
@@ -43,8 +43,8 @@ function OrdinaryDiffEq.savevalues!(integrator::DDEIntegrator, force_save = fals
   end
 
   # update history
-  saved, savedexactly = OrdinaryDiffEq.savevalues!(ode_integrator, force_save,
-                                                   false) # reduce_size = false
+  saved, savedexactly = DiffEqBase.savevalues!(ode_integrator, force_save,
+                                               false) # reduce_size = false
 
   # check that history was actually updated
   saved || error("dense history could not be updated")
@@ -66,9 +66,9 @@ function OrdinaryDiffEq.savevalues!(integrator::DDEIntegrator, force_save = fals
 end
 
 # clean up the solution of the integrator
-function OrdinaryDiffEq.postamble!(integrator::DDEIntegrator)
+function DiffEqBase.postamble!(integrator::DDEIntegrator)
   # clean up solution of the ODE integrator
-  OrdinaryDiffEq.postamble!(integrator.integrator)
+  DiffEqBase.postamble!(integrator.integrator)
 
   # clean solution of the DDE integrator
   OrdinaryDiffEq._postamble!(integrator)
