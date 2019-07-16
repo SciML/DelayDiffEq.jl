@@ -45,6 +45,10 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     order_discontinuity_t0 = prob.order_discontinuity_t0
   end
 
+  if haskey(kwargs, :minimal_solution)
+    @warn "minimal_solution is ignored"
+  end
+
   if !isempty(saveat) && dense
     @warn("Dense output is incompatible with saveat. Please use the SavingCallback from the Callback Library to mix the two behaviors.")
   end
