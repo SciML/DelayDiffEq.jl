@@ -15,8 +15,7 @@ import DiffEqBase: resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator,
                    AbstractDDEProblem
 
-using OrdinaryDiffEq: ODEIntegrator, Rosenbrock23Cache, Rosenbrock32Cache,
-                      ImplicitEulerCache, TrapezoidCache
+using OrdinaryDiffEq: ODEIntegrator, GenericImplicitEulerCache, GenericTrapezoidCache
 
 include("discontinuity_type.jl")
 include("integrators/type.jl")

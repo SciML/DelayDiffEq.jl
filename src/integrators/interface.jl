@@ -198,48 +198,53 @@ DiffEqBase.u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 DiffEqBase.du_cache(integrator::DDEIntegrator) = du_cache(integrator.cache)
 DiffEqBase.full_cache(integrator::DDEIntegrator) = full_cache(integrator.cache)
 
-resize!(integrator::DDEIntegrator, i::Int) = resize!(integrator, integrator.cache, i)
-function resize!(integrator::DDEIntegrator, cache, i)
-    for c in full_cache(integrator)
-        resize!(c, i)
-    end
+# change number of components
+Base.resize!(integrator::DDEIntegrator, i::Int) = resize!(integrator, integrator.cache, i)
+function Base.resize!(integrator::DDEIntegrator, cache, i)
+  for c in full_cache(integrator)
+    resize!(c, i)
+  end
+  resize_non_user_cache!(integrator, cache, i)
 end
 
-function resize!(integrator::DDEIntegrator, cache::Union{Rosenbrock23Cache,
-                                                         Rosenbrock32Cache}, i)
-    for c in full_cache(integrator)
-        resize!(c, i)
-    end
-    for c in vecu_cache(integrator.cache)
-        resize!(c, i)
-    end
-    Jvec = vec(cache.J)
-    cache.J = reshape(resize!(Jvec, i*i), i, i)
-    Wvec = vec(cache.W)
-    cache.W = reshape(resize!(Wvec, i*i), i, i)
+function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator, cache, i)
+  DiffEqBase.nlsolve_resize!(integrator, i)
+  resize!(integrator.resid, i)
+  nothing
+end
+function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
+                                           cache::Union{GenericImplicitEulerCache,GenericTrapezoidCache},
+                                           i)
+  cache.nl_rhs = integrator.alg.nlsolve(Val{:init}, cache.rhs, cache.u)
+  resize!(integrator.resid, i)
+  nothing
 end
 
-function resize!(integrator::DDEIntegrator, cache::Union{ImplicitEulerCache,TrapezoidCache},
-                 i)
-    for c in full_cache(integrator)
-        resize!(c, i)
-    end
-    for c in vecu_cache(integrator.cache)
-        resize!(c, i)
-    end
-    for c in dual_cache(integrator.cache)
-        resize!(c.du, i)
-        resize!(c.dual_du, i)
-    end
-    if alg_autodiff(integrator.alg)
-        cache.adf = autodiff_setup(cache.rhs, cache.uhold, integrator.alg)
-    end
+# delete component(s)
+function Base.deleteat!(integrator::DDEIntegrator, idxs)
+  for c in full_cache(integrator)
+    deleteat!(c, idxs)
+  end
+
+  deleteat_non_user_cache!(integrator, integrator.cache, i)
 end
 
-function deleteat!(integrator::DDEIntegrator, i::Int)
-    for c in full_cache(integrator)
-        deleteat!(c, i)
-    end
+function DiffEqBase.deleteat_non_user_cache!(integrator::DDEIntegrator, cache, idxs)
+  i = length(integrator.u)
+  resize_non_user_cache!(integrator, cache, i)
+end
+
+# add component(s)
+function DiffEqBase.addat!(integrator::DDEIntegrator, idxs)
+  for c in full_cache(integrator)
+    addat!(c, idxs)
+  end
+  addat_non_user_cache!(integrator, integrator.cache, idxs)
+end
+
+function DiffEqBase.addat_non_user_cache!(integrator::DDEIntegrator, cache, idxs)
+  i = length(integrator.u)
+  resize_non_user_cache!(integrator, cache, i)
 end
 
 # terminate integration
