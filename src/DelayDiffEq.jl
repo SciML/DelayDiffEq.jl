@@ -11,9 +11,7 @@ using Parameters
 using RecursiveArrayTools
 using Roots
 
-import DiffEqBase: resize!, u_cache, user_cache, du_cache, full_cache,
-                   deleteat!, AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator,
-                   AbstractDDEProblem
+using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem
 
 using OrdinaryDiffEq: ODEIntegrator, GenericImplicitEulerCache, GenericTrapezoidCache
 
