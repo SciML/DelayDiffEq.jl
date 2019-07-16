@@ -6,27 +6,17 @@ using Reexport
 using DataStructures
 using DiffEqDiffTools
 using ForwardDiff
-using MuladdMacro
 using NLSolversBase
 using Parameters
 using RecursiveArrayTools
 using Roots
 
-import OrdinaryDiffEq: initialize!, perform_step!, loopfooter!, loopheader!, alg_maximum_order,
-                       handle_tstop!, ODEIntegrator, savevalues!, postamble!,
-                       handle_callback_modifiers!,handle_discontinuities!,initialize_callbacks!,
-                       tstop_saveat_disc_handling
+import DiffEqBase: resize!, u_cache, user_cache, du_cache, full_cache,
+                   deleteat!, AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator,
+                   AbstractDDEProblem
 
-import DiffEqBase: solve!, resize!, u_cache, user_cache, du_cache, full_cache,
-                   deleteat!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!,
-                   has_reinit, reinit!, auto_dt_reset!, AbstractContinuousCallback,
-                   AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem,
-                   find_callback_time
-
-using OrdinaryDiffEq: Rosenbrock23Cache, Rosenbrock32Cache, ImplicitEulerCache,
-    TrapezoidCache
-
-using DiffEqBase: check_error!, apply_callback!, addsteps!
+using OrdinaryDiffEq: ODEIntegrator, Rosenbrock23Cache, Rosenbrock32Cache,
+                      ImplicitEulerCache, TrapezoidCache
 
 include("discontinuity_type.jl")
 include("integrators/type.jl")
@@ -37,6 +27,7 @@ include("interpolants.jl")
 include("history_function.jl")
 include("algorithms.jl")
 include("callbacks.jl")
+include("track.jl")
 include("alg_utils.jl")
 include("solve.jl")
 include("utils.jl")

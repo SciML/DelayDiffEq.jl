@@ -1,274 +1,197 @@
+# accept/reject computed integration step, propose next step, and apply callbacks
 function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
+  # apply same logic as in OrdinaryDiffEq
   OrdinaryDiffEq._loopfooter!(integrator)
 
-  # reset ODE integrator to the cached values if the last step failed
   if !integrator.accept_step
+    # reset ODE integrator to the cached values if the last step failed
+    move_back_ode_integrator!(integrator)
+
+    # track propagated discontinuities for dependent delays
+    if integrator.opts.adaptive && integrator.iter > 0 && has_dependent_lags(integrator)
+      track_propagated_discontinuities!(integrator)
+    end
+  end
+
+  nothing
+end
+
+# save current state of the integrator
+function DiffEqBase.savevalues!(integrator::DDEIntegrator, force_save = false,
+                                reduce_size = false)::Tuple{Bool,Bool}
+  ode_integrator = integrator.integrator
+
+  # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
+  # integrator.EEst has unitless type of integrator.t
+  if typeof(integrator.EEst) <: AbstractFloat
+    if ode_integrator.t != integrator.t
+      abs(integrator.t - ode_integrator.t) < 10eps(integrator.t) ||
+        error("unexpected time discrepancy detected")
+
+      ode_integrator.t = integrator.t
+      ode_integrator.dt = ode_integrator.t - ode_integrator.tprev
+    end
+  end
+
+  # if forced, then the user or an event changed the state u directly.
+  if force_save
     if isinplace(integrator.sol.prob)
-      recursivecopy!(integrator.integrator.u, integrator.sol.u[end])
+      ode_integrator.u .= integrator.u
     else
-      integrator.integrator.u = integrator.sol.u[end]
-    end
-    integrator.integrator.t = integrator.sol.t[end]
-    integrator.integrator.tprev = integrator.sol.t[integrator.prev2_idx]
-    integrator.integrator.dt = integrator.integrator.dtcache
-
-    # u(tprev) is not modified hence we do not have to copy it
-    integrator.integrator.uprev = integrator.sol.u[integrator.prev2_idx]
-
-    # do not have to reset interpolation data in initial time step since always a
-    # constant extrapolation is used (and interpolation data of solution at initial
-    # time point is not complete!)
-    if length(integrator.sol.t) > 1
-      recursivecopy!(integrator.integrator.k, integrator.sol.k[end])
+      ode_integrator.u = integrator.u
     end
   end
 
-  # track propagated discontinuities for dependent delays
-  dependent_lags = integrator.sol.prob.dependent_lags
-  if dependent_lags !== nothing && !isempty(dependent_lags) && integrator.iter > 0
-    # if the step is not accepted, always try to figure out if we step over a discontinuity
-    if integrator.opts.adaptive && !integrator.accept_step
-      # calculate interpolation points
-      interp_points = integrator.discontinuity_interp_points
-      Θs = range(zero(integrator.t); stop = oneunit(integrator.t), length = interp_points)
+  # update history
+  saved, savedexactly = DiffEqBase.savevalues!(ode_integrator, force_save,
+                                               false) # reduce_size = false
 
-      # for dependent lags and previous discontinuities
-      for lag in dependent_lags, discontinuity in integrator.tracked_discontinuities
-        # obtain time of previous discontinuity
-        T = discontinuity.t
+  # check that history was actually updated
+  saved || error("dense history could not be updated")
 
-        # estimate subinterval of current integration step that contains a propagated
-        # discontinuity induced by the lag and the previous discontinuity
-        interval = discontinuity_interval(integrator, lag, T, Θs)
+  # update prev2_idx to indices of tprev and u(tprev) in solution
+  # allows reset of ODE integrator (and hence history function) to the last
+  # successful time step after failed steps
+  integrator.prev2_idx = integrator.prev_idx
 
-        # if a discontinuity exists in the current integration step
-        if interval !== nothing
-          # estimate time point of discontinuity
-          t = discontinuity_time(integrator, lag, T, interval)
+  # cache dt of interval [tprev, t] of ODE integrator since it can only be retrieved by
+  # a possibly incorrect subtraction
+  # NOTE: does not interfere with usual use of dtcache for non-adaptive methods since ODE
+  # integrator is only used for inter- and extrapolation of future values and saving of
+  # the solution but does not affect the size of time steps
+  ode_integrator.dtcache = ode_integrator.dt
 
-          # add new discontinuity of correct order at the estimated time point
-          if integrator.sol.prob.neutral
-            d = Discontinuity(t, discontinuity.order)
-          else
-            d = Discontinuity(t, discontinuity.order + 1)
-          end
-          push!(integrator.opts.d_discontinuities, d)
-          push!(integrator.opts.tstops, t)
+  # update solution
+  OrdinaryDiffEq._savevalues!(integrator, force_save, reduce_size)
+end
 
-          # analogously to RADAR5 we do not strive for finding the first discontinuity
-          break
-        end
+# clean up the solution of the integrator
+function DiffEqBase.postamble!(integrator::DDEIntegrator)
+  # clean up solution of the ODE integrator
+  DiffEqBase.postamble!(integrator.integrator)
+
+  # clean solution of the DDE integrator
+  OrdinaryDiffEq._postamble!(integrator)
+end
+
+# perform next integration step
+function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
+  @unpack f, t, p, k, uprev, dt, resid, alg, cache, max_fixedpoint_iters = integrator
+  @unpack fixedpoint_abstol, fixedpoint_reltol, fixedpoint_norm = integrator
+  ode_integrator = integrator.integrator
+  internalnorm = integrator.opts.internalnorm
+  prob = integrator.sol.prob
+
+  # reset boolean which indicates whether history function was evaluated at a time point
+  # past the final point of the current solution
+  # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
+  # inter- and extrapolation of future values and saving of the solution but does not
+  # affect whether time steps are accepted
+  ode_integrator.isout = false
+
+  # perform always at least one calculation of the stages
+  OrdinaryDiffEq.perform_step!(integrator, cache)
+
+  # if the history function was evaluated at time points past the final time point of the
+  # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
+  if ode_integrator.isout
+    # update ODE integrator to next time interval together with correct interpolation
+    advance_ode_integrator!(integrator)
+
+    numiters = 1
+
+    while true
+      # calculate next step
+      OrdinaryDiffEq.perform_step!(integrator, cache, true) # repeat_step=true
+
+      # calculate residuals of fixed-point iteration
+      if isinplace(prob)
+        OrdinaryDiffEq.calculate_residuals!(resid, ode_integrator.u, integrator.u,
+                                            fixedpoint_abstol, fixedpoint_reltol,
+                                            internalnorm, t)
+      else
+        resid = OrdinaryDiffEq.calculate_residuals(ode_integrator.u, integrator.u,
+                                                   fixedpoint_abstol, fixedpoint_reltol,
+                                                   internalnorm, t)
       end
+
+      # update error estimate of integrator with a combined error
+      # estimate of both integrator and fixed-point iteration
+      # this prevents acceptance of steps with poor performance in fixed-point
+      # iteration
+      integrator.EEst = max(integrator.EEst, fixedpoint_norm(resid, t))
+
+      # complete interpolation data of DDE integrator for time interval [t, t+dt]
+      # and copy it to ODE integrator
+      # has to be done before updates to ODE integrator, otherwise history function
+      # is incorrect
+      if iscomposite(alg)
+        DiffEqBase.addsteps!(k, t, uprev, integrator.u, dt, f, p,
+                             cache.caches[cache.current], false, true, true)
+      else
+        DiffEqBase.addsteps!(k, t, uprev, integrator.u, dt, f, p, cache, false, true, true)
+      end
+      recursivecopy!(ode_integrator.k, k)
+
+      # update value u(t+dt)
+      if isinplace(prob)
+        recursivecopy!(ode_integrator.u, integrator.u)
+      else
+        ode_integrator.u = integrator.u
+      end
+
+      # stop fixed-point iteration when error estimate is small or maximal number of
+      # steps is exceeded
+      if integrator.EEst <= 1 || numiters > max_fixedpoint_iters
+        break
+      end
+
+      numiters += 1
     end
+  else
+    # update ODE integrator to next time interval together with correct interpolation
+    advance_ode_integrator!(integrator)
   end
 
   nothing
 end
 
-function savevalues!(integrator::DDEIntegrator, force_save=false)
-    # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
-    # integrator.EEst has unitless type of integrator.t
-    if typeof(integrator.EEst) <: AbstractFloat
-        if integrator.integrator.t != integrator.t
-            if abs(integrator.t - integrator.integrator.t) >= 10eps(integrator.t)
-                error("unexpected time discrepancy detected")
-            end
+# initialize the integrator
+function OrdinaryDiffEq.initialize!(integrator::DDEIntegrator)
+  ode_integrator = integrator.integrator
 
-            integrator.integrator.t = integrator.t
-            integrator.integrator.dt = integrator.integrator.t - integrator.integrator.tprev
-        end
-    end
+  # initialize the cache
+  OrdinaryDiffEq.initialize!(integrator, integrator.cache)
 
-    # If forced, then the user or an event changed integrator.u directly.
-    if force_save
-        if typeof(integrator.cache) <: OrdinaryDiffEq.OrdinaryDiffEqMutableCache
-            integrator.integrator.u .= integrator.u
-        else
-            integrator.integrator.u = integrator.u
-        end
-    end
+  # copy interpolation data to the ODE integrator
+  ode_integrator.kshortsize = integrator.kshortsize
+  ode_integrator.k = recursivecopy(integrator.k)
 
-    # update solution
-    saved_tuple = savevalues!(integrator.integrator, force_save, false) # reduce_size = false
-
-    # update prev2_idx to indices of tprev and u(tprev) in solution
-    # allows reset of ODE integrator (and hence history function) to the last
-    # successful time step after failed steps
-    integrator.prev2_idx = integrator.prev_idx
-
-    # cache dt of interval [tprev, t] of ODE integrator since it can only be retrieved by
-    # a possibly incorrect subtraction
-    # NOTE: does not interfere with usual use of dtcache for non-adaptive methods since ODE
-    # integrator is only used for inter- and extrapolation of future values and saving of
-    # the solution but does not affect the size of time steps
-    integrator.integrator.dtcache = integrator.integrator.dt
-
-    # reduce ODE solution
-    if integrator.saveat !== nothing
-        # obtain constant lags
-        constant_lags = integrator.sol.prob.constant_lags
-
-        # delete part of ODE solution that is not required for DDE solution
-        reduce_solution!(integrator,
-                         # function values at later time points might be necessary for
-                         # calculation of next step, thus keep those interpolation data
-                         integrator.t - integrator.tdir * maximum(abs, constant_lags))
-    end
-
-    return saved_tuple
-end
-
-"""
-    postamble!(integrator::DDEIntegrator)
-
-Clean up solution of `integrator`.
-"""
-function postamble!(integrator::DDEIntegrator)
-    # clean up solution of ODE integrator
-    postamble!(integrator.integrator)
-
-    # reduce solution if possible
-    integrator.saveat !== nothing && reduce_solution!(integrator, integrator.sol.t[end])
-end
-
-"""
-    perform_step!(integrator::DDEIntegrator)
-
-Calculate next step of `integrator`.
-"""
-@muladd function perform_step!(integrator::DDEIntegrator)
-    # reset boolean which indicates whether history function was evaluated at a time point
-    # past the final point of the current solution
-    # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
-    # inter- and extrapolation of future values and saving of the solution but does not
-    # affect whether time steps are accepted
-    integrator.integrator.isout = false
-
-    # perform always at least one calculation
-    perform_step!(integrator, integrator.cache)
-
-    # if the history function was evaluated at time points past the final time point of the
-    # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
-    if integrator.integrator.isout
-        # update ODE integrator to next time interval together with correct interpolation
-        advance_ode_integrator!(integrator)
-
-        numiters = 1
-
-        while true
-            # calculate next step
-            perform_step!(integrator, integrator.cache, true) # repeat_step=true
-
-            # calculate residuals of fixed-point iteration
-            if isinplace(integrator.sol.prob)
-                OrdinaryDiffEq.calculate_residuals!(integrator.resid,
-                                                    integrator.integrator.u,
-                                                    integrator.u,
-                                                    integrator.fixedpoint_abstol,
-                                                    integrator.fixedpoint_reltol,
-                                                    integrator.opts.internalnorm,
-                                                    integrator.t)
-            else
-                integrator.resid = OrdinaryDiffEq.calculate_residuals(
-                    integrator.integrator.u, integrator.u, integrator.fixedpoint_abstol,
-                    integrator.fixedpoint_reltol, integrator.opts.internalnorm,integrator.t)
-            end
-
-            # update error estimate of integrator with a combined error
-            # estimate of both integrator and fixed-point iteration
-            # this prevents acceptance of steps with poor performance in fixed-point
-            # iteration
-            integrator.EEst = max(integrator.EEst,
-                                  integrator.fixedpoint_norm(integrator.resid,integrator.t))
-
-            # complete interpolation data of DDE integrator for time interval [t, t+dt]
-            # and copy it to ODE integrator
-            # has to be done before updates to ODE integrator, otherwise history function
-            # is incorrect
-            if typeof(integrator.cache) <: OrdinaryDiffEq.CompositeCache
-                addsteps!(integrator.k, integrator.t, integrator.uprev,
-                                             integrator.u, integrator.dt, integrator.f,
-                                             integrator.p,
-                                             integrator.cache.caches[integrator.cache.current],
-                                             false, true, true)
-            else
-                addsteps!(integrator.k, integrator.t, integrator.uprev,
-                                             integrator.u, integrator.dt, integrator.f,
-                                             integrator.p,
-                                             integrator.cache, false, true,
-                                             true)
-            end
-            recursivecopy!(integrator.integrator.k, integrator.k)
-
-            # update value u(t+dt)
-            if isinplace(integrator.sol.prob)
-                recursivecopy!(integrator.integrator.u, integrator.u)
-            else
-                integrator.integrator.u = integrator.u
-            end
-
-            # stop fixed-point iteration when error estimate is small or maximal number of
-            # steps is exceeded
-            if integrator.EEst <= 1 || numiters > integrator.max_fixedpoint_iters
-                break
-            end
-
-            numiters += 1
-        end
-    else
-        # update ODE integrator to next time interval together with correct interpolation
-        advance_ode_integrator!(integrator)
-    end
+  # add interpolation steps to ODE integrator to ensure that interpolation data
+  # is always maximal when calculating the next step
+  # exact values do not matter since in the initial time step always a constant
+  # extrapolation is used
+  DiffEqBase.addsteps!(ode_integrator, integrator.f)
 
   nothing
 end
 
-"""
-    initialize!(integrator::DDEIntegrator)
-
-Set initial values of `integrator`.
-"""
-function initialize!(integrator::DDEIntegrator)
-    # initialize DDE integrator
-    initialize!(integrator, integrator.cache)
-
-    # copy interpolation data to ODE integrator
-    integrator.integrator.kshortsize = integrator.kshortsize
-    integrator.integrator.k = recursivecopy(integrator.k)
-
-    # add interpolation steps to ODE integrator to ensure that interpolation data
-    # is always maximal when calculating the next step
-    # exact values do not matter since in the initial time step always a constant
-    # extrapolation is used
-    addsteps!(integrator.integrator, integrator.f)
+# signal the integrator that state u was modified
+function DiffEqBase.u_modified!(integrator::DDEIntegrator, bool::Bool)
+  integrator.u_modified = bool
 end
 
-"""
-    u_modified!(integrator::DDEIntegrator, bool::Bool)
+# return next integration time step
+DiffEqBase.get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
 
-Signal `integrator` whether state vector `u` was modified by a callback.
-
-A modified `u` will lead to recalculations in order to prevent discontinuities.
-"""
-@inline function u_modified!(integrator::DDEIntegrator, bool::Bool)
-    integrator.u_modified = bool
+# set next integration time step
+function DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt)
+  integrator.dtpropose = dt
+  nothing
 end
 
-"""
-    get_proposed_dt(integrator::DDEIntegrator)
-
-Get the time step that `integrator` will take after the current step.
-"""
-@inline get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
-
-"""
-    set_proposed_dt!(integrator::DDEIntegrator, dt)
-
-Set the time step that `integrator` will take after the current step to `dt`.
-"""
-@inline set_proposed_dt!(integrator::DDEIntegrator, dt) = (integrator.dtpropose = dt)
-
-@inline DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) = DiffEqBase.get_tmp_cache(integrator,integrator.alg,integrator.cache)
+DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) =
+  DiffEqBase.get_tmp_cache(integrator, integrator.alg, integrator.cache)
 user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
 du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
@@ -318,17 +241,15 @@ function deleteat!(integrator::DDEIntegrator, i::Int)
     end
 end
 
-"""
-    terminate!(integrator::DDEIntegrator)
-
-Stop further calculations of `integrator`.
-"""
-function terminate!(integrator::DDEIntegrator)
-    integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
+# terminate integration
+function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = :Terminated)
+  integrator.sol = DiffEqBase.solution_new_retcode(integrator.sol, retcode)
+  integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
+  nothing
 end
 
-# DDE integrator can be reinitialized
-has_reinit(integrator::DDEIntegrator) = true
+# integrator can be reinitialized
+DiffEqBase.has_reinit(integrator::DDEIntegrator) = true
 
 """
     reinit!(integrator::DDEIntegrator[, u0 = integrator.sol.prob.u0;
@@ -340,127 +261,162 @@ has_reinit(integrator::DDEIntegrator) = true
 Reinitialize `integrator` with (optionally) different initial state `u0`, different
 integration interval from `t0` to `tf`, and erased solution if `erase_sol = true`.
 """
-function reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
-                 t0 = integrator.sol.prob.tspan[1],
-                 tf = integrator.sol.prob.tspan[2],
-                 erase_sol = true,
-                 tstops = integrator.opts.tstops_cache,
-                 saveat = integrator.opts.saveat_cache,
-                 d_discontinuities = integrator.opts.d_discontinuities_cache,
-                 order_discontinuity_t0 = t0 == integrator.sol.prob.tspan[1] && u0 == integrator.sol.prob.u0 ? integrator.sol.prob.order_discontinuity_t0 : 0,
-                 reset_dt = iszero(integrator.dtcache) && integrator.opts.adaptive,
-                 reinit_callbacks = true, initialize_save = true,
-                 reinit_cache = true)
-    # reinit ODE integrator
-    reinit!(integrator.integrator, u0; t0 = t0, tf = tf, erase_sol = erase_sol,
-            reset_dt = false, reinit_callbacks = false, reinit_cache = false)
-    integrator.integrator.dt = zero(integrator.dt)
-    integrator.integrator.dtcache = zero(integrator.dt)
+function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.u0;
+                            t0 = integrator.sol.prob.tspan[1],
+                            tf = integrator.sol.prob.tspan[end],
+                            erase_sol = true,
+                            tstops = integrator.opts.tstops_cache,
+                            saveat = integrator.opts.saveat_cache,
+                            d_discontinuities = integrator.opts.d_discontinuities_cache,
+                            order_discontinuity_t0 = t0 == integrator.sol.prob.tspan[1] && u0 == integrator.sol.prob.u0 ? integrator.order_discontinuity_t0 : 0,
+                            reset_dt = iszero(integrator.dtcache) && integrator.opts.adaptive,
+                            reinit_callbacks = true, initialize_save = true,
+                            reinit_cache = true)
+  # reinit history
+  reinit!(integrator.integrator, u0;
+          t0 = t0, tf = tf, erase_sol = true, reset_dt = false, reinit_callbacks = false,
+          reinit_cache = false)
+  integrator.integrator.dt = zero(integrator.dt)
+  integrator.integrator.dtcache = zero(integrator.dt)
 
-    # reinit initial values of DDE integrator
+  # reinit initial values of the integrator
+  if isinplace(integrator.sol.prob)
+    recursivecopy!(integrator.u, u0)
+    recursivecopy!(integrator.uprev, integrator.u)
+  else
+    integrator.u = u0
+    integrator.uprev = integrator.u
+  end
+
+  if OrdinaryDiffEq.alg_extrapolates(integrator.alg)
     if isinplace(integrator.sol.prob)
-        recursivecopy!(integrator.u, u0)
-        recursivecopy!(integrator.uprev, integrator.u)
+      recursivecopy!(integrator.uprev2, integrator.uprev)
     else
-        integrator.u = u0
-        integrator.uprev = integrator.u
+      integrator.uprev2 = integrator.uprev
+    end
+  end
+  integrator.t = t0
+  integrator.tprev = t0
+
+  # reinit time stops, time points at which solution is saved, and discontinuities
+  maximum_order = OrdinaryDiffEq.alg_maximum_order(integrator.alg)
+  tstops_internal, saveat_internal, d_discontinuities_internal =
+    OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities,
+                                              integrator.tdir, (t0, tf),
+                                              order_discontinuity_t0, maximum_order,
+                                              integrator.sol.prob.constant_lags,
+                                              typeof(integrator.t))
+
+  integrator.opts.tstops = tstops_internal
+  integrator.opts.saveat = saveat_internal
+  integrator.opts.d_discontinuities = d_discontinuities_internal
+
+  # update order of initial discontinuity
+  integrator.order_discontinuity_t0 = order_discontinuity_t0
+
+  # erase solution
+  if erase_sol
+    # resize vectors in solution
+    resize_start = integrator.opts.save_start ? 1 : 0
+    resize!(integrator.sol.u, resize_start)
+    resize!(integrator.sol.t, resize_start)
+    resize!(integrator.sol.k, resize_start)
+    iscomposite(integrator.alg) && resize!(integrator.sol.alg_choice, resize_start)
+    integrator.sol.u_analytic !== nothing && resize!(integrator.sol.u_analytic, 0)
+
+    # save initial values
+    if integrator.opts.save_start
+      copyat_or_push!(integrator.sol.t, 1, integrator.t)
+      if integrator.opts.save_idxs === nothing
+        copyat_or_push!(integrator.sol.u, 1, integrator.u)
+      else
+        u_initial = integrator.u[integrator.opts.save_idxs]
+        copyat_or_push!(integrator.sol.u, 1, u_initial, Val{false})
+      end
     end
 
-    integrator.u_modified = false
+    # reset iteration counter
+    integrator.saveiter = resize_start
 
-    if OrdinaryDiffEq.alg_extrapolates(integrator.alg)
-        if isinplace(integrator.sol.prob)
-            recursivecopy!(integrator.uprev2, integrator.uprev)
-        else
-            integrator.uprev2 = integrator.uprev
-        end
+    # erase array of tracked discontinuities
+    if order_discontinuity_t0 ≤ OrdinaryDiffEq.alg_maximum_order(integrator.alg)
+      resize!(integrator.tracked_discontinuities, 1)
+      integrator.tracked_discontinuities[1] = Discontinuity(integrator.t, order_discontinuity_t0)
+    else
+      resize!(integrator.tracked_discontinuities, 0)
     end
 
-    integrator.t = t0
-    integrator.tprev = t0
+    # reset history counters
+    integrator.prev_idx = 1
+    integrator.prev2_idx = 1
+  end
 
-    # reinit time stops, time points at which solution is saved, and discontinuities
-    integrator.opts.tstops, integrator.opts.saveat, integrator.opts.d_discontinuities =
-        tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, integrator.tdir,
-                                   (t0,tf), order_discontinuity_t0, alg_maximum_order(integrator.alg),
-                                   integrator.sol.prob.constant_lags, typeof(integrator.t))
+  # reset integration counters
+  integrator.iter = 0
+  integrator.success_iter = 0
 
-    # copy time points at which solution is saved if solution should be
-    # reduced during integration
-    if integrator.saveat !== nothing
-        integrator.saveat = deepcopy(integrator.opts.saveat)
-    end
+  # full re-initialize the PI in timestepping
+  integrator.qold = integrator.opts.qoldinit
+  integrator.q11 = one(integrator.t)
+  integrator.erracc = one(integrator.erracc)
+  integrator.dtacc = one(integrator.dtacc)
+  integrator.u_modified = false
 
-    if erase_sol
-        # erase array of tracked discontinuities
-        if order_discontinuity_t0 ≤ alg_maximum_order(integrator.alg)
-            resize!(integrator.tracked_discontinuities, 1)
-            integrator.tracked_discontinuities[1] = Discontinuity(t0, order_discontinuity_t0)
-        else
-            resize!(integrator.tracked_discontinuities, 0)
-        end
+  if reset_dt
+    DiffEqBase.auto_dt_reset!(integrator)
+  end
 
-        # reset solution counters
-        integrator.saveiter = 1
-        integrator.prev_idx = 1
-        integrator.prev2_idx = 1
-    end
+  if reinit_callbacks
+    OrdinaryDiffEq.initialize_callbacks!(integrator, initialize_save)
+  end
 
-    # reset integration counters
-    integrator.iter = 0
-    integrator.success_iter = 0
+  if reinit_cache
+    OrdinaryDiffEq.initialize!(integrator)
+  end
 
-    # full re-initialize the PI in timestepping
-    integrator.qold = integrator.opts.qoldinit
-    integrator.q11 = one(integrator.t)
-    integrator.erracc = one(integrator.erracc)
-    integrator.dtacc = one(integrator.dtacc)
-
-    if reset_dt
-        auto_dt_reset!(integrator)
-    end
-
-    if reinit_callbacks
-        initialize_callbacks!(integrator, initialize_save)
-    end
-
-    if reinit_cache
-        initialize!(integrator)
-    end
+  nothing
 end
 
-"""
-    auto_dt_reset!(dde_int::DDEIntegrator)
 
-Automatically determine initial time step of `dde_int`.
-"""
-function auto_dt_reset!(dde_int::DDEIntegrator)
-    # determine maximal time step
-    constant_lags = dde_int.sol.prob.constant_lags
-    dtmax = (constant_lags === nothing || isempty(constant_lags)) ? dde_int.opts.dtmax :
-        dde_int.tdir * minimum(abs, constant_lags)
 
-    # determine initial time step
-    ode_prob = ODEProblem(dde_int.f, dde_int.sol.prob.u0, dde_int.sol.prob.tspan,
-                          dde_int.sol.prob.p)
-    dde_int.dt = OrdinaryDiffEq.ode_determine_initdt(dde_int.u, dde_int.t, dde_int.tdir,
-                                                     dtmax, dde_int.opts.abstol,
-                                                     dde_int.opts.reltol,
-                                                     dde_int.opts.internalnorm,
-                                                     ode_prob,
-                                                     dde_int)
+
+
+
+
+
+
+
+
+
+
+function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
+  @unpack f, u, t, tdir, opts, sol = integrator
+  @unpack prob = sol
+  @unpack abstol, reltol, internalnorm = opts
+
+  # determine maximal time step
+  if has_constant_lags(prob)
+    dtmax = tdir * min(abs(opts.dtmax), minimum(abs, prob.constant_lags))
+  else
+    dtmax = opts.dtmax
+  end
+
+  # determine initial time step
+  ode_prob = ODEProblem(f, prob.u0, prob.tspan, prob.p)
+  integrator.dt = OrdinaryDiffEq.ode_determine_initdt(
+    u, t, tdir, dtmax, opts.abstol, opts.reltol, opts.internalnorm, ode_prob, integrator)
+
+  nothing
 end
 
 function DiffEqBase.add_tstop!(integrator::DDEIntegrator,t)
   integrator.tdir * (t - integrator.t) < 0 && error("Tried to add a tstop that is behind the current time. This is strictly forbidden")
-  push!(integrator.integrator.opts.tstops,t)
-  push!(integrator.opts.tstops,t)
+  push!(integrator.opts.tstops, t)
 end
 
 function DiffEqBase.add_saveat!(integrator::DDEIntegrator,t)
   integrator.tdir * (t - integrator.t) < 0 && error("Tried to add a saveat that is behind the current time. This is strictly forbidden")
-  push!(integrator.integrator.opts.saveat,t)
-  push!(integrator.opts.saveat,t)
+  push!(integrator.opts.saveat, t)
 end
 
 @inline function DiffEqBase.get_du(integrator::DDEIntegrator)

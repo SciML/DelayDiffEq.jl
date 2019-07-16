@@ -1,5 +1,5 @@
 # update integrator when u is modified by callbacks
-function handle_callback_modifiers!(integrator::DDEIntegrator)
+function OrdinaryDiffEq.handle_callback_modifiers!(integrator::DDEIntegrator)
     integrator.reeval_fsal = true # recalculate fsalfirst after applying step
 
     # update heap of discontinuities
@@ -7,31 +7,28 @@ function handle_callback_modifiers!(integrator::DDEIntegrator)
     push!(integrator.opts.d_discontinuities, Discontinuity(integrator.t, 0))
 end
 
-"""
-    reeval_internals_due_to_modification!(integrator::DDEIntegrator)
-
-Recalculate interpolation data and update ODE integrator after changes by callbacks.
-"""
+# recalculate interpolation data and update the ODE integrator
 function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegrator,
             x::Type{Val{not_initialization}} = Val{true}) where not_initialization
+  ode_integrator = integrator.integrator
 
-    # update interpolation data of DDE integrator using old interpolation data
-    # of ODE integrator in evaluation of history function that was calculated in
-    # `perform_step!`
-    if not_initialization
-        addsteps!(integrator, integrator.f, true, true, true)
-        # copy interpolation data to ODE integrator
-        recursivecopy!(integrator.integrator.k, integrator.k)
+  if not_initialization
+    # update interpolation data of the integrator using the old dense history
+    # of the ODE integrator
+    DiffEqBase.addsteps!(integrator, integrator.f, true, true, true)
+
+    # copy interpolation data to the ODE integrator
+    recursivecopy!(ode_integrator.k, integrator.k)
     end
 
-    # move ODE integrator to new time interval of DDE integrator
-    integrator.integrator.t = integrator.t
-    integrator.integrator.dt = integrator.dt
-    if isinplace(integrator.sol.prob)
-        recursivecopy!(integrator.integrator.u, integrator.u)
-    else
-        integrator.integrator.u = integrator.u
-    end
+  # adjust current interval of the ODE integrator
+  ode_integrator.t = integrator.t
+  ode_integrator.dt = integrator.dt
+  if isinplace(integrator.sol.prob)
+    recursivecopy!(ode_integrator.u, integrator.u)
+  else
+    ode_integrator.u = integrator.u
+  end
 
-    integrator.u_modified = false
+  integrator.u_modified = false
 end
