@@ -190,12 +190,13 @@ function DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt)
   nothing
 end
 
+# obtain caches
 DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) =
-  DiffEqBase.get_tmp_cache(integrator, integrator.alg, integrator.cache)
-user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
-u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
-du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
-full_cache(integrator::DDEIntegrator) = chain(user_cache(integrator),u_cache(integrator),du_cache(integrator))
+  get_tmp_cache(integrator, integrator.alg, integrator.cache)
+DiffEqBase.user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
+DiffEqBase.u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
+DiffEqBase.du_cache(integrator::DDEIntegrator) = du_cache(integrator.cache)
+DiffEqBase.full_cache(integrator::DDEIntegrator) = full_cache(integrator.cache)
 
 resize!(integrator::DDEIntegrator, i::Int) = resize!(integrator, integrator.cache, i)
 function resize!(integrator::DDEIntegrator, cache, i)
