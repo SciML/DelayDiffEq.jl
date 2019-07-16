@@ -378,20 +378,8 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
   nothing
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
 function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
-  @unpack f, u, t, tdir, opts, sol = integrator
+  @unpack f, u, t, tdir, opts, sol, destats = integrator
   @unpack prob = sol
   @unpack abstol, reltol, internalnorm = opts
 
@@ -406,6 +394,9 @@ function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
   ode_prob = ODEProblem(f, prob.u0, prob.tspan, prob.p)
   integrator.dt = OrdinaryDiffEq.ode_determine_initdt(
     u, t, tdir, dtmax, opts.abstol, opts.reltol, opts.internalnorm, ode_prob, integrator)
+
+  # update statistics
+  destats.nf += 2
 
   nothing
 end
