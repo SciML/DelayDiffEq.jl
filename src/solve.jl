@@ -246,47 +246,73 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     fixedpoint_reltol_internal = real.(alg.fixedpoint_reltol)
   end
 
-  # initialize indices of u(t) and u(tprev) in the dense history
-  prev_idx = 1
-  prev2_idx = 1
-
   # create integrator combining the new defined problem function with history
   # information, the new solution, the parameters of the ODE integrator, and
   # parameters of fixed-point iteration
   # do not initialize fsalfirst and fsallast
-  tTypeNoUnits = typeof(one(tType))
-  integrator = DDEIntegrator{typeof(alg.alg),isinplace(prob),typeof(u),tType,typeof(p),
-                             typeof(ode_integrator.eigen_est),
-                             typeof(fixedpoint_abstol_internal),
-                             typeof(fixedpoint_reltol_internal),typeof(resid),tTypeNoUnits,
-                             typeof(tdir),typeof(k),typeof(sol),typeof(f_with_history),
-                             typeof(cache),typeof(ode_integrator),typeof(fixedpoint_norm),
-                             typeof(opts),typeof(discontinuity_abstol),
-                             typeof(discontinuity_reltol),
-                             OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
-                             typeof(ode_integrator.last_event_error),
-                             typeof(callback_cache)}(
-                               sol, u, k, ode_integrator.t, tType(dt), f_with_history, p,
-                               uprev, uprev2, ode_integrator.tprev, prev_idx, prev2_idx,
-                               fixedpoint_abstol_internal, fixedpoint_reltol_internal,
-                               resid, fixedpoint_norm, alg.max_fixedpoint_iters,
-                               order_discontinuity_t0, tracked_discontinuities,
-                               discontinuity_interp_points, discontinuity_abstol,
-                               discontinuity_reltol, alg.alg,
-                               ode_integrator.dtcache, ode_integrator.dtchangeable,
-                               ode_integrator.dtpropose, tdir,
-                               ode_integrator.eigen_est, ode_integrator.EEst,
-                               ode_integrator.qold, ode_integrator.q11,
-                               ode_integrator.erracc, ode_integrator.dtacc,
-                               ode_integrator.success_iter, ode_integrator.iter,
-                               length(ts), length(ts), cache, callback_cache,
-                               ode_integrator.kshortsize, ode_integrator.force_stepfail,
-                               ode_integrator.just_hit_tstop, ode_integrator.last_stepfail,
-                               ode_integrator.event_last_time,
-                               ode_integrator.vector_event_last_time,
-                               ode_integrator.last_event_error, ode_integrator.accept_step,
-                               ode_integrator.isout, ode_integrator.reeval_fsal,
-                               ode_integrator.u_modified, opts, destats, ode_integrator)
+  QT = typeof(one(tType))
+  integrator = DDEIntegrator{
+    typeof(alg.alg),isinplace(prob),typeof(u),tType,typeof(p),
+    typeof(ode_integrator.eigen_est),QT,typeof(tdir),typeof(k),typeof(sol),
+    typeof(f_with_history),typeof(cache),typeof(opts),
+    OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
+    typeof(ode_integrator.last_event_error),typeof(callback_cache),
+    typeof(fixedpoint_abstol_internal),typeof(fixedpoint_reltol_internal),typeof(resid),
+    typeof(fixedpoint_norm),typeof(discontinuity_abstol),typeof(discontinuity_reltol),
+    typeof(ode_integrator)}(
+      sol,
+      u,
+      k,
+      ode_integrator.t,
+      tType(dt),
+      f_with_history,
+      p,
+      uprev,
+      uprev2,
+      ode_integrator.tprev,
+      1, # prev_idx
+      1, # prev2_idx
+      fixedpoint_abstol_internal,
+      fixedpoint_reltol_internal,
+      resid,
+      fixedpoint_norm,
+      alg.max_fixedpoint_iters,
+      order_discontinuity_t0,
+      tracked_discontinuities,
+      discontinuity_interp_points,
+      discontinuity_abstol,
+      discontinuity_reltol,
+      alg.alg,
+      ode_integrator.dtcache,
+      ode_integrator.dtchangeable,
+      ode_integrator.dtpropose,
+      tdir,
+      ode_integrator.eigen_est,
+      ode_integrator.EEst,
+      ode_integrator.qold,
+      ode_integrator.q11,
+      ode_integrator.erracc,
+      ode_integrator.dtacc,
+      ode_integrator.success_iter,
+      ode_integrator.iter,
+      length(ts), # saveiter
+      length(ts), # saveiter_dense
+      cache,
+      callback_cache,
+      ode_integrator.kshortsize,
+      ode_integrator.force_stepfail,
+      ode_integrator.last_stepfail,
+      ode_integrator.just_hit_tstop,
+      ode_integrator.event_last_time,
+      ode_integrator.vector_event_last_time,
+      ode_integrator.last_event_error,
+      ode_integrator.accept_step,
+      ode_integrator.isout,
+      ode_integrator.reeval_fsal,
+      ode_integrator.u_modified,
+      opts,
+      destats,
+      ode_integrator)
 
   # initialize DDE integrator
   if initialize_integrator
