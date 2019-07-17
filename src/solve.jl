@@ -6,6 +6,14 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem,
   integrator.sol
 end
 
+
+struct HistoryWrapper{F, H}
+  f::F
+  history::H
+end
+(F::HistoryWrapper)(du, u, p, t) = F.f(du, u, F.history, p, t)
+(F::HistoryWrapper)(u, p, t) = F.f(u, F.history, p, t)
+
 function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            alg::AbstractMethodOfStepsAlgorithm,
                            timeseries_init = typeof(prob.u0)[],
@@ -77,11 +85,12 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   #   current integration step (so the interpolation is fixed while updating the stages)
   # we wrap the user-provided history function such that function calls during the setup
   # of the integrator do not fail
+  _fh = HistoryWrapper(f, h)
   if isinplace(prob)
-    ode_prob = ODEProblem{true}(ODEFunction{true}((du,u,p,t) -> nothing; mass_matrix = f.mass_matrix),
+    ode_prob = ODEProblem{true}(ODEFunction{true}(_fh; mass_matrix = f.mass_matrix),
                                 u0, tspan, p)
   else
-    ode_prob = ODEProblem{false}(ODEFunction{false}((u,p,t) -> nothing; mass_matrix = f.mass_matrix),
+    ode_prob = ODEProblem{false}(ODEFunction{false}(_fh; mass_matrix = f.mass_matrix),
                                  u0, tspan, p)
   end
   ode_integrator = init(ode_prob, alg.alg; initialize_integrator = false, alias_u0 = false,
@@ -100,16 +109,11 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # available history information that is of the form f(du,u,p,t) or f(u,p,t) such that
   # ODE algorithms can be applied
   history = HistoryFunction(h, ode_integrator.sol, ode_integrator)
+  fh = HistoryWrapper(f.f, history)
   if isinplace(prob)
-    f_with_history = ODEFunction{true}(let history = history
-                                         (du, u, p, t) -> f.f(du, u, history, p, t)
-                                       end;
-                                       mass_matrix = f.mass_matrix)
+    f_with_history = ODEFunction{true}(fh; mass_matrix = f.mass_matrix)
   else
-    f_with_history = ODEFunction{false}(let history = history
-                                          (u, p, t) -> f.f(u, history, p, t)
-                                        end;
-                                        mass_matrix = f.mass_matrix)
+    f_with_history = ODEFunction{false}(fh; mass_matrix = f.mass_matrix)
   end
 
   # get states (possibly different from the ODE integrator!)
