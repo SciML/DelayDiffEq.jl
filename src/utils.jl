@@ -87,8 +87,28 @@ end
 
 Return prototype of rates for a given differential equation problem.
 """
-rate_prototype_of(prob::DiffEqBase.DEProblem) =
-  DiffEqBase.@.. prob.u0 * $(inv(oneunit(eltype(prob.tspan))))
+function rate_prototype_of(prob)
+  u = prob.u0
+  tType = eltype(prob.tspan)
+  uBottomEltype = recursive_bottom_eltype(u)
+  uBottomEltypeNoUnits = recursive_unitless_bottom_eltype(u)
+
+  if isinplace(prob) && u isa AbstractArray && eltype(u) <: Number && uBottomEltypeNoUnits === uBottomEltype # Could this be more efficient for other arrays?
+    if !(typeof(u) <: ArrayPartition)
+      rate_prototype = recursivecopy(u)
+    else
+      rate_prototype = similar(u, typeof.(oneunit.(recursive_bottom_eltype.(u.x))./oneunit(tType))...)
+    end
+  else
+    if uBottomEltypeNoUnits === uBottomEltype
+      rate_prototype = u
+    else # has units!
+      rate_prototype = u / oneunit(tType)
+    end
+  end
+
+  rate_prototype
+end
 
 """
     solution_arrays(u, tspan, rate_prototype; kwargs...)
