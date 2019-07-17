@@ -19,6 +19,7 @@ using OrdinaryDiffEq: ODEIntegrator, Rosenbrock23Cache, Rosenbrock32Cache,
                       ImplicitEulerCache, TrapezoidCache
 
 include("discontinuity_type.jl")
+include("functionwrapper.jl")
 include("integrators/type.jl")
 include("integrators/utils.jl")
 include("integrators/interface.jl")

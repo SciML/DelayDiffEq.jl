@@ -77,15 +77,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   #   current integration step (so the interpolation is fixed while updating the stages)
   # we wrap the user-provided history function such that function calls during the setup
   # of the integrator do not fail
-  if isinplace(prob)
-    ode_prob = ODEProblem{true}(ODEFunction{true}((du, u, p, t) -> f.f(du, u, h, p, t);
-                                                  mass_matrix = f.mass_matrix),
-                                u0, tspan, p)
-  else
-    ode_prob = ODEProblem{false}(ODEFunction{false}((du, u, p, t) -> f.f(du, u, h, p, t);
-                                                    mass_matrix = f.mass_matrix),
-                                 u0, tspan, p)
-  end
+  ode_f = ODEFunctionWrapper(f, h)
+  ode_prob = ODEProblem{isinplace(prob)}(ode_f, u0, tspan, p)
   ode_integrator = init(ode_prob, alg.alg; initialize_integrator = false, alias_u0 = false,
                         dt = oneunit(tType), dtmax = dtmax, adaptive = adaptive,
                         dense = true, save_everystep = true, save_start = true,
@@ -102,13 +95,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # available history information that is of the form f(du,u,p,t) or f(u,p,t) such that
   # ODE algorithms can be applied
   history = HistoryFunction(h, ode_integrator.sol, ode_integrator)
-  if isinplace(prob)
-    f_with_history = ODEFunction{true}((du, u, p, t) -> f.f(du, u, history, p, t);
-                                       mass_matrix = f.mass_matrix)
-  else
-    f_with_history = ODEFunction{false}((u, p, t) -> f.f(u, history, p, t);
-                                        mass_matrix = f.mass_matrix)
-  end
+  f_with_history = ODEFunctionWrapper(f, history)
 
   # get states (possibly different from the ODE integrator!)
   u, uprev, uprev2 = u_uprev_uprev2(prob, alg;
