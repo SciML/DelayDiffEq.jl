@@ -14,6 +14,7 @@ if GROUP == "All" || GROUP == "Interface"
   @time @safetestset "save_idxs Tests" begin include("save_idxs.jl") end
   @time @safetestset "Event Tests" begin include("events.jl") end
   @time @safetestset "Cache Tests" begin include("cache.jl") end
+  @time @safetestset "Iterator Tests" begin include("iterator.jl") end
   @time @safetestset "Units Tests" begin include("units.jl") end
   @time @safetestset "Unique Timepoints Tests" begin include("unique_times.jl") end
 end
