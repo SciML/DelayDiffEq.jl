@@ -320,7 +320,7 @@ function build_history_function(prob, alg, rate_prototype, reltol;
 
   # create simple integrator
   tdirType = typeof(sign(zero(tType)))
-  ode_integrator = HistoryODEIntegrator{typeof(alg.alg),isinplace(prob),uType,
+  ode_integrator = HistoryODEIntegrator{typeof(alg.alg),isinplace(prob),typeof(prob.u0),
                                         tType,tdirType,typeof(ode_k),
                                         typeof(ode_sol),typeof(ode_cache)}(
                                           ode_sol, ode_u, ode_k, t, zero(tType), ode_uprev,
