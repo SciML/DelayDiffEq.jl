@@ -78,12 +78,10 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # we wrap the user-provided history function such that function calls during the setup
   # of the integrator do not fail
   if isinplace(prob)
-    ode_prob = ODEProblem{true}(ODEFunction{true}((du, u, p, t) -> f.f(du, u, h, p, t);
-                                                  mass_matrix = f.mass_matrix),
+    ode_prob = ODEProblem{true}(ODEFunction{true}((du,u,p,t) -> nothing; mass_matrix = f.mass_matrix),
                                 u0, tspan, p)
   else
-    ode_prob = ODEProblem{false}(ODEFunction{false}((du, u, p, t) -> f.f(du, u, h, p, t);
-                                                    mass_matrix = f.mass_matrix),
+    ode_prob = ODEProblem{false}(ODEFunction{false}((u,p,t) -> nothing; mass_matrix = f.mass_matrix),
                                  u0, tspan, p)
   end
   ode_integrator = init(ode_prob, alg.alg; initialize_integrator = false, alias_u0 = false,
@@ -103,10 +101,14 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # ODE algorithms can be applied
   history = HistoryFunction(h, ode_integrator.sol, ode_integrator)
   if isinplace(prob)
-    f_with_history = ODEFunction{true}((du, u, p, t) -> f.f(du, u, history, p, t);
+    f_with_history = ODEFunction{true}(let history = history
+                                         (du, u, p, t) -> f.f(du, u, history, p, t)
+                                       end;
                                        mass_matrix = f.mass_matrix)
   else
-    f_with_history = ODEFunction{false}((u, p, t) -> f.f(u, history, p, t);
+    f_with_history = ODEFunction{false}(let history = history
+                                          (u, p, t) -> f.f(u, history, p, t)
+                                        end;
                                         mass_matrix = f.mass_matrix)
   end
 
