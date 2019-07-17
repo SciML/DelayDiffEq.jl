@@ -7,7 +7,7 @@ const integrator = init(prob_dde_constant_1delay_ip,
 
 @testset "init" begin
   @test integrator.sol isa T
-  @test integrator.integrator.sol isa T
+  @test integrator.history.integrator.sol isa T
 end
 
 @testset "solve" begin

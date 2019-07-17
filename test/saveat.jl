@@ -13,8 +13,8 @@ const sol = solve!(dde_int)
   @test sol.u == dde_int.sol.u
 
   # solution equals solution of ODE integrator
-  @test sol.t == dde_int.integrator.sol.t
-  @test sol.u == dde_int.integrator.sol.u
+  @test sol.t == dde_int.history.integrator.sol.t
+  @test sol.u == dde_int.history.integrator.sol.u
 end
 
 # do not save every step
@@ -40,8 +40,8 @@ end
     end
 
     # history is equal to solution above
-    @test sol.t == dde_int2.integrator.sol.t
-    @test sol.u == dde_int2.integrator.sol.u
+    @test sol.t == dde_int2.history.integrator.sol.t
+    @test sol.u == dde_int2.history.integrator.sol.u
   end
 end
 
@@ -68,8 +68,8 @@ end
     end
 
     # history is equal to solution above
-    @test sol.t == dde_int2.integrator.sol.t
-    @test sol.u == dde_int2.integrator.sol.u
+    @test sol.t == dde_int2.history.integrator.sol.t
+    @test sol.u == dde_int2.history.integrator.sol.u
   end
 end
 
@@ -98,8 +98,8 @@ end
     end
 
     # history is equal to solution above
-    @test sol.t == dde_int2.integrator.sol.t
-    @test sol.u == dde_int2.integrator.sol.u
+    @test sol.t == dde_int2.history.integrator.sol.t
+    @test sol.u == dde_int2.history.integrator.sol.u
   end
 end
 
@@ -128,7 +128,7 @@ end
     end
 
     # history is equal to solution above
-    @test sol.t == dde_int2.integrator.sol.t
-    @test sol.u == dde_int2.integrator.sol.u
+    @test sol.t == dde_int2.history.integrator.sol.t
+    @test sol.u == dde_int2.history.integrator.sol.u
   end
 end

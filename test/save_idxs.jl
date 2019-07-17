@@ -30,7 +30,7 @@ const alg = MethodOfSteps(BS3())
       # contain all components
       @test length(sol.u[1]) == 2
       @test length(dde_int.sol.u[1]) == 2
-      @test length(dde_int.integrator.sol.u[1]) == 2
+      @test length(dde_int.history.integrator.sol.u[1]) == 2
 
       # solution and solution of DDE integrator are equal
       @test sol.t == dde_int.sol.t
@@ -49,14 +49,14 @@ const alg = MethodOfSteps(BS3())
       # contain all components
       @test length(sol2.u[1]) == 2
       @test length(dde_int2.sol.u[1]) == 2
-      @test length(dde_int2.integrator.sol.u[1]) == 2
+      @test length(dde_int2.history.integrator.sol.u[1]) == 2
 
       # solution and solution of DDE integrator are equal
       @test sol.t == dde_int.sol.t
       @test sol.u == dde_int.sol.u
 
       # interpolation
-      @test sol[2, :] ≈ dde_int.integrator.sol(sol.t, idxs=2)
+      @test sol[2, :] ≈ dde_int.history.integrator.sol(sol.t, idxs=2)
     end
   end
 
@@ -72,7 +72,7 @@ const alg = MethodOfSteps(BS3())
       @test length(dde_int2.sol.u[1]) == 1
 
       # solution of ODE integrator contains both components
-      @test length(dde_int2.integrator.sol.u[1]) == 2
+      @test length(dde_int2.history.integrator.sol.u[1]) == 2
 
       # solution and solution of DDE integrator are equal
       @test sol2.t == dde_int2.sol.t
@@ -93,7 +93,7 @@ const alg = MethodOfSteps(BS3())
       @test typeof(dde_int2.sol.u) === Vector{Float64}
 
       # solution of ODE integrator contains both components
-      @test length(dde_int2.integrator.sol.u[1]) == 2
+      @test length(dde_int2.history.integrator.sol.u[1]) == 2
 
       # solution and solution of DDE integrator are equal
       @test sol2.t == dde_int2.sol.t
