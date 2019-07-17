@@ -6,8 +6,8 @@ and interpolation data with the current values and a full set of interpolation d
 `integrator`.
 """
 function advance_ode_integrator!(integrator::DDEIntegrator)
-  @unpack f, u, t, p, k, dt, uprev, alg, cache = integrator
-  ode_integrator = integrator.integrator
+  @unpack f, u, t, p, k, dt, uprev, alg, cache, history = integrator
+  ode_integrator = history.integrator
 
   # algorithm only works if current time of DDE integrator equals final time point
   # of solution
@@ -23,7 +23,9 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
   else
     DiffEqBase.addsteps!(k, t, uprev, u, dt, f, p, cache, false, true, true)
   end
-  recursivecopy!(ode_integrator.k, k)
+  @inbounds for i in 1:length(k)
+    copyat_or_push!(ode_integrator.k, i, k[i])
+  end
 
   # move ODE integrator to interval [t, t+dt]
   ode_integrator.t = t + dt
@@ -54,7 +56,7 @@ Move the ODE integrator of `integrator` one integration step back by reverting i
 and interpolation data to the values saved in the dense history.
 """
 function move_back_ode_integrator!(integrator::DDEIntegrator)
-  ode_integrator = integrator.integrator
+  ode_integrator = integrator.history.integrator
   @unpack sol = ode_integrator
 
   # set values of the ODE integrator back to the values in the solution

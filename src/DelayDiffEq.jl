@@ -6,6 +6,8 @@ using Reexport
 using DataStructures
 using DiffEqDiffTools
 using ForwardDiff
+using LinearAlgebra
+using Logging
 using NLSolversBase
 using Parameters
 using RecursiveArrayTools
@@ -13,7 +15,7 @@ using Roots
 
 import DiffEqBase: resize!, u_cache, user_cache, du_cache, full_cache,
                    deleteat!, AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator,
-                   AbstractDDEProblem
+                   AbstractDDEProblem, AbstractODEIntegrator
 
 using OrdinaryDiffEq: ODEIntegrator, Rosenbrock23Cache, Rosenbrock32Cache,
                       ImplicitEulerCache, TrapezoidCache

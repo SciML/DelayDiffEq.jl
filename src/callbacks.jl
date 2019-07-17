@@ -10,7 +10,7 @@ end
 # recalculate interpolation data and update the ODE integrator
 function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegrator,
             x::Type{Val{not_initialization}} = Val{true}) where not_initialization
-  ode_integrator = integrator.integrator
+  ode_integrator = integrator.history.integrator
 
   if not_initialization
     # update interpolation data of the integrator using the old dense history

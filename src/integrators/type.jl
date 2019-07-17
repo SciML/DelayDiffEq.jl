@@ -1,7 +1,23 @@
+mutable struct HistoryODEIntegrator{algType,IIP,uType,tType,tdirType,ksEltype,SolType,CacheType} <: AbstractODEIntegrator{algType,IIP,uType,tType}
+  sol::SolType
+  u::uType
+  k::ksEltype
+  t::tType
+  dt::tType
+  uprev::uType
+  tprev::tType
+  alg::algType
+  dtcache::tType
+  tdir::tdirType
+  saveiter::Int
+  saveiter_dense::Int
+  cache::CacheType
+end
+
 mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                              residType,tTypeNoUnits,tdirType,ksEltype,
                              SolType,F,CacheType,
-                             IType,NType,O,dAbsType,dRelType,
+                             HType,NType,O,dAbsType,dRelType,
                              FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
     sol::SolType
     u::uType
@@ -55,14 +71,14 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     u_modified::Bool
     opts::O
     destats::DiffEqBase.DEStats
-    integrator::IType
+    history::HType
     fsalfirst::FSALType
     fsallast::FSALType
 
     # incomplete initialization without fsalfirst and fsallast
     function DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                            residType,tTypeNoUnits,
-                           tdirType,ksEltype,SolType,F,CacheType,IType,
+                           tdirType,ksEltype,SolType,F,CacheType,HType,
                            NType,O,dAbsType,dRelType,FSALType,EventErrorType,
                            CallbackCacheType}(
                                sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,
@@ -74,14 +90,14 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
                                cache,callback_cache,kshortsize,force_stepfail,last_stepfail,
                                just_hit_tstop,event_last_time,vector_event_last_time,last_event_error,
                                accept_step,isout,reeval_fsal,u_modified,opts,destats,
-                               integrator) where
+                               history) where
         {algType,IIP,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
-         tdirType,ksEltype,SolType,F,CacheType,IType,NType,O,
+         tdirType,ksEltype,SolType,F,CacheType,HType,NType,O,
          dAbsType,dRelType,FSALType,EventErrorType,CallbackCacheType}
 
         new{algType,IIP,uType,tType,P,eigenType,absType,relType,
                                residType,tTypeNoUnits,
-                               tdirType,ksEltype,SolType,F,CacheType,IType,
+                               tdirType,ksEltype,SolType,F,CacheType,HType,
                                NType,O,dAbsType,dRelType,
                                FSALType,EventErrorType,CallbackCacheType}(
             sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,fixedpoint_abstol,
@@ -90,8 +106,8 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
             discontinuity_abstol,discontinuity_reltol,alg,dtcache,dtchangeable,dtpropose,tdir,
             eigen_est,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
             cache,callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
-            accept_step,event_last_time,vector_event_last_time,last_event_error,isout,
-            reeval_fsal,u_modified,opts,destats,integrator)
+            event_last_time,vector_event_last_time,last_event_error,accept_step,isout,
+            reeval_fsal,u_modified,opts,destats,history)
     end
 end
 

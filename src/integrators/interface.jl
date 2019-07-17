@@ -17,9 +17,27 @@ function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
 end
 
 # save current state of the integrator
+function DiffEqBase.savevalues!(integrator::HistoryODEIntegrator, force_save = false,
+                                reduce_size = false)::Tuple{Bool,Bool}
+  integrator.saveiter += 1
+  # TODO: save history only for a subset of components
+  copyat_or_push!(integrator.sol.t,integrator.saveiter,integrator.t)
+  copyat_or_push!(integrator.sol.u, integrator.saveiter, integrator.u)
+
+  integrator.saveiter_dense += 1
+  copyat_or_push!(integrator.sol.k, integrator.saveiter_dense, integrator.k)
+
+
+  if iscomposite(integrator.alg)
+    copyat_or_push!(integrator.sol.alg_choice, integrator.saveiter, integrator.cache.current)
+  end
+
+  true, true
+end
+
 function DiffEqBase.savevalues!(integrator::DDEIntegrator, force_save = false,
                                 reduce_size = false)::Tuple{Bool,Bool}
-  ode_integrator = integrator.integrator
+  ode_integrator = integrator.history.integrator
 
   # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
   # integrator.EEst has unitless type of integrator.t
@@ -66,9 +84,30 @@ function DiffEqBase.savevalues!(integrator::DDEIntegrator, force_save = false,
 end
 
 # clean up the solution of the integrator
+function DiffEqBase.postamble!(integrator::HistoryODEIntegrator)
+  if integrator.saveiter == 0 || integrator.sol.t[integrator.saveiter] != integrator.t
+    integrator.saveiter += 1
+    copyat_or_push!(integrator.sol.t, integrator.saveiter, integrator.t)
+    copyat_or_push!(integrator.sol.u, integrator.saveiter, integrator.u)
+
+    integrator.saveiter_dense +=1
+    copyat_or_push!(integrator.sol.k, integrator.saveiter_dense, integrator.k)
+
+    if iscomposite(integrator.alg)
+      copyat_or_push!(integrator.sol.alg_choice, integrator.saveiter, integrator.cache.current)
+    end
+  end
+
+  resize!(integrator.sol.t, integrator.saveiter)
+  resize!(integrator.sol.u, integrator.saveiter)
+  resize!(integrator.sol.k, integrator.saveiter_dense)
+
+  nothing
+end
+
 function DiffEqBase.postamble!(integrator::DDEIntegrator)
   # clean up solution of the ODE integrator
-  DiffEqBase.postamble!(integrator.integrator)
+  DiffEqBase.postamble!(integrator.history.integrator)
 
   # clean solution of the DDE integrator
   OrdinaryDiffEq._postamble!(integrator)
@@ -76,25 +115,22 @@ end
 
 # perform next integration step
 function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
-  @unpack f, t, p, k, uprev, dt, resid, alg, cache, max_fixedpoint_iters = integrator
+  @unpack f, t, p, k, uprev, dt, resid, alg, cache, history, max_fixedpoint_iters = integrator
   @unpack fixedpoint_abstol, fixedpoint_reltol, fixedpoint_norm = integrator
-  ode_integrator = integrator.integrator
+  ode_integrator = history.integrator
   internalnorm = integrator.opts.internalnorm
   prob = integrator.sol.prob
 
   # reset boolean which indicates whether history function was evaluated at a time point
   # past the final point of the current solution
-  # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
-  # inter- and extrapolation of future values and saving of the solution but does not
-  # affect whether time steps are accepted
-  ode_integrator.isout = false
+  history.isout = false
 
   # perform always at least one calculation of the stages
   OrdinaryDiffEq.perform_step!(integrator, cache)
 
   # if the history function was evaluated at time points past the final time point of the
   # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
-  if ode_integrator.isout
+  if history.isout
     # update ODE integrator to next time interval together with correct interpolation
     advance_ode_integrator!(integrator)
 
@@ -158,13 +194,12 @@ end
 
 # initialize the integrator
 function OrdinaryDiffEq.initialize!(integrator::DDEIntegrator)
-  ode_integrator = integrator.integrator
+  ode_integrator = integrator.history.integrator
 
   # initialize the cache
   OrdinaryDiffEq.initialize!(integrator, integrator.cache)
 
   # copy interpolation data to the ODE integrator
-  ode_integrator.kshortsize = integrator.kshortsize
   ode_integrator.k = recursivecopy(integrator.k)
 
   # add interpolation steps to ODE integrator to ensure that interpolation data
@@ -249,7 +284,44 @@ function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = :Terminated)
 end
 
 # integrator can be reinitialized
-DiffEqBase.has_reinit(integrator::DDEIntegrator) = true
+DiffEqBase.has_reinit(::HistoryODEIntegrator) = true
+DiffEqBase.has_reinit(::DDEIntegrator) = true
+
+function DiffEqBase.reinit!(integrator::HistoryODEIntegrator, u0 = integrator.sol.prob.u0;
+                            t0 = integrator.sol.prob.tspan[1],
+                            tf = integrator.sol.prob.tspan[end],
+                            erase_sol = true)
+  # reinit initial values of the integrator
+  if isinplace(integrator.sol.prob)
+    recursivecopy!(integrator.u, u0)
+    recursivecopy!(integrator.uprev, integrator.u)
+  else
+    integrator.u = u0
+    integrator.uprev = integrator.u
+  end
+  integrator.t = t0
+  integrator.tprev = t0
+  integrator.dt = zero(integrator.dt)
+  integrator.dtcache = zero(integrator.dtcache)
+
+  # erase solution
+  if erase_sol
+    # resize vectors in solution
+    resize!(integrator.sol.u, 1)
+    resize!(integrator.sol.t, 1)
+    resize!(integrator.sol.k, 1)
+    iscomposite(integrator.alg) && resize!(integrator.sol.alg_choice, 1)
+
+    # save initial values
+    copyat_or_push!(integrator.sol.t, 1, integrator.t)
+    copyat_or_push!(integrator.sol.u, 1, integrator.u)
+
+    # reset iteration counter
+    integrator.saveiter = 1
+  end
+
+  nothing
+end
 
 """
     reinit!(integrator::DDEIntegrator[, u0 = integrator.sol.prob.u0;
@@ -273,11 +345,8 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
                             reinit_callbacks = true, initialize_save = true,
                             reinit_cache = true)
   # reinit history
-  reinit!(integrator.integrator, u0;
-          t0 = t0, tf = tf, erase_sol = true, reset_dt = false, reinit_callbacks = false,
-          reinit_cache = false)
-  integrator.integrator.dt = zero(integrator.dt)
-  integrator.integrator.dtcache = zero(integrator.dt)
+  ode_integrator = integrator.history.integrator
+  reinit!(ode_integrator, u0; t0 = t0, tf = tf, erase_sol = true)
 
   # reinit initial values of the integrator
   if isinplace(integrator.sol.prob)
