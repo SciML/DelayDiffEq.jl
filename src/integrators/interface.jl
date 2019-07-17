@@ -277,6 +277,10 @@ function DiffEqBase.addat_non_user_cache!(integrator::DDEIntegrator, cache, idxs
   resize_non_user_cache!(integrator, cache, i)
 end
 
+# error check
+DiffEqBase.last_step_failed(integrator::DDEIntegrator) =
+  integrator.last_stepfail && !integrator.opts.adaptive
+
 # terminate integration
 function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = :Terminated)
   integrator.sol = DiffEqBase.solution_new_retcode(integrator.sol, retcode)
