@@ -201,6 +201,14 @@ DiffEqBase.full_cache(integrator::DDEIntegrator) = full_cache(integrator.cache)
 # change number of components
 Base.resize!(integrator::DDEIntegrator, i::Int) = resize!(integrator, integrator.cache, i)
 function Base.resize!(integrator::DDEIntegrator, cache, i)
+  # resize ODE integrator (do only have to care about u and k)
+  ode_integrator = integrator.integrator
+  resize!(ode_integrator.u, i)
+  for k in ode_integrator.k
+    resize!(k, i)
+  end
+
+  # resize DDE integrator
   for c in full_cache(integrator)
     resize!(c, i)
   end
@@ -209,6 +217,13 @@ end
 
 function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator, cache, i)
   DiffEqBase.nlsolve_resize!(integrator, i)
+  resize!(integrator.resid, i)
+  nothing
+end
+function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
+                                           cache::RosenbrockMutableCache, i)
+  cache.J = similar(cache.J, i, i)
+  cache.W = similar(cache.W, i, i)
   resize!(integrator.resid, i)
   nothing
 end
@@ -222,10 +237,17 @@ end
 
 # delete component(s)
 function Base.deleteat!(integrator::DDEIntegrator, idxs)
+  # delete components of ODE integrator (do only have to care about u and k)
+  ode_integrator = integrator.integrator
+  deleteat!(ode_integrator.u, idxs)
+  for k in ode_integrator.k
+    deleteat!(k, idxs)
+  end
+
+  # delete components of DDE integrator
   for c in full_cache(integrator)
     deleteat!(c, idxs)
   end
-
   deleteat_non_user_cache!(integrator, integrator.cache, i)
 end
 
@@ -236,6 +258,14 @@ end
 
 # add component(s)
 function DiffEqBase.addat!(integrator::DDEIntegrator, idxs)
+  # add components to ODE integrator (do only have to care about u and k)
+  ode_integrator = integrator.integrator
+  addat!(ode_integrator.u, idxs)
+  for k in ode_integrator.k
+    addat!(k, idxs)
+  end
+
+  # add components to DDE integrator
   for c in full_cache(integrator)
     addat!(c, idxs)
   end

@@ -13,7 +13,7 @@ using Roots
 
 using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem
 
-using OrdinaryDiffEq: ODEIntegrator, GenericImplicitEulerCache, GenericTrapezoidCache
+using OrdinaryDiffEq: ODEIntegrator, GenericImplicitEulerCache, GenericTrapezoidCache, RosenbrockMutableCache
 
 include("discontinuity_type.jl")
 include("integrators/type.jl")
