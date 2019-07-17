@@ -331,7 +331,7 @@ function build_history_function(prob, alg, rate_prototype, reltol;
   # we use this history information to create a problem function of the DDE with all
   # available history information that is of the form f(du,u,p,t) or f(u,p,t) such that
   # ODE algorithms can be applied
-  HistoryFunction(prob.h, ode_integrator, false)
+  HistoryFunction(prob.h, ode_integrator)
 end
 
 """

@@ -331,7 +331,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # initialize DDE integrator
   if initialize_integrator
     if iscomposite(alg)
-      copyat_or_push!(ode_alg_choice, 1, ode_cache.current)
+      ode_integrator = history.integrator
+      copyat_or_push!(ode_integrator.sol.alg_choice, 1, ode_integrator.cache.current)
 
       save_start && copyat_or_push!(alg_choice, 1, cache.current)
     end
