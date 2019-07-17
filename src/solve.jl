@@ -82,7 +82,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                                   mass_matrix = f.mass_matrix),
                                 u0, tspan, p)
   else
-    ode_prob = ODEProblem{false}(ODEFunction{false}((du, u, p, t) -> f.f(du, u, h, p, t);
+    ode_prob = ODEProblem{false}(ODEFunction{false}((u, p, t) -> f.f(u, h, p, t);
                                                     mass_matrix = f.mass_matrix),
                                  u0, tspan, p)
   end
