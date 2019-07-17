@@ -499,3 +499,29 @@ function DiffEqBase.reeval_internals_due_to_modification!(
 
   integrator.u_modified = false
 end
+
+# perform one step
+function DiffEqBase.step!(integrator::DDEIntegrator)
+  @inbounds begin
+    if integrator.opts.advance_to_tstop
+      while integrator.tdir * integrator.t < integrator.tdir * top(integrator.opts.tstops)
+        OrdinaryDiffEq.loopheader!(integrator)
+        DiffEqBase.check_error!(integrator) === :Success || return
+        OrdinaryDiffEq.perform_step!(integrator)
+        OrdinaryDiffEq.loopfooter!(integrator)
+      end
+    else
+      OrdinaryDiffEq.loopheader!(integrator)
+      DiffEqBase.check_error!(integrator) === :Success || return
+      OrdinaryDiffEq.perform_step!(integrator)
+      OrdinaryDiffEq.loopfooter!(integrator)
+
+      while !integrator.accept_step
+        OrdinaryDiffEq.loopheader!(integrator)
+        OrdinaryDiffEq.perform_step!(integrator)
+        OrdinaryDiffEq.loopfooter!(integrator)
+      end
+    end
+    OrdinaryDiffEq.handle_tstop!(integrator)
+  end
+end
