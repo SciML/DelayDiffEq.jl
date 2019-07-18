@@ -177,20 +177,17 @@ function OrdinaryDiffEq.initialize!(integrator::DDEIntegrator)
 end
 
 # signal the integrator that state u was modified
-function DiffEqBase.u_modified!(integrator::DDEIntegrator, bool::Bool)
+@inline function DiffEqBase.u_modified!(integrator::DDEIntegrator, bool::Bool)
   integrator.u_modified = bool
 end
 
 # return next integration time step
-DiffEqBase.get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
+@inline DiffEqBase.get_proposed_dt(integrator::DDEIntegrator) = integrator.dtpropose
 
 # set next integration time step
-function DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt)
-  integrator.dtpropose = dt
-  nothing
-end
+@inline DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt) = (integrator.dtpropose = dt)
 
-DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) =
+@inline DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) =
   DiffEqBase.get_tmp_cache(integrator, integrator.alg, integrator.cache)
 user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
 u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
