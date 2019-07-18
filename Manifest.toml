@@ -372,7 +372,7 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 deps = ["BandedMatrices", "BlockBandedMatrices", "DiffEqDiffTools", "ForwardDiff", "LightGraphs", "LinearAlgebra", "Requires", "SparseArrays", "VertexSafeGraphs", "Zygote"]
 git-tree-sha1 = "84064544711c1dc70b7e35c2ad5e305238a5dc29"
 repo-rev = "require"
-repo-url = "git@github.com:devmotion/SparseDiffTools.jl.git"
+repo-url = "https://github.com/devmotion/SparseDiffTools.jl.git"
 uuid = "47a9eef4-7e08-11e9-0b38-333d64bd3804"
 version = "0.4.0"
 
