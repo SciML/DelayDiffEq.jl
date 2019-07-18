@@ -90,7 +90,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
             discontinuity_abstol,discontinuity_reltol,alg,dtcache,dtchangeable,dtpropose,tdir,
             eigen_est,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
             cache,callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
-            accept_step,event_last_time,vector_event_last_time,last_event_error,isout,
+            event_last_time,vector_event_last_time,last_event_error,accept_step,isout,
             reeval_fsal,u_modified,opts,destats,integrator)
     end
 end

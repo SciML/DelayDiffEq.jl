@@ -156,7 +156,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
   # reserve capacity for the solution
   sizehint!(sol, alg, tspan, tstops_internal, saveat_internal;
-            save_everystep = save_everystep, adaptive = adaptive)
+            save_everystep = save_everystep, adaptive = adaptive, dt = dt)
 
   # create array of tracked discontinuities
   # used to find propagated discontinuities with callbacks and to keep track of all
@@ -260,15 +260,14 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                order_discontinuity_t0, tracked_discontinuities,
                                discontinuity_interp_points, discontinuity_abstol,
                                discontinuity_reltol, alg.alg,
-                               ode_integrator.dtcache, ode_integrator.dtchangeable,
-                               ode_integrator.dtpropose, tdir,
+                               tType(dt), ode_integrator.dtchangeable, tType(dt), tdir,
                                ode_integrator.eigen_est, ode_integrator.EEst,
                                ode_integrator.qold, ode_integrator.q11,
                                ode_integrator.erracc, ode_integrator.dtacc,
                                ode_integrator.success_iter, ode_integrator.iter,
                                length(ts), length(ts), cache, callback_cache,
                                ode_integrator.kshortsize, ode_integrator.force_stepfail,
-                               ode_integrator.just_hit_tstop, ode_integrator.last_stepfail,
+                               ode_integrator.last_stepfail, ode_integrator.just_hit_tstop,
                                ode_integrator.event_last_time,
                                ode_integrator.vector_event_last_time,
                                ode_integrator.last_event_error, ode_integrator.accept_step,
