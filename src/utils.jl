@@ -28,8 +28,6 @@ Return if the DDE problem `prob` contains dependent delays.
 has_dependent_lags(prob::DDEProblem) =
   prob.dependent_lags !== nothing && !isempty(prob.dependent_lags)
 
-
-
 """
     u_uprev(u0, alg; kwargs...)
 
@@ -280,7 +278,7 @@ function build_history_function(prob, alg, rate_prototype, reltol;
   #   current integration step (so the interpolation is fixed while updating the stages)
   # we wrap the user-provided history function such that function calls during the setup
   # of the integrator do not fail
-  ode_f = ODEFunctionWrapper(f, h)
+  ode_f = ODEFunctionWrapper(f, prob.h)
   ode_prob = ODEProblem{true}(ode_f, u0, tspan, p)
 
   # get states of ODE integrator (do not alias uprev)
