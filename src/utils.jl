@@ -279,7 +279,7 @@ function build_history_function(prob, alg, rate_prototype, reltol;
   # we wrap the user-provided history function such that function calls during the setup
   # of the integrator do not fail
   ode_f = ODEFunctionWrapper(f, prob.h)
-  ode_prob = ODEProblem{true}(ode_f, u0, tspan, p)
+  ode_prob = ODEProblem{isinplace(prob)}(ode_f, u0, tspan, p)
 
   # get states of ODE integrator (do not alias uprev)
   ode_u, ode_uprev = u_uprev(u0, alg; alias_u0 = false, calck = true)
