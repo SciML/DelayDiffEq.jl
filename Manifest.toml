@@ -57,6 +57,11 @@ git-tree-sha1 = "bd8bbd105ba583a42385bd6dc4a20dad8ab3dc11"
 uuid = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
 version = "0.5.0"
 
+[[Cassette]]
+git-tree-sha1 = "09aed2c4093e9ed29b08f6660ad959fcb6847cd1"
+uuid = "7057c7e9-c182-5462-911a-8362d720325c"
+version = "0.2.5"
+
 [[CommonSubexpressions]]
 deps = ["Test"]
 git-tree-sha1 = "efdaf19ab11c7889334ca247ff4c9f7c322817b0"
@@ -91,9 +96,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqBase]]
 deps = ["Compat", "Distributed", "DocStringExtensions", "FunctionWrappers", "IterativeSolvers", "IteratorInterfaceExtensions", "LinearAlgebra", "MuladdMacro", "Parameters", "RecipesBase", "RecursiveArrayTools", "RecursiveFactorization", "Requires", "Roots", "SparseArrays", "StaticArrays", "Statistics", "SuiteSparse", "TableTraits", "TreeViews"]
-git-tree-sha1 = "e581e2c10c6ad5e26829b03d38874c508792801d"
+git-tree-sha1 = "97d7d8503514e11e551dec42ea668e4a04951af2"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
-version = "5.16.4"
+version = "5.16.5"
 
 [[DiffEqDiffTools]]
 deps = ["LinearAlgebra", "SparseArrays", "StaticArrays"]
@@ -369,12 +374,12 @@ deps = ["LinearAlgebra", "Random"]
 uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SparseDiffTools]]
-deps = ["BandedMatrices", "BlockBandedMatrices", "DiffEqDiffTools", "ForwardDiff", "LightGraphs", "LinearAlgebra", "Requires", "SparseArrays", "VertexSafeGraphs", "Zygote"]
-git-tree-sha1 = "84064544711c1dc70b7e35c2ad5e305238a5dc29"
+deps = ["BandedMatrices", "BlockBandedMatrices", "Cassette", "DiffEqDiffTools", "ForwardDiff", "LightGraphs", "LinearAlgebra", "Random", "Requires", "SparseArrays", "SpecialFunctions", "VertexSafeGraphs", "Zygote"]
+git-tree-sha1 = "bafc84741490a7e46f1e4acd06aeae11e1263842"
 repo-rev = "require"
 repo-url = "https://github.com/devmotion/SparseDiffTools.jl.git"
 uuid = "47a9eef4-7e08-11e9-0b38-333d64bd3804"
-version = "0.4.0"
+version = "0.4.1"
 
 [[SpecialFunctions]]
 deps = ["BinDeps", "BinaryProvider", "Libdl", "Test"]
