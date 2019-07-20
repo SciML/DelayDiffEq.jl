@@ -128,8 +128,9 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
     Θ = top_Θ
   else
     # define function for root finding
-    zero_func(Θ) = discontinuity_function(integrator, lag, T,
-                                          integrator.t + Θ * integrator.dt)
+    zero_func = let integrator = integrator, lag = lag, T = T, t = integrator.t, dt = integrator.dt
+      θ -> discontinuity_function(integrator, lag, T, t + θ * dt)
+    end
 
     Θ = prevfloat(find_zero(zero_func, (bottom_Θ, top_Θ), Roots.AlefeldPotraShi();
                             atol = integrator.discontinuity_abstol / 100))

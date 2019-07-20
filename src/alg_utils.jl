@@ -5,7 +5,11 @@ OrdinaryDiffEq.alg_maximum_order(alg::AbstractMethodOfStepsAlgorithm) =
   OrdinaryDiffEq.alg_maximum_order(alg.alg)
 OrdinaryDiffEq.alg_extrapolates(alg::AbstractMethodOfStepsAlgorithm) =
   OrdinaryDiffEq.alg_extrapolates(alg.alg)
+
 OrdinaryDiffEq.uses_uprev(alg::AbstractMethodOfStepsAlgorithm, adaptive) = true
+
+DiffEqBase.isadaptive(alg::AbstractMethodOfStepsAlgorithm) =
+  DiffEqBase.isadaptive(alg.alg)
 
 """
     iscomposite(alg)

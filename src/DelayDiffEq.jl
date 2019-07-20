@@ -16,6 +16,7 @@ using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, Abs
 using OrdinaryDiffEq: ODEIntegrator, GenericImplicitEulerCache, GenericTrapezoidCache, RosenbrockMutableCache
 
 include("discontinuity_type.jl")
+include("functionwrapper.jl")
 include("integrators/type.jl")
 include("integrators/utils.jl")
 include("integrators/interface.jl")
