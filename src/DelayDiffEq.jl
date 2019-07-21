@@ -11,12 +11,9 @@ using Parameters
 using RecursiveArrayTools
 using Roots
 
-import DiffEqBase: resize!, u_cache, user_cache, du_cache, full_cache,
-                   deleteat!, AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator,
-                   AbstractDDEProblem
+using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem
 
-using OrdinaryDiffEq: ODEIntegrator, Rosenbrock23Cache, Rosenbrock32Cache,
-                      ImplicitEulerCache, TrapezoidCache
+using OrdinaryDiffEq: ODEIntegrator, GenericImplicitEulerCache, GenericTrapezoidCache, RosenbrockMutableCache
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")
@@ -27,7 +24,6 @@ include("cache_utils.jl")
 include("interpolants.jl")
 include("history_function.jl")
 include("algorithms.jl")
-include("callbacks.jl")
 include("track.jl")
 include("alg_utils.jl")
 include("solve.jl")

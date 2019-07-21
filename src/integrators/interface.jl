@@ -190,56 +190,96 @@ function DiffEqBase.set_proposed_dt!(integrator::DDEIntegrator, dt)
   nothing
 end
 
+# obtain caches
 DiffEqBase.get_tmp_cache(integrator::DDEIntegrator) =
-  DiffEqBase.get_tmp_cache(integrator, integrator.alg, integrator.cache)
-user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
-u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
-du_cache(integrator::DDEIntegrator)= du_cache(integrator.cache)
-full_cache(integrator::DDEIntegrator) = chain(user_cache(integrator),u_cache(integrator),du_cache(integrator))
+  get_tmp_cache(integrator, integrator.alg, integrator.cache)
+DiffEqBase.user_cache(integrator::DDEIntegrator) = user_cache(integrator.cache)
+DiffEqBase.u_cache(integrator::DDEIntegrator) = u_cache(integrator.cache)
+DiffEqBase.du_cache(integrator::DDEIntegrator) = du_cache(integrator.cache)
+DiffEqBase.full_cache(integrator::DDEIntegrator) = full_cache(integrator.cache)
 
-resize!(integrator::DDEIntegrator, i::Int) = resize!(integrator, integrator.cache, i)
-function resize!(integrator::DDEIntegrator, cache, i)
-    for c in full_cache(integrator)
-        resize!(c, i)
-    end
+# change number of components
+Base.resize!(integrator::DDEIntegrator, i::Int) = resize!(integrator, integrator.cache, i)
+function Base.resize!(integrator::DDEIntegrator, cache, i)
+  # resize ODE integrator (do only have to care about u and k)
+  ode_integrator = integrator.integrator
+  resize!(ode_integrator.u, i)
+  for k in ode_integrator.k
+    resize!(k, i)
+  end
+
+  # resize DDE integrator
+  for c in full_cache(integrator)
+    resize!(c, i)
+  end
+  resize_non_user_cache!(integrator, cache, i)
 end
 
-function resize!(integrator::DDEIntegrator, cache::Union{Rosenbrock23Cache,
-                                                         Rosenbrock32Cache}, i)
-    for c in full_cache(integrator)
-        resize!(c, i)
-    end
-    for c in vecu_cache(integrator.cache)
-        resize!(c, i)
-    end
-    Jvec = vec(cache.J)
-    cache.J = reshape(resize!(Jvec, i*i), i, i)
-    Wvec = vec(cache.W)
-    cache.W = reshape(resize!(Wvec, i*i), i, i)
+function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator, cache, i)
+  DiffEqBase.nlsolve_resize!(integrator, i)
+  resize!(integrator.resid, i)
+  nothing
+end
+function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
+                                           cache::RosenbrockMutableCache, i)
+  cache.J = similar(cache.J, i, i)
+  cache.W = similar(cache.W, i, i)
+  resize!(integrator.resid, i)
+  nothing
+end
+function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
+                                           cache::Union{GenericImplicitEulerCache,GenericTrapezoidCache},
+                                           i)
+  cache.nl_rhs = integrator.alg.nlsolve(Val{:init}, cache.rhs, cache.u)
+  resize!(integrator.resid, i)
+  nothing
 end
 
-function resize!(integrator::DDEIntegrator, cache::Union{ImplicitEulerCache,TrapezoidCache},
-                 i)
-    for c in full_cache(integrator)
-        resize!(c, i)
-    end
-    for c in vecu_cache(integrator.cache)
-        resize!(c, i)
-    end
-    for c in dual_cache(integrator.cache)
-        resize!(c.du, i)
-        resize!(c.dual_du, i)
-    end
-    if alg_autodiff(integrator.alg)
-        cache.adf = autodiff_setup(cache.rhs, cache.uhold, integrator.alg)
-    end
+# delete component(s)
+function Base.deleteat!(integrator::DDEIntegrator, idxs)
+  # delete components of ODE integrator (do only have to care about u and k)
+  ode_integrator = integrator.integrator
+  deleteat!(ode_integrator.u, idxs)
+  for k in ode_integrator.k
+    deleteat!(k, idxs)
+  end
+
+  # delete components of DDE integrator
+  for c in full_cache(integrator)
+    deleteat!(c, idxs)
+  end
+  deleteat_non_user_cache!(integrator, integrator.cache, i)
 end
 
-function deleteat!(integrator::DDEIntegrator, i::Int)
-    for c in full_cache(integrator)
-        deleteat!(c, i)
-    end
+function DiffEqBase.deleteat_non_user_cache!(integrator::DDEIntegrator, cache, idxs)
+  i = length(integrator.u)
+  resize_non_user_cache!(integrator, cache, i)
 end
+
+# add component(s)
+function DiffEqBase.addat!(integrator::DDEIntegrator, idxs)
+  # add components to ODE integrator (do only have to care about u and k)
+  ode_integrator = integrator.integrator
+  addat!(ode_integrator.u, idxs)
+  for k in ode_integrator.k
+    addat!(k, idxs)
+  end
+
+  # add components to DDE integrator
+  for c in full_cache(integrator)
+    addat!(c, idxs)
+  end
+  addat_non_user_cache!(integrator, integrator.cache, idxs)
+end
+
+function DiffEqBase.addat_non_user_cache!(integrator::DDEIntegrator, cache, idxs)
+  i = length(integrator.u)
+  resize_non_user_cache!(integrator, cache, i)
+end
+
+# error check
+DiffEqBase.last_step_failed(integrator::DDEIntegrator) =
+  integrator.last_stepfail && !integrator.opts.adaptive
 
 # terminate integration
 function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = :Terminated)
@@ -377,20 +417,8 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
   nothing
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
 function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
-  @unpack f, u, t, tdir, opts, sol = integrator
+  @unpack f, u, t, tdir, opts, sol, destats = integrator
   @unpack prob = sol
   @unpack abstol, reltol, internalnorm = opts
 
@@ -405,6 +433,9 @@ function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
   ode_prob = ODEProblem(f, prob.u0, prob.tspan, prob.p)
   integrator.dt = OrdinaryDiffEq.ode_determine_initdt(
     u, t, tdir, dtmax, opts.abstol, opts.reltol, opts.internalnorm, ode_prob, integrator)
+
+  # update statistics
+  destats.nf += 2
 
   nothing
 end
@@ -431,3 +462,66 @@ DiffEqBase.addsteps!(integrator::DDEIntegrator,args...) = OrdinaryDiffEq._ode_ad
 DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
                                         t,modify_save_endpoint::Type{Val{T}}=Val{false}) where T =
                                           OrdinaryDiffEq._change_t_via_interpolation!(integrator,t,modify_save_endpoint)
+
+# update integrator when u is modified by callbacks
+function OrdinaryDiffEq.handle_callback_modifiers!(integrator::DDEIntegrator)
+    integrator.reeval_fsal = true # recalculate fsalfirst after applying step
+
+    # update heap of discontinuities
+    # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
+    push!(integrator.opts.d_discontinuities, Discontinuity(integrator.t, 0))
+end
+
+# recalculate interpolation data and update the ODE integrator
+function DiffEqBase.reeval_internals_due_to_modification!(
+  integrator::DDEIntegrator, x::Type{Val{not_initialization}} = Val{true}) where not_initialization
+
+  ode_integrator = integrator.integrator
+
+  if not_initialization
+    # update interpolation data of the integrator using the old dense history
+    # of the ODE integrator
+    resize!(integrator.k, integrator.kshortsize)
+    DiffEqBase.addsteps!(integrator, integrator.f, true, true, true)
+
+    # copy interpolation data to the ODE integrator
+    recursivecopy!(ode_integrator.k, integrator.k)
+  end
+
+  # adjust current interval of the ODE integrator
+  ode_integrator.t = integrator.t
+  ode_integrator.dt = integrator.dt
+  if isinplace(integrator.sol.prob)
+    recursivecopy!(ode_integrator.u, integrator.u)
+  else
+    ode_integrator.u = integrator.u
+  end
+
+  integrator.u_modified = false
+end
+
+# perform one step
+function DiffEqBase.step!(integrator::DDEIntegrator)
+  @inbounds begin
+    if integrator.opts.advance_to_tstop
+      while integrator.tdir * integrator.t < integrator.tdir * top(integrator.opts.tstops)
+        OrdinaryDiffEq.loopheader!(integrator)
+        DiffEqBase.check_error!(integrator) === :Success || return
+        OrdinaryDiffEq.perform_step!(integrator)
+        OrdinaryDiffEq.loopfooter!(integrator)
+      end
+    else
+      OrdinaryDiffEq.loopheader!(integrator)
+      DiffEqBase.check_error!(integrator) === :Success || return
+      OrdinaryDiffEq.perform_step!(integrator)
+      OrdinaryDiffEq.loopfooter!(integrator)
+
+      while !integrator.accept_step
+        OrdinaryDiffEq.loopheader!(integrator)
+        OrdinaryDiffEq.perform_step!(integrator)
+        OrdinaryDiffEq.loopfooter!(integrator)
+      end
+    end
+    OrdinaryDiffEq.handle_tstop!(integrator)
+  end
+end
