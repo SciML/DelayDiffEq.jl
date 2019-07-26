@@ -340,12 +340,13 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
 
   # reinit time stops, time points at which solution is saved, and discontinuities
   maximum_order = OrdinaryDiffEq.alg_maximum_order(integrator.alg)
+  tType = typeof(integrator.t)
   tstops_internal, saveat_internal, d_discontinuities_internal =
     OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities,
-                                              integrator.tdir, (t0, tf),
+                                              (tType(t0), tType(tf)),
                                               order_discontinuity_t0, maximum_order,
                                               integrator.sol.prob.constant_lags,
-                                              typeof(integrator.t))
+                                              integrator.sol.prob.neutral)
 
   integrator.opts.tstops = tstops_internal
   integrator.opts.saveat = saveat_internal
@@ -381,7 +382,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
     # erase array of tracked discontinuities
     if order_discontinuity_t0 ≤ OrdinaryDiffEq.alg_maximum_order(integrator.alg)
       resize!(integrator.tracked_discontinuities, 1)
-      integrator.tracked_discontinuities[1] = Discontinuity(integrator.t, order_discontinuity_t0)
+      integrator.tracked_discontinuities[1] = Discontinuity(integrator.tdir * integrator.t, order_discontinuity_t0)
     else
       resize!(integrator.tracked_discontinuities, 0)
     end
@@ -442,12 +443,12 @@ end
 
 function DiffEqBase.add_tstop!(integrator::DDEIntegrator,t)
   integrator.tdir * (t - integrator.t) < 0 && error("Tried to add a tstop that is behind the current time. This is strictly forbidden")
-  push!(integrator.opts.tstops, t)
+  push!(integrator.opts.tstops, integrator.tdir * t)
 end
 
 function DiffEqBase.add_saveat!(integrator::DDEIntegrator,t)
   integrator.tdir * (t - integrator.t) < 0 && error("Tried to add a saveat that is behind the current time. This is strictly forbidden")
-  push!(integrator.opts.saveat, t)
+  push!(integrator.opts.saveat, integrator.tdir * t)
 end
 
 @inline function DiffEqBase.get_du(integrator::DDEIntegrator)
@@ -469,7 +470,7 @@ function OrdinaryDiffEq.handle_callback_modifiers!(integrator::DDEIntegrator)
 
     # update heap of discontinuities
     # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
-    push!(integrator.opts.d_discontinuities, Discontinuity(integrator.t, 0))
+    push!(integrator.opts.d_discontinuities, Discontinuity(integrator.tdir * integrator.t, 0))
 end
 
 # recalculate interpolation data and update the ODE integrator
@@ -504,7 +505,7 @@ end
 function DiffEqBase.step!(integrator::DDEIntegrator)
   @inbounds begin
     if integrator.opts.advance_to_tstop
-      while integrator.tdir * integrator.t < integrator.tdir * top(integrator.opts.tstops)
+      while integrator.tdir * integrator.t < top(integrator.opts.tstops)
         OrdinaryDiffEq.loopheader!(integrator)
         DiffEqBase.check_error!(integrator) === :Success || return
         OrdinaryDiffEq.perform_step!(integrator)

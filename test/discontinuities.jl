@@ -54,7 +54,7 @@ end
   integrator = init(prob_dde_constant_2delays_ip, MethodOfSteps(BS3());
                     d_discontinuities = [Discontinuity(0.3, 4), Discontinuity(0.6, 5)])
 
-  @test integrator.opts.d_discontinuities_cache == [Discontinuity(0.3, 4)]
+  @test integrator.opts.d_discontinuities_cache == [Discontinuity(0.3, 4), Discontinuity(0.6, 5)]
   @test length(integrator.opts.d_discontinuities) == 3 &&
     issubset([Discontinuity(1/5, 1), Discontinuity(1/3, 1), Discontinuity(0.3, 4)],
              integrator.opts.d_discontinuities.valtree)
