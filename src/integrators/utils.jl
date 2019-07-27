@@ -107,7 +107,7 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
     d = pop!(integrator.opts.d_discontinuities)
     order = d.order
     while !isempty(integrator.opts.d_discontinuities) &&
-        top(integrator.opts.d_discontinuities) == integrator.t
+        top(integrator.opts.d_discontinuities) == integrator.tdir * integrator.t
 
         d2 = pop!(integrator.opts.d_discontinuities)
         order = min(order, d2.order)
@@ -120,7 +120,7 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
         maxΔt = 10eps(integrator.t)
 
         while !isempty(integrator.opts.d_discontinuities) &&
-            abs(top(integrator.opts.d_discontinuities).t - integrator.t) < maxΔt
+            abs(top(integrator.opts.d_discontinuities).t - integrator.tdir * integrator.t) < maxΔt
 
             d2 = pop!(integrator.opts.d_discontinuities)
             order = min(order, d2.order)
@@ -128,7 +128,7 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
 
         # also remove all corresponding time stops
         while !isempty(integrator.opts.tstops) &&
-            abs(top(integrator.opts.tstops) - integrator.t) < maxΔt
+            abs(top(integrator.opts.tstops) - integrator.tdir * integrator.t) < maxΔt
 
             pop!(integrator.opts.tstops)
         end
@@ -151,28 +151,30 @@ Discontinuities caused by constant delays are immediately calculated, and
 discontinuities caused by dependent delays are tracked by a callback.
 """
 function add_next_discontinuities!(integrator, order, t=integrator.t)
-    # obtain delays
-    neutral = integrator.sol.prob.neutral
+  neutral = integrator.sol.prob.neutral
+  next_order = neutral ? order : order + 1
+
+  # only track discontinuities up to order of the applied method
+  alg_maximum_order = OrdinaryDiffEq.alg_maximum_order(integrator.alg)
+  next_order <= alg_maximum_order + 1 || return
+
+  # discontinuities caused by constant lags
+  if has_constant_lags(integrator)
     constant_lags = integrator.sol.prob.constant_lags
+    maxlag = integrator.tdir * (integrator.sol.prob.tspan[end] - t)
 
-    # only track discontinuities up to order of the applied method
-    order > OrdinaryDiffEq.alg_maximum_order(integrator.alg) && !neutral && return
-
-    # discontinuities caused by constant lags
-    if has_constant_lags(integrator)
-        maxlag = abs(integrator.sol.prob.tspan[end] - t)
-        for lag in constant_lags
-            if abs(lag) < maxlag
-                # calculate discontinuity and add it to heap of discontinuities and time stops
-                d = Discontinuity(t + lag, order + 1)
-                push!(integrator.opts.d_discontinuities, d)
-                push!(integrator.opts.tstops, d.t)
-            end
-        end
+    for lag in constant_lags
+      if integrator.tdir * lag < maxlag
+        # calculate discontinuity and add it to heap of discontinuities and time stops
+        d = Discontinuity(integrator.tdir * (t + lag), next_order)
+        push!(integrator.opts.d_discontinuities, d)
+        push!(integrator.opts.tstops, d.t)
+      end
     end
+  end
 
-    # track propagated discontinuities with callback
-    push!(integrator.tracked_discontinuities, Discontinuity(t, order))
+  # track propagated discontinuities with callback
+  push!(integrator.tracked_discontinuities, Discontinuity(integrator.tdir * t, order))
 
   nothing
 end
