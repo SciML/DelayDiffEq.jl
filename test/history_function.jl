@@ -114,10 +114,12 @@ end
     trueval = integrator.sol.interp(0.01, idxs, deriv, integrator.p)
 
     # out-of-place
+    history_notinplace.isout = false
     @test history_notinplace(nothing, 0.01, deriv; idxs = idxs) == trueval
     @test !history_notinplace.isout
 
     # in-place
+    history_inplace.isout = false
     val = zero(trueval)
     history_inplace(val, nothing, 0.01, deriv; idxs = idxs)
     @test val == trueval

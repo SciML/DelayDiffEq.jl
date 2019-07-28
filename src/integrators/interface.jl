@@ -82,6 +82,10 @@ function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
   internalnorm = integrator.opts.internalnorm
   prob = integrator.sol.prob
 
+  # reset boolean which indicates if the history function was evaluated at a time point
+  # past the final point of the current solution
+  history.isout = false
+
   # perform always at least one calculation of the stages
   OrdinaryDiffEq.perform_step!(integrator, cache)
 

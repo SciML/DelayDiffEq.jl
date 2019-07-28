@@ -22,10 +22,6 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
   @unpack sol = integrator
 
   @inbounds if integrator.tdir * t < integrator.tdir * sol.t[1]
-    # history function is not evaluated at a time point past the final time point of
-    # the current solution
-    f.isout = false
-
     if deriv == 0 && idxs === nothing
       return f.h(p, t)
     elseif idxs === nothing
@@ -36,10 +32,6 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
       return f.h(p, t, Val{deriv}; idxs = idxs)
     end
   elseif integrator.tdir * t <= integrator.tdir * sol.t[end] # Put equals back
-    # history function is not evaluated at a time point past the final time point of
-    # the current solution
-    f.isout = false
-
     return sol.interp(t, idxs, Val{deriv}, f.integrator.p)
   end
 
@@ -60,10 +52,6 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
   @unpack sol = integrator
 
   @inbounds if integrator.tdir * t < integrator.tdir * sol.t[1]
-    # history function is not evaluated at a time point past the final time point of
-    # the current solution
-    f.isout = false
-
     if deriv == 0 && idxs === nothing
       return f.h(val, p, t)
     elseif idxs === nothing
@@ -74,10 +62,6 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
       return f.h(val, p, t, Val{deriv}; idxs = idxs)
     end
   elseif integrator.tdir * t <= integrator.tdir * sol.t[end] # Put equals back
-    # history function is not evaluated at a time point past the final time point of
-    # the current solution
-    f.isout = false
-
     return sol.interp(val, t, idxs, Val{deriv}, f.integrator.p)
   end
 
