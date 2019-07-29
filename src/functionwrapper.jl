@@ -13,13 +13,26 @@ struct ODEFunctionWrapper{iip,F,H,TMM,Ta,Tt,TJ,JP,TW,TWt,TPJ,S,TCV} <: DiffEqBas
   colorvec::TCV
 end
 
-# TODO: make use of other functions
 function ODEFunctionWrapper(f::DDEFunction, h)
+  if f.jac === nothing
+    jac = nothing
+  else
+    if isinplace(f)
+      jac = let f_jac = f.jac, h = h
+        (J, u, p, t) -> f_jac(J, u, h, p, t)
+      end
+    else
+      jac = let f_jac = f.jac, h = h
+        (u, p, t) -> f_jac(u, h, p, t)
+      end
+    end
+  end
+
   ODEFunctionWrapper{isinplace(f),typeof(f.f),typeof(h),typeof(f.mass_matrix),
-                     typeof(f.analytic),typeof(f.tgrad),typeof(f.jac),
+                     typeof(f.analytic),typeof(f.tgrad),typeof(jac),
                      typeof(f.jac_prototype),typeof(f.Wfact),typeof(f.Wfact_t),
                      typeof(f.paramjac),typeof(f.syms),typeof(f.colorvec)}(
-                       f.f, h, f.mass_matrix, f.analytic, f.tgrad, f.jac,
+                       f.f, h, f.mass_matrix, f.analytic, f.tgrad, jac,
                        f.jac_prototype, f.Wfact, f.Wfact_t, f.paramjac, f.syms,
                        f.colorvec)
 end
