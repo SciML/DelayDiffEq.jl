@@ -6,6 +6,7 @@ if GROUP == "All" || GROUP == "Interface"
   @time @safetestset "Discontinuity Tests" begin include("discontinuities.jl") end
   @time @safetestset "History Function Tests" begin include("history_function.jl") end
   @time @safetestset "Parameterized Function Tests" begin include("parameters.jl") end
+  @time @safetestset "Jacobian Tests" begin include("jacobian.jl") end
   @time @safetestset "Return Code Tests" begin include("retcode.jl") end
   @time @safetestset "Composite Solution Tests" begin include("composite_solution.jl") end
   @time @safetestset "Dependent Delay Tests" begin include("dependent_delays.jl") end
