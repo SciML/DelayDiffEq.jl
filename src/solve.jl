@@ -94,7 +94,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # we use this history information to create a problem function of the DDE with all
   # available history information that is of the form f(du,u,p,t) or f(u,p,t) such that
   # ODE algorithms can be applied
-  history = HistoryFunction(h, ode_integrator.sol, ode_integrator)
+  history = HistoryFunction(h, ode_integrator)
   f_with_history = ODEFunctionWrapper(f, history)
 
   # get states (possibly different from the ODE integrator!)
@@ -246,7 +246,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                              typeof(tdir),typeof(k),typeof(sol),typeof(f_with_history),
                              typeof(cache),typeof(ode_integrator),typeof(fixedpoint_norm),
                              typeof(opts),typeof(discontinuity_abstol),
-                             typeof(discontinuity_reltol),
+                             typeof(discontinuity_reltol),typeof(history),
                              OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
                              typeof(ode_integrator.last_event_error),
                              typeof(callback_cache)}(
@@ -269,7 +269,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                ode_integrator.vector_event_last_time,
                                ode_integrator.last_event_error, ode_integrator.accept_step,
                                ode_integrator.isout, ode_integrator.reeval_fsal,
-                               ode_integrator.u_modified, opts, destats, ode_integrator)
+                               ode_integrator.u_modified, opts, destats, history,
+                               ode_integrator)
 
   # initialize DDE integrator
   if initialize_integrator

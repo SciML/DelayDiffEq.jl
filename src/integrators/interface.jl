@@ -76,25 +76,22 @@ end
 
 # perform next integration step
 function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
-  @unpack f, t, p, k, uprev, dt, resid, alg, cache, max_fixedpoint_iters = integrator
+  @unpack f, t, p, k, uprev, dt, resid, alg, cache, history, max_fixedpoint_iters = integrator
   @unpack fixedpoint_abstol, fixedpoint_reltol, fixedpoint_norm = integrator
   ode_integrator = integrator.integrator
   internalnorm = integrator.opts.internalnorm
   prob = integrator.sol.prob
 
-  # reset boolean which indicates whether history function was evaluated at a time point
+  # reset boolean which indicates if the history function was evaluated at a time point
   # past the final point of the current solution
-  # NOTE: does not interfere with usual use of isout since ODE integrator is only used for
-  # inter- and extrapolation of future values and saving of the solution but does not
-  # affect whether time steps are accepted
-  ode_integrator.isout = false
+  history.isout = false
 
   # perform always at least one calculation of the stages
   OrdinaryDiffEq.perform_step!(integrator, cache)
 
   # if the history function was evaluated at time points past the final time point of the
   # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
-  if ode_integrator.isout
+  if history.isout
     # update ODE integrator to next time interval together with correct interpolation
     advance_ode_integrator!(integrator)
 

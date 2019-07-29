@@ -25,10 +25,8 @@ end
 
   # combined history function
   history_notinplace = DelayDiffEq.HistoryFunction(h_notinplace,
-                                                   integrator.sol,
                                                    integrator)
   history_inplace = DelayDiffEq.HistoryFunction(h_inplace,
-                                                integrator.sol,
                                                 integrator)
 
   # test evaluation of history function
@@ -58,19 +56,20 @@ end
       (idxs === nothing ? zeros(2) : [0.0])
 
     # out-of-place
-    integrator.isout = false
-    @test history_notinplace(nothing, 1, deriv; idxs = idxs) == trueval &&
-      integrator.isout
+    history_notinplace.isout = false
+    @test history_notinplace(nothing, 1, deriv; idxs = idxs) == trueval
+    @test history_notinplace.isout
 
     # in-place
-    integrator.isout = false
-    @test history_inplace(nothing, nothing, 1, deriv; idxs = idxs) == trueval &&
-      integrator.isout
+    history_inplace.isout = false
+    @test history_inplace(nothing, nothing, 1, deriv; idxs = idxs) == trueval
+    @test history_inplace.isout
 
-    integrator.isout = false
+    history_inplace.isout = false
     val = 1 .- trueval # ensures that val ≠ trueval
     history_inplace(val, nothing, 1, deriv; idxs = idxs)
-    @test val == trueval && integrator.isout
+    @test val == trueval
+    @test history_inplace.isout
   end
 
   # add step to integrator
@@ -89,15 +88,16 @@ end
     trueval = OrdinaryDiffEq.current_interpolant(0.01, integrator, idxs, deriv)
 
     # out-of-place
-    integrator.isout = false
-    @test history_notinplace(nothing, 0.01, deriv; idxs = idxs) == trueval &&
-      integrator.isout
+    history_notinplace.isout = false
+    @test history_notinplace(nothing, 0.01, deriv; idxs = idxs) == trueval
+    @test history_notinplace.isout
 
     # in-place
-    integrator.isout = false
+    history_inplace.isout = false
     val = zero(trueval)
     history_inplace(val, nothing, 0.01, deriv; idxs = idxs)
-    @test val == trueval && integrator.isout
+    @test val == trueval
+    @test history_inplace.isout
   end
 
   # add step to solution
@@ -114,13 +114,16 @@ end
     trueval = integrator.sol.interp(0.01, idxs, deriv, integrator.p)
 
     # out-of-place
-    @test history_notinplace(nothing, 0.01, deriv; idxs = idxs) == trueval &&
-      !integrator.isout
+    history_notinplace.isout = false
+    @test history_notinplace(nothing, 0.01, deriv; idxs = idxs) == trueval
+    @test !history_notinplace.isout
 
     # in-place
+    history_inplace.isout = false
     val = zero(trueval)
     history_inplace(val, nothing, 0.01, deriv; idxs = idxs)
-    @test val == trueval && !integrator.isout
+    @test val == trueval
+    @test !history_inplace.isout
   end
 
   # test integrator extrapolation
@@ -131,14 +134,15 @@ end
     trueval = OrdinaryDiffEq.current_interpolant(1, integrator, idxs, deriv)
 
     # out-of-place
-    integrator.isout = false
-    @test history_notinplace(nothing, 1, deriv; idxs = idxs) == trueval &&
-      integrator.isout
+    history_notinplace.isout = false
+    @test history_notinplace(nothing, 1, deriv; idxs = idxs) == trueval
+    @test history_notinplace.isout
 
     # in-place
-    integrator.isout = false
+    history_inplace.isout = false
     val = zero(trueval)
     history_inplace(val, nothing, 1, deriv; idxs = idxs)
-    @test val == trueval && integrator.isout
+    @test val == trueval
+    @test history_inplace.isout
   end
 end
