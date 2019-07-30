@@ -6,14 +6,16 @@ using Reexport
 using DataStructures
 using DiffEqDiffTools
 using ForwardDiff
+using LinearAlgebra
+using Logging
 using NLSolversBase
 using Parameters
 using RecursiveArrayTools
 using Roots
 
-using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, DEIntegrator, AbstractDDEProblem
+using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator, DEIntegrator, AbstractDDEProblem
 
-using OrdinaryDiffEq: ODEIntegrator, GenericImplicitEulerCache, GenericTrapezoidCache, RosenbrockMutableCache
+using OrdinaryDiffEq: GenericImplicitEulerCache, GenericTrapezoidCache, RosenbrockMutableCache
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")
