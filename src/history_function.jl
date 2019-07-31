@@ -9,7 +9,7 @@ history function `h`, for time points up to the final time point of the solution
 interpolated values of the solution are returned, and after the final time point an inter-
 or extrapolation of the current state of the `integrator` is retrieved.
 """
-mutable struct HistoryFunction{H,I<:ODEIntegrator} <: Function
+mutable struct HistoryFunction{H,I<:DEIntegrator} <: Function
   h::H
   integrator::I
   isout::Bool
@@ -32,7 +32,7 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
       return f.h(p, t, Val{deriv}; idxs = idxs)
     end
   elseif integrator.tdir * t <= integrator.tdir * sol.t[end] # Put equals back
-    return sol.interp(t, idxs, Val{deriv}, f.integrator.p)
+    return sol.interp(t, idxs, Val{deriv}, p)
   end
 
   # history function is evaluated at time point past the final time point of
@@ -62,7 +62,7 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
       return f.h(val, p, t, Val{deriv}; idxs = idxs)
     end
   elseif integrator.tdir * t <= integrator.tdir * sol.t[end] # Put equals back
-    return sol.interp(val, t, idxs, Val{deriv}, f.integrator.p)
+    return sol.interp(val, t, idxs, Val{deriv}, p)
   end
 
   # history function is evaluated at a time point past the final time point of

@@ -23,7 +23,9 @@ function advance_ode_integrator!(integrator::DDEIntegrator)
   else
     DiffEqBase.addsteps!(k, t, uprev, u, dt, f, p, cache, false, true, true)
   end
-  recursivecopy!(ode_integrator.k, k)
+  @inbounds for i in 1:length(k)
+    copyat_or_push!(ode_integrator.k, i, k[i])
+  end
 
   # move ODE integrator to interval [t, t+dt]
   ode_integrator.t = t + dt

@@ -1,3 +1,19 @@
+mutable struct HistoryODEIntegrator{algType,IIP,uType,tType,tdirType,ksEltype,SolType,CacheType} <: AbstractODEIntegrator{algType,IIP,uType,tType}
+  sol::SolType
+  u::uType
+  k::ksEltype
+  t::tType
+  dt::tType
+  uprev::uType
+  tprev::tType
+  alg::algType
+  dtcache::tType
+  tdir::tdirType
+  saveiter::Int
+  saveiter_dense::Int
+  cache::CacheType
+end
+
 mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
                              residType,tTypeNoUnits,tdirType,ksEltype,
                              SolType,F,CacheType,
