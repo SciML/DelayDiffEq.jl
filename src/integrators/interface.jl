@@ -240,29 +240,31 @@ function Base.resize!(integrator::DDEIntegrator, cache, i)
   end
 
   # resize DDE integrator
-  for c in full_cache(integrator)
+  for c in full_cache(cache)
     resize!(c, i)
   end
-  resize_non_user_cache!(integrator, cache, i)
-end
-
-function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator, cache, i)
   DiffEqBase.nlsolve_resize!(integrator, i)
+  OrdinaryDiffEq.resize_J_and_W!(integrator, i)
+  resize_non_user_cache!(integrator, cache, i)
   resize!(integrator.resid, i)
   nothing
 end
+
+DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator, cache, i) = nothing
+
 function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
                                            cache::RosenbrockMutableCache, i)
   cache.J = similar(cache.J, i, i)
   cache.W = similar(cache.W, i, i)
-  resize!(integrator.resid, i)
+  cache.jac_config = DiffEqBase.resize_jac_config!(cache.jac_config, i)
+  cache.grad_config = OrdinaryDiffEq.resize_grad_config!(cache.grad_config, i)
   nothing
 end
+
 function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
                                            cache::Union{GenericImplicitEulerCache,GenericTrapezoidCache},
                                            i)
   cache.nl_rhs = integrator.alg.nlsolve(Val{:init}, cache.rhs, cache.u)
-  resize!(integrator.resid, i)
   nothing
 end
 
