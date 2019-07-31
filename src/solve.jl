@@ -120,6 +120,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                     adaptive = adaptive,
                                     allow_extrapolation = allow_extrapolation,
                                     calck = calck)
+  uEltypeNoUnits = recursive_unitless_eltype(u)
+  uBottomEltypeNoUnits = recursive_unitless_bottom_eltype(u)
 
   # initialize output arrays of the solution
   k = typeof(rate_prototype)[]
@@ -130,19 +132,12 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                        save_idxs = save_idxs,
                                        save_start = save_start)
 
-  # derive cache for states and function with wrapped dense history from the
-  # cache of the ODE integrator
+  # build cache
   ode_integrator = history.integrator
-  ode_cache = ode_integrator.cache
-  if iscomposite(alg)
-    caches = map((x, y) -> build_linked_cache(x, y, u, uprev, uprev2, f_with_history,
-                                              t0, dt, p),
-                 ode_cache.caches, alg.alg.algs)
-    cache = OrdinaryDiffEq.CompositeCache(caches, alg.alg.choice_function, 1)
-  else
-    cache = build_linked_cache(ode_cache, alg.alg, u, uprev, uprev2,
-                               f_with_history, t0, dt, p)
-  end
+  cache = OrdinaryDiffEq.alg_cache(alg.alg, u, rate_prototype, uEltypeNoUnits,
+                                   uBottomEltypeNoUnits, tTypeNoUnits, uprev, uprev2,
+                                   f_with_history, t0, zero(dt), reltol_internal, p, calck,
+                                   Val{isinplace(prob)})
 
   # separate statistics of the integrator and the history
   destats = DiffEqBase.DEStats(0)
@@ -238,7 +233,6 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                     advance_to_tstop,stop_at_next_tstop)
 
   # create container for residuals (has to be unitless)
-  uEltypeNoUnits = recursive_unitless_eltype(u)
   if u isa AbstractArray
     resid = similar(u, uEltypeNoUnits)
   else
@@ -273,7 +267,6 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # parameters of fixed-point iteration
   # do not initialize fsalfirst and fsallast
   # rate/state = (state/time)/state = 1/t units, internalnorm drops units
-  uBottomEltypeNoUnits = recursive_unitless_bottom_eltype(u0)
   eigen_est = one(uBottomEltypeNoUnits)/one(tType)
   tprev = t0
   dtcache = tType(dt)
