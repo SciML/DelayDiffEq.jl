@@ -1,6 +1,6 @@
 include("common.jl")
 
-const alg = MethodOfSteps(RK4(); constrained=false)
+const alg = MethodOfSteps(RK4(); constrained = false)
 
 # reference solution with delays specified
 @testset "reference" begin
@@ -18,41 +18,36 @@ const prob = remake(prob_dde_constant_1delay_scalar; constant_lags = nothing)
 @testset "residual control" begin
   sol = solve(prob, alg)
 
-  @test sol.errors[:l∞] < 1.8e-4
-  @test sol.errors[:final] < 4.1e-6
-  @test sol.errors[:l2] < 9.0e-5
+  @test sol.errors[:l∞] < 1.3e-4
+  @test sol.errors[:final] < 3.5e-6
+  @test sol.errors[:l2] < 6.1e-5
 
-  sol = solve(prob, alg, abstol=1e-9,reltol=1e-6)
+  sol = solve(prob, alg; abstol = 1e-9, reltol = 1e-6)
 
-  @test sol.errors[:l∞] < 1.5e-7
-  @test sol.errors[:final] < 4.1e-9
-  @test sol.errors[:l2] < 7.5e-8
+  @test sol.errors[:l∞] < 5.0e-8
+  @test sol.errors[:final] < 3.4e-9
+  @test sol.errors[:l2] < 2.2e-8
 
-  sol = solve(prob, alg, abstol=1e-13,reltol=1e-13)
+  sol = solve(prob, alg; abstol = 1e-13, reltol = 1e-13)
 
-  @test sol.errors[:l∞] < 7.0e-11
-  @test sol.errors[:final] < 1.1e-11
-  @test sol.errors[:l2] < 9.3e-12
+  # relaxed tests to prevent floating point issues
+  @test sol.errors[:l∞] < 4.8e-11
+  @test sol.errors[:final] < 4.5e-12
+  @test sol.errors[:l2] < 7.7e-11 # 7.7e-12
 end
 
 ######## Now show that non-residual control is worse
 # solutions without residual control
 @testset "non-residual control" begin
-  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained=false))
+  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained = false))
 
-  @test sol.errors[:l∞] > 1e-1
-  @test sol.errors[:final] > 1e-3
-  @test sol.errors[:l2] > 4e-2
+  @test sol.errors[:l∞] > 1.1e-1
+  @test sol.errors[:final] > 1.2e-3
+  @test sol.errors[:l2] > 4.5e-2
 
-  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained=true))
+  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained = false); abstol=1e-13, reltol=1e-13)
 
-  @test sol.errors[:l∞] > 1e-1
-  @test sol.errors[:final] > 1e-3
-  @test sol.errors[:l2] > 4e-2
-
-  sol = solve(prob, MethodOfSteps(OwrenZen5(); constrained=true); abstol=1e-13, reltol=1e-13)
-
-  @test sol.errors[:l∞] > 1e-1
-  @test sol.errors[:final] > 1e-3
-  @test sol.errors[:l2] > 5e-2
+  @test sol.errors[:l∞] > 1.1e-1
+  @test sol.errors[:final] > 1.2e-3
+  @test sol.errors[:l2] > 5.5e-2
 end

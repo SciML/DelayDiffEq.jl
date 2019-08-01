@@ -23,23 +23,23 @@ end
     getfield.(dde_int2.tracked_discontinuities, :order)
 
   # worse than results above with constant delays specified as scalars
-  @test sol2.errors[:l∞] < 4e-3
-  @test sol2.errors[:final] < 2e-4
-  @test sol2.errors[:l2] < 2e-3
+  @test sol2.errors[:l∞] < 3.2e-3
+  @test sol2.errors[:final] < 1.2e-4
+  @test sol2.errors[:l2] < 1.2e-3
 
   # simple convergence tests
   @testset "convergence" begin
-    sol3 = solve(prob2, alg, abstol=1e-9, reltol=1e-6)
+    sol3 = solve(prob2, alg; abstol=1e-9, reltol=1e-6)
 
-    @test sol3.errors[:l∞] < 3e-6
-    @test sol3.errors[:final] < 1.5e-7
-    @test sol3.errors[:l2] < 8.5e-7
+    @test sol3.errors[:l∞] < 3.0e-6
+    @test sol3.errors[:final] < 1.4e-7
+    @test sol3.errors[:l2] < 8.4e-7
 
-    sol4 = solve(prob2, alg, abstol=1e-13, reltol=1e-13)
+    sol4 = solve(prob2, alg; abstol=1e-13, reltol=1e-13)
 
-    @test sol4.errors[:l∞] < 5.5e-11
-    @test sol4.errors[:final] < 5e-11
-    @test sol4.errors[:l2] < 6e-12
+    @test sol4.errors[:l∞] < 5.0e-11
+    @test sol4.errors[:final] < 4.7e-11
+    @test sol4.errors[:l2] < 5.9e-12
   end
 end
 
@@ -48,7 +48,7 @@ end
   prob2 = remake(prob_dde_constant_1delay_ip; constant_lags = nothing)
   sol2 = solve(prob2, alg)
 
-  @test sol2.errors[:l∞] > 1e-3
-  @test sol2.errors[:final] > 4e-5
-  @test sol2.errors[:l2] > 7e-4
+  @test sol2.errors[:l∞] > 1.0e-2
+  @test sol2.errors[:final] > 6.3e-6
+  @test sol2.errors[:l2] > 4.6e-3
 end

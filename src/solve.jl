@@ -136,7 +136,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   ode_integrator = history.integrator
   cache = OrdinaryDiffEq.alg_cache(alg.alg, u, rate_prototype, uEltypeNoUnits,
                                    uBottomEltypeNoUnits, tTypeNoUnits, uprev, uprev2,
-                                   f_with_history, t0, zero(dt), reltol_internal, p, calck,
+                                   f_with_history, t0, zero(tType), reltol_internal, p, calck,
                                    Val{isinplace(prob)})
 
   # separate statistics of the integrator and the history
@@ -166,7 +166,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
   # reserve capacity for the solution
   sizehint!(sol, alg, tspan, tstops_internal, saveat_internal;
-            save_everystep = save_everystep, adaptive = adaptive, dt = dt)
+            save_everystep = save_everystep, adaptive = adaptive, dt = tType(dt))
 
   # create array of tracked discontinuities
   # used to find propagated discontinuities with callbacks and to keep track of all
@@ -232,31 +232,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                     isoutofdomain,unstable_check,verbose,calck,force_dtmin,
                                     advance_to_tstop,stop_at_next_tstop)
 
-  # create container for residuals (has to be unitless)
-  if u isa AbstractArray
-    resid = similar(u, uEltypeNoUnits)
-  else
-    resid = one(uEltypeNoUnits)
-  end
-
-  # define absolute tolerance for fixed-point iterations
-  if alg.fixedpoint_abstol === nothing
-    fixedpoint_abstol_internal = abstol_internal
-  else
-    fixedpoint_abstol_internal = real.(alg.fixedpoint_abstol)
-  end
-
-  # use norm of the ODE integrator if no norm for fixed-point iterations is specified
-  if alg.fixedpoint_norm === nothing
-    fixedpoint_norm = internalnorm
-  end
-
-  # define relative tolerance for fixed-point iterations
-  if alg.fixedpoint_reltol === nothing
-    fixedpoint_reltol_internal = reltol_internal
-  else
-    fixedpoint_reltol_internal = real.(alg.fixedpoint_reltol)
-  end
+  # create fixed point solver
+  _fpsolver = fpsolver(alg, u, uEltypeNoUnits, uBottomEltypeNoUnits, Val(isinplace(prob)))
 
   # initialize indices of u(t) and u(tprev) in the dense history
   prev_idx = 1
@@ -290,21 +267,17 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   erracc = tTypeNoUnits(1)
   dtacc = tType(1)
 
-  tdirType = typeof(sign(zero(tType)))
-
   integrator = DDEIntegrator{typeof(alg.alg),isinplace(prob),typeof(u0),tType,typeof(p),
-                             typeof(eigen_est),typeof(fixedpoint_abstol_internal),
-                             typeof(fixedpoint_reltol_internal),typeof(resid),QT,
-                             typeof(tdir),typeof(k),typeof(sol),typeof(f_with_history),
-                             typeof(cache),typeof(ode_integrator),typeof(fixedpoint_norm),
+                             typeof(eigen_est),QT,typeof(tdir),typeof(k),typeof(sol),
+                             typeof(f_with_history),typeof(cache),
+                             typeof(ode_integrator),typeof(_fpsolver),
                              typeof(opts),typeof(discontinuity_abstol),
                              typeof(discontinuity_reltol),typeof(history),
                              OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
                              typeof(last_event_error),typeof(callback_cache)}(
                                sol, u, k, t0, tType(dt), f_with_history, p,
                                uprev, uprev2, tprev, prev_idx, prev2_idx,
-                               fixedpoint_abstol_internal, fixedpoint_reltol_internal,
-                               resid, fixedpoint_norm, alg.max_fixedpoint_iters,
+                               _fpsolver,
                                order_discontinuity_t0, tracked_discontinuities,
                                discontinuity_interp_points, discontinuity_abstol,
                                discontinuity_reltol, alg.alg,

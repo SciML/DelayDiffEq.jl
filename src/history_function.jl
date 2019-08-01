@@ -19,9 +19,11 @@ HistoryFunction(h, integrator) = HistoryFunction(h, integrator, false)
 
 function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
   @unpack integrator = f
-  @unpack sol = integrator
+  @unpack tdir, sol = integrator
 
-  @inbounds if integrator.tdir * t < integrator.tdir * sol.t[1]
+  tdir_t = tdir * t
+
+  @inbounds if tdir_t < tdir * sol.t[1]
     if deriv == 0 && idxs === nothing
       return f.h(p, t)
     elseif idxs === nothing
@@ -31,16 +33,21 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
     else
       return f.h(p, t, Val{deriv}; idxs = idxs)
     end
-  elseif integrator.tdir * t <= integrator.tdir * sol.t[end] # Put equals back
+  end
+  
+  tdir_solt = tdir * sol.t[end]
+  if tdir_t <= tdir_solt
     return sol.interp(t, idxs, Val{deriv}, p)
   end
 
   # history function is evaluated at time point past the final time point of
   # the current solution
-  f.isout = true
+  if tdir_t - tdir_solt > 10 * eps(tdir_t)
+    f.isout = true
+  end
 
-  # handle extrapolations at initial time point
   if integrator.t == sol.prob.tspan[1]
+    # handle extrapolations at initial time point
     return constant_extrapolant(t, integrator, idxs, Val{deriv})
   else
     return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, Val{deriv})
@@ -49,9 +56,11 @@ end
 
 function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) where deriv
   @unpack integrator = f
-  @unpack sol = integrator
+  @unpack tdir, sol = integrator
 
-  @inbounds if integrator.tdir * t < integrator.tdir * sol.t[1]
+  tdir_t = tdir * t
+
+  @inbounds if tdir_t < tdir * sol.t[1]
     if deriv == 0 && idxs === nothing
       return f.h(val, p, t)
     elseif idxs === nothing
@@ -61,18 +70,23 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
     else
       return f.h(val, p, t, Val{deriv}; idxs = idxs)
     end
-  elseif integrator.tdir * t <= integrator.tdir * sol.t[end] # Put equals back
+  end
+
+  tdir_solt = tdir * sol.t[end]
+  if tdir_t <= tdir_solt
     return sol.interp(val, t, idxs, Val{deriv}, p)
   end
 
-  # history function is evaluated at a time point past the final time point of
+  # history function is evaluated at time point past the final time point of
   # the current solution
-  f.isout = true
+  if tdir_t - tdir_solt > 10 * eps(tdir_t)
+    f.isout = true
+  end
 
-  # handle extrapolations at initial time point
   if integrator.t == sol.prob.tspan[1]
+    # handle extrapolations at initial time point
     return constant_extrapolant!(val, t, integrator, idxs, Val{deriv})
   else
-    return OrdinaryDiffEq.current_interpolant!(val, t, f.integrator, idxs, Val{deriv})
+    return OrdinaryDiffEq.current_interpolant!(val, t, integrator, idxs, Val{deriv})
   end
 end

@@ -1,9 +1,12 @@
-include("common.jl")
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using Test
+
+DDEProblemLibrary.importddeproblems()
 
 # simple problems
 @testset "simple problems" begin
-  prob_ip = prob_dde_constant_1delay_ip
-  prob_scalar = prob_dde_constant_1delay_scalar
+  prob_ip = DDEProblemLibrary.prob_dde_constant_1delay_ip
+  prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
   ts = 0:0.1:10
 
   # Vern6
@@ -13,8 +16,8 @@ include("common.jl")
     sol_ip = solve(prob_ip, alg)
 
     @test sol_ip.errors[:l∞] < 8.7e-4
-    @test sol_ip.errors[:final] < 7.5e-6
-    @test sol_ip.errors[:l2] < 5.5e-4
+    @test sol_ip.errors[:final] < 3.9e-6
+    @test sol_ip.errors[:l2] < 5.4e-4
 
     sol_scalar = solve(prob_scalar, alg)
 
@@ -58,7 +61,7 @@ include("common.jl")
 
     @test sol_ip.errors[:l∞] < 2.0e-3
     @test sol_ip.errors[:final] < 1.8e-5
-    @test sol_ip.errors[:l2] < 9.0e-4
+    @test sol_ip.errors[:l2] < 8.4e-4
 
     sol_scalar = solve(prob_scalar, alg)
 
@@ -98,7 +101,7 @@ end
 # model of Mackey and Glass
 println("Mackey and Glass")
 @testset "Mackey and Glass" begin
-  prob = prob_dde_DDETST_A1
+  prob = DDEProblemLibrary.prob_dde_DDETST_A1
 
   # Vern6
   solve(prob, MethodOfSteps(Vern6()))
