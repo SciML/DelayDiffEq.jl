@@ -4,11 +4,8 @@ using Reexport
 @reexport using OrdinaryDiffEq
 
 using DataStructures
-using DiffEqDiffTools
-using ForwardDiff
 using LinearAlgebra
 using Logging
-using NLSolversBase
 using Parameters
 using RecursiveArrayTools
 using Roots
