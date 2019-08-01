@@ -14,48 +14,42 @@ const probs =
 @testset for inplace in (true, false)
   prob = probs[inplace]
 
-  # default tolerances
-  alg1 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100)
-  sol1 = solve(prob, alg1)
+  alg = MethodOfSteps(Tsit5(); constrained = false,
+                      fpsolve = FPFunctional(; max_iter = 100))
+
+  # default
+  sol1 = solve(prob, alg)
 
   # without units
-  alg2 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                       fixedpoint_abstol=1e-6, fixedpoint_reltol=1e-3)
-
   if inplace
-    @test_throws Unitful.DimensionError solve(prob, alg2)
+    @test_throws Unitful.DimensionError solve(prob, alg;
+                                              abstol = 1e-6, reltol = 1e-3)
   else
-    sol2 = solve(prob, alg2)
+    sol2 = solve(prob, alg; abstol = 1e-6, reltol = 1e-3)
 
     @test sol1.t == sol2.t
     @test sol1.u == sol2.u
   end
 
   # with correct units
-  alg3 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                       fixedpoint_abstol=1e-6u"N", fixedpoint_reltol=1e-3u"N")
-  sol3 = solve(prob, alg3)
+  sol3 = solve(prob, alg; abstol = 1e-6u"N", reltol = 1e-3u"N")
 
   @test sol1.t == sol3.t
   @test sol1.u == sol3.u
 
   # with correct units as vectors
   if inplace
-    alg4 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                         fixedpoint_abstol=[1e-6u"N"], fixedpoint_reltol=[1e-3u"N"])
-    sol4 = solve(prob, alg4)
+    sol4 = solve(prob, alg; abstol = [1e-6u"N"], reltol = [1e-3u"N"])
 
     @test sol1.t == sol4.t
     @test sol1.u == sol4.u
   end
 
   # with incorrect units for absolute tolerance
-  alg5 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                       fixedpoint_abstol=1e-6u"s", fixedpoint_reltol=1e-3u"N")
-  @test_throws Unitful.DimensionError solve(prob, alg5)
+  @test_throws Unitful.DimensionError solve(prob, alg;
+                                            abstol = 1e-6u"s", reltol = 1e-3u"N")
 
   # with incorrect units for relative tolerance
-  alg6 = MethodOfSteps(Tsit5(), constrained=false, max_fixedpoint_iters=100,
-                       fixedpoint_abstol=1e-6u"N", fixedpoint_reltol=1e-3u"s")
-  @test_throws Unitful.DimensionError solve(prob, alg6)
+  @test_throws Unitful.DimensionError solve(prob, alg;
+                                            abstol = 1e-6u"N", reltol = 1e-3u"s")
 end

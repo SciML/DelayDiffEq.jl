@@ -262,10 +262,10 @@ function build_history_function(prob, alg, rate_prototype, reltol;
                                 internalnorm = DiffEqBase.ODE_DEFAULT_NORM)
   @unpack f, u0, tspan, p = prob
 
-  t = first(tspan)
+  t0 = first(tspan)
   tType = eltype(tspan)
   tTypeNoUnits = typeof(one(tType))
-  tdir = sign(last(tspan) - t)
+  tdir = sign(last(tspan) - t0)
 
   uEltypeNoUnits = recursive_unitless_eltype(u0)
   uBottomEltypeNoUnits = recursive_unitless_bottom_eltype(u0)
@@ -293,7 +293,7 @@ function build_history_function(prob, alg, rate_prototype, reltol;
   # obtain cache (we alias uprev2 and uprev)
   ode_cache = OrdinaryDiffEq.alg_cache(alg.alg, ode_u, rate_prototype, uEltypeNoUnits,
                                        uBottomEltypeNoUnits, tTypeNoUnits, ode_uprev,
-                                       ode_uprev, ode_f, t, zero(dt), reltol, p, calck,
+                                       ode_uprev, ode_f, t0, zero(tType), reltol, p, calck,
                                        Val{isinplace(prob)})
 
   # build dense interpolation of history
@@ -314,15 +314,15 @@ function build_history_function(prob, alg, rate_prototype, reltol;
 
   # reserve capacity
   sizehint!(ode_sol, alg.alg, tspan, (), ();
-            save_everystep = true, adaptive = adaptive, internalnorm = internalnorm, dt = dt)
+            save_everystep = true, adaptive = adaptive, internalnorm = internalnorm, dt = tType(dt))
 
   # create simple integrator
   tdirType = typeof(sign(zero(tType)))
   ode_integrator = HistoryODEIntegrator{typeof(alg.alg),isinplace(prob),typeof(prob.u0),
                                         tType,tdirType,typeof(ode_k),
                                         typeof(ode_sol),typeof(ode_cache)}(
-                                          ode_sol, ode_u, ode_k, t, zero(tType), ode_uprev,
-                                          t, alg.alg, zero(tType), tdir, 1, 1, ode_cache)
+                                          ode_sol, ode_u, ode_k, t0, zero(tType), ode_uprev,
+                                          t0, alg.alg, zero(tType), tdir, 1, 1, ode_cache)
 
   # combine the user-provided history function and the ODE integrator with dense solution
   # to a joint dense history of the DDE

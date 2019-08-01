@@ -21,14 +21,14 @@ h(p, t; idxs=nothing) = 0.1
 
   # solve problem with initial parameter:
   sol1 = solve(prob, MethodOfSteps(Tsit5()))
-  @test length(sol1) == 26
-  @test first(sol1(12)) ≈ 0.884 atol=1e-4
-  @test first(sol1[end]) ≈ 1 atol=1e-5
+  @test length(sol1) == 22
+  @test first(sol1(12)) ≈ 0.884 atol = 1e-4
+  @test first(sol1[end]) ≈ 1 atol = 1e-5
 
   # solve problem with updated parameter
   prob.p[1] = 1.4
   sol2 = solve(prob, MethodOfSteps(Tsit5()))
-  @test length(sol2) == 52
-  @test first(sol2(12)) ≈ 1.127 atol=4e-4
-  @test first(sol2[end]) ≈ 0.995 atol=3e-4
+  @test length(sol2) == 47
+  @test first(sol2(12)) ≈ 1.125 atol = 5e-4
+  @test first(sol2[end]) ≈ 0.994 atol = 2e-5
 end

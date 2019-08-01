@@ -1,7 +1,10 @@
-include("common.jl")
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using Test
 
-const prob_ip = prob_dde_constant_1delay_ip
-const prob_scalar = prob_dde_constant_1delay_scalar
+DDEProblemLibrary.importddeproblems()
+
+const prob_ip = DDEProblemLibrary.prob_dde_constant_1delay_ip
+const prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
 const ts = 0:0.1:10
 
 # ODE algorithms
@@ -27,8 +30,8 @@ const algs = Dict(GenericImplicitEuler() => true,
   println(nameof(typeof(alg)))
 
   stepsalg = MethodOfSteps(alg)
-  sol_ip = solve(prob_ip, stepsalg)
-  sol_scalar = solve(prob_scalar, stepsalg)
+  sol_ip = solve(prob_ip, stepsalg; dt = 0.1)
+  sol_scalar = solve(prob_scalar, stepsalg; dt = 0.1)
 
   if pass
     @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)

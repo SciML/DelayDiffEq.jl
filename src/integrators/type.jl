@@ -14,10 +14,8 @@ mutable struct HistoryODEIntegrator{algType,IIP,uType,tType,tdirType,ksEltype,So
   cache::CacheType
 end
 
-mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
-                             residType,tTypeNoUnits,tdirType,ksEltype,
-                             SolType,F,CacheType,
-                             IType,NType,O,dAbsType,dRelType,H,
+mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,
+                             ksEltype,SolType,F,CacheType,IType,FP,O,dAbsType,dRelType,H,
                              FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
     sol::SolType
     u::uType
@@ -31,11 +29,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     tprev::tType
     prev_idx::Int
     prev2_idx::Int
-    fixedpoint_abstol::absType
-    fixedpoint_reltol::relType
-    resid::residType # This would have to resize for resizing DDE to work
-    fixedpoint_norm::NType
-    max_fixedpoint_iters::Int
+    fpsolver::FP
     order_discontinuity_t0::Int
     tracked_discontinuities::Vector{Discontinuity{tType}}
     discontinuity_interp_points::Int
@@ -77,14 +71,12 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
     fsallast::FSALType
 
     # incomplete initialization without fsalfirst and fsallast
-    function DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType,
-                           residType,tTypeNoUnits,
-                           tdirType,ksEltype,SolType,F,CacheType,IType,
-                           NType,O,dAbsType,dRelType,H,FSALType,EventErrorType,
+    function DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,
+                           tdirType,ksEltype,SolType,F,CacheType,IType,FP,
+                           O,dAbsType,dRelType,H,FSALType,EventErrorType,
                            CallbackCacheType}(
                                sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,
-                               fixedpoint_abstol,fixedpoint_reltol,resid,fixedpoint_norm,
-                               max_fixedpoint_iters,order_discontinuity_t0,tracked_discontinuities,
+                               fpsolver,order_discontinuity_t0,tracked_discontinuities,
                                discontinuity_interp_points,discontinuity_abstol,discontinuity_reltol,
                                alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
@@ -92,17 +84,13 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,absType,relType
                                just_hit_tstop,event_last_time,vector_event_last_time,last_event_error,
                                accept_step,isout,reeval_fsal,u_modified,opts,destats,
                                history,integrator) where
-        {algType,IIP,uType,tType,P,eigenType,absType,relType,residType,tTypeNoUnits,
-         tdirType,ksEltype,SolType,F,CacheType,IType,NType,O,
-         dAbsType,dRelType,H,FSALType,EventErrorType,CallbackCacheType}
+      {algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,ksEltype,SolType,F,
+       CacheType,IType,FP,O,dAbsType,dRelType,H,FSALType,EventErrorType,CallbackCacheType}
 
-        new{algType,IIP,uType,tType,P,eigenType,absType,relType,
-                               residType,tTypeNoUnits,
-                               tdirType,ksEltype,SolType,F,CacheType,IType,
-                               NType,O,dAbsType,dRelType,H,
-                               FSALType,EventErrorType,CallbackCacheType}(
-            sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,fixedpoint_abstol,
-            fixedpoint_reltol,resid,fixedpoint_norm,max_fixedpoint_iters,
+      new{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,ksEltype,SolType,F,
+          CacheType,IType,FP,O,dAbsType,dRelType,H,FSALType,EventErrorType,
+          CallbackCacheType}(
+            sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,fpsolver,
             order_discontinuity_t0,tracked_discontinuities,discontinuity_interp_points,
             discontinuity_abstol,discontinuity_reltol,alg,dtcache,dtchangeable,dtpropose,tdir,
             eigen_est,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
