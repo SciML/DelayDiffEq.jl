@@ -1,6 +1,9 @@
-include("common.jl")
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using Test
 
-const prob = prob_dde_constant_1delay_long_ip
+DDEProblemLibrary.importddeproblems()
+
+const prob = DDEProblemLibrary.prob_dde_constant_1delay_long_ip
 const alg = MethodOfSteps(Tsit5())
 
 # reference integrator and solution

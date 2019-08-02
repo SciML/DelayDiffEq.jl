@@ -1,4 +1,9 @@
-include("common.jl")
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using Test
+
+DDEProblemLibrary.importddeproblems()
+
+const prob = DDEProblemLibrary.prob_dde_constant_2delays_ip
 
 # total order
 @testset "total order" begin
@@ -23,7 +28,7 @@ end
 
 # simple DDE example
 @testset "DDE" begin
-  integrator = init(prob_dde_constant_2delays_ip, MethodOfSteps(BS3()))
+  integrator = init(prob, MethodOfSteps(BS3()))
 
   # initial discontinuities
   @testset "initial" begin
@@ -51,7 +56,7 @@ end
 
 # additional discontinuities
 @testset "DDE with discontinuities" begin
-  integrator = init(prob_dde_constant_2delays_ip, MethodOfSteps(BS3());
+  integrator = init(prob, MethodOfSteps(BS3());
                     d_discontinuities = [Discontinuity(0.3, 4), Discontinuity(0.6, 5)])
 
   @test integrator.opts.d_discontinuities_cache == [Discontinuity(0.3, 4), Discontinuity(0.6, 5)]

@@ -1,4 +1,5 @@
-using DelayDiffEq, Test
+using DelayDiffEq
+using Test
 
 @testset "in-place" begin
   # define functions (Hutchinson's equation)

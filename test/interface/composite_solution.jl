@@ -1,9 +1,12 @@
-include("common.jl")
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using Test
+
+DDEProblemLibrary.importddeproblems()
 
 const T = OrdinaryDiffEq.ODECompositeSolution
+const prob = DDEProblemLibrary.prob_dde_constant_1delay_ip
 
-const integrator = init(prob_dde_constant_1delay_ip,
-                        MethodOfSteps(AutoTsit5(Rosenbrock23())))
+const integrator = init(prob, MethodOfSteps(AutoTsit5(Rosenbrock23())))
 
 @testset "init" begin
   @test integrator.sol isa T
@@ -15,7 +18,7 @@ end
   @test sol1 isa T
 
   # compare integration grid
-  sol2 = solve(prob_dde_constant_1delay_ip, MethodOfSteps(Tsit5()))
+  sol2 = solve(prob, MethodOfSteps(Tsit5()))
   @test sol1.t == sol2.t && sol1.u == sol2.u
 
   # compare interpolation

@@ -1,4 +1,6 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, RecursiveArrayTools, Test
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, RecursiveArrayTools
+using Test
+
 DDEProblemLibrary.importddeproblems()
 
 const prob = DDEProblemLibrary.prob_dde_constant_1delay_scalar

@@ -1,10 +1,15 @@
-include("common.jl")
-using RecursiveArrayTools
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, RecursiveArrayTools
+using Test
 
-const alg = MethodOfSteps(BS3(); constrained=false)
+DDEProblemLibrary.importddeproblems()
+
+const prob_ip = DDEProblemLibrary.prob_dde_constant_1delay_ip
+const prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+
+const alg = MethodOfSteps(BS3(); constrained = false)
 
 @testset for inplace in (true, false)
-  prob = inplace ? prob_dde_constant_1delay_ip : prob_dde_constant_1delay_scalar
+  prob = inplace ? prob_ip : prob_scalar
 
   @testset "integrator" begin
     integrator = init(prob, alg, dt= 0.01)

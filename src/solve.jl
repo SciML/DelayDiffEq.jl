@@ -173,7 +173,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # passed discontinuities
   tracked_discontinuities = Discontinuity{tType}[]
   if order_discontinuity_t0 ≤ maximum_order
-    push!(tracked_discontinuities, Discontinuity(t0, order_discontinuity_t0))
+    push!(tracked_discontinuities, Discontinuity(tdir * t0, order_discontinuity_t0))
   end
 
   # Create set of callbacks and its cache

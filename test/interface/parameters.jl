@@ -1,4 +1,5 @@
-include("common.jl")
+using DelayDiffEq
+using Test
 
 # Test parameterized delayed logistic equation
 

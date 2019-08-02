@@ -1,4 +1,5 @@
-include("common.jl")
+using DelayDiffEq
+using Test
 
 # check constant extrapolation with problem with vanishing delays at t = 0
 @testset "vanishing delays" begin
