@@ -1,4 +1,7 @@
-include("common.jl")
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using Test
+
+DDEProblemLibrary.importddeproblems()
 
 # Check that numerical solutions approximate analytical solutions,
 # independent of problem structure
@@ -19,25 +22,25 @@ include("common.jl")
   @testset "single constant delay" begin
     @testset "short time span" begin
       ### Scalar function
-      sol_scalar = solve(prob_dde_constant_1delay_scalar, alg)
+      sol_scalar = solve(DDEProblemLibrary.prob_dde_constant_1delay_scalar, alg)
 
       @test sol_scalar.errors[:l∞] < 3.0e-5
       @test sol_scalar.errors[:final] < 2.1e-5
       @test sol_scalar.errors[:l2] < 1.2e-5
 
       ### Out-of-place function
-      sol_oop = solve(prob_dde_constant_1delay_oop, alg)
+      sol_oop = solve(DDEProblemLibrary.prob_dde_constant_1delay_oop, alg)
 
       @test sol_scalar.t ≈ sol_oop.t && sol_scalar.u ≈ sol_oop[1, :]
 
       ### In-place function
-      sol_ip = solve(prob_dde_constant_1delay_ip, alg)
+      sol_ip = solve(DDEProblemLibrary.prob_dde_constant_1delay_ip, alg)
 
       @test sol_scalar.t ≈ sol_ip.t && sol_scalar.u ≈ sol_ip[1, :]
     end
 
     @testset "long time span" begin
-      prob = prob_dde_constant_1delay_long_scalar
+      prob = DDEProblemLibrary.prob_dde_constant_1delay_long_scalar
 
       sol1 = solve(prob, alg1; abstol = 1e-12, reltol = 1e-12)
       sol2 = solve(prob, alg2; abstol = 1e-8, reltol = 1e-10)
@@ -55,25 +58,25 @@ include("common.jl")
   @testset "two constant delays" begin
     @testset "short time span" begin
       ### Scalar function
-      sol_scalar = solve(prob_dde_constant_2delays_scalar, alg)
+      sol_scalar = solve(DDEProblemLibrary.prob_dde_constant_2delays_scalar, alg)
 
       @test sol_scalar.errors[:l∞] < 2.4e-6
       @test sol_scalar.errors[:final] < 2.1e-6
       @test sol_scalar.errors[:l2] < 1.2e-6
 
       ### Out-of-place function
-      sol_oop = solve(prob_dde_constant_2delays_oop, alg)
+      sol_oop = solve(DDEProblemLibrary.prob_dde_constant_2delays_oop, alg)
 
       @test sol_scalar.t ≈ sol_oop.t && sol_scalar.u ≈ sol_oop[1, :]
 
       ### In-place function
-      sol_ip = solve(prob_dde_constant_2delays_ip, alg)
+      sol_ip = solve(DDEProblemLibrary.prob_dde_constant_2delays_ip, alg)
 
       @test sol_scalar.t ≈ sol_ip.t && sol_scalar.u ≈ sol_ip[1, :]
     end
 
     @testset "long time span" begin
-      prob = prob_dde_constant_2delays_long_scalar
+      prob = DDEProblemLibrary.prob_dde_constant_2delays_long_scalar
 
       sol1 = solve(prob, alg1; abstol = 1e-12, reltol = 1e-12)
       sol2 = solve(prob, alg2; abstol = 1e-8, reltol = 1e-10)

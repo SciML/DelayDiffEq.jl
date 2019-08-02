@@ -1,7 +1,12 @@
-include("common.jl")
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using Test
+
+DDEProblemLibrary.importddeproblems()
 
 const alg = MethodOfSteps(BS3())
-const dde_int = init(prob_dde_constant_1delay_ip, alg)
+const prob = DDEProblemLibrary.prob_dde_constant_1delay_ip
+
+const dde_int = init(prob, alg)
 const sol = solve!(dde_int)
 
 @testset "reference" begin
@@ -12,8 +17,7 @@ end
 
 @testset "constant lag function" begin
   # constant delay specified as lag function
-  prob2 = remake(prob_dde_constant_1delay_ip; constant_lags = nothing,
-                 dependent_lags = ((u, p, t) -> 1,))
+  prob2 = remake(prob; constant_lags = nothing, dependent_lags = ((u, p, t) -> 1,))
   dde_int2 = init(prob2, alg)
   sol2 = solve!(dde_int2)
 
@@ -45,7 +49,7 @@ end
 
 # without any delays specified is worse
 @testset "without delays" begin
-  prob2 = remake(prob_dde_constant_1delay_ip; constant_lags = nothing)
+  prob2 = remake(prob; constant_lags = nothing)
   sol2 = solve(prob2, alg)
 
   @test sol2.errors[:l∞] > 1.0e-2

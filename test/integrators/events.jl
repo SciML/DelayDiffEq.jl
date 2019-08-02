@@ -1,7 +1,9 @@
-include("common.jl")
-using DiffEqDevTools, DiffEqCallbacks
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, DiffEqDevTools, DiffEqCallbacks
+using Test
 
-const prob = prob_dde_constant_1delay_scalar
+DDEProblemLibrary.importddeproblems()
+
+const prob = DDEProblemLibrary.prob_dde_constant_1delay_scalar
 const alg = MethodOfSteps(Tsit5(); constrained=false)
 
 # continuous callback

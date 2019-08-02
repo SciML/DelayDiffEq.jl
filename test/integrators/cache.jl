@@ -1,4 +1,4 @@
-using DelayDiffEq, OrdinaryDiffEq, Test
+using DelayDiffEq, Test
 using Random
 Random.seed!(213)
 
