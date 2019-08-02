@@ -29,3 +29,7 @@ if GROUP == "All" || GROUP == "Integrators"
   @time @safetestset "SDIRK Tests" begin include("sdirk_integrators.jl") end
   @time @safetestset "Rosenbrock Tests" begin include("rosenbrock_integrators.jl") end
 end
+
+if GROUP == "All" || GROUP == "Regression"
+  @time @safetestset "Inference Tests" begin include("regression/inference.jl") end
+end
