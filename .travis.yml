@@ -12,6 +12,7 @@ matrix:
 env:
   - GROUP=Interface
   - GROUP=Integrators
+  - GROUP=Regression
 notifications:
   email: false
 # uncomment the following lines to override the default test script
