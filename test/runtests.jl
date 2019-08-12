@@ -10,6 +10,7 @@ if GROUP == "All" || GROUP == "Interface"
   @time @safetestset "Dependent Delay Tests" begin include("interface/dependent_delays.jl") end
   @time @safetestset "Discontinuity Tests" begin include("interface/discontinuities.jl") end
   @time @safetestset "Export Tests" begin include("interface/export.jl") end
+  @time @safetestset "Fixed-point Iteration Tests" begin include("interface/fpsolve.jl") end
   @time @safetestset "History Function Tests" begin include("interface/history_function.jl") end
   @time @safetestset "Jacobian Tests" begin include("interface/jacobian.jl") end
   @time @safetestset "Parameterized Function Tests" begin include("interface/parameters.jl") end
