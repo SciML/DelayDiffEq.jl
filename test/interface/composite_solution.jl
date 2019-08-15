@@ -4,16 +4,14 @@ using Test
 DDEProblemLibrary.importddeproblems()
 
 const T = OrdinaryDiffEq.ODECompositeSolution
-const prob = DDEProblemLibrary.prob_dde_constant_1delay_ip
 
-const integrator = init(prob, MethodOfSteps(AutoTsit5(Rosenbrock23())))
+@testset "integrator" begin
+  prob = DDEProblemLibrary.prob_dde_constant_1delay_ip
 
-@testset "init" begin
+  integrator = init(prob, MethodOfSteps(AutoTsit5(Rosenbrock23())))
   @test integrator.sol isa T
   @test integrator.integrator.sol isa T
-end
 
-@testset "solve" begin
   sol1 = solve!(integrator)
   @test sol1 isa T
 
