@@ -28,8 +28,8 @@ end
   alg = MethodOfSteps(Tsit5())
   compositealg = MethodOfSteps(CompositeAlgorithm((Tsit5(), RK4()), integrator -> 1))
 
-  prob = DDEProblem((du, u, h, p, t) -> -h(p, t - 1)[1], [1.0], (p, t) -> [1.0],
-                    (0.0, 5.0))
+  prob = DDEProblem((du, u, h, p, t) -> (du[1] = -h(p, t - 1)[1]; nothing),
+                    [1.0], (p, t) -> [1.0], (0.0, 5.0))
   sol = solve(prob, alg)
   compositesol = solve(prob, compositealg)
   @test compositesol isa T
