@@ -19,7 +19,7 @@ const probs =
   prob = probs[inplace]
 
   alg = MethodOfSteps(Tsit5(); constrained = false,
-                      fpsolve = FPFunctional(; max_iter = 100))
+                      fpsolve = NLFunctional(; max_iter = 100))
 
   # default
   sol1 = solve(prob, alg)

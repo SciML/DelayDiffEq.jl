@@ -11,12 +11,12 @@ DDEProblemLibrary.importddeproblems()
   alg = MethodOfSteps(BS3(); constrained = false)
 
   alg1 = MethodOfSteps(Tsit5(); constrained = false,
-                       fpsolve = FPFunctional(; max_iter = 100))
+                       fpsolve = NLFunctional(; max_iter = 100))
   alg2 = MethodOfSteps(DP8(); constrained = false,
-                       fpsolve = FPFunctional(; max_iter = 10))
+                       fpsolve = NLFunctional(; max_iter = 10))
   alg3 = MethodOfSteps(Tsit5(); constrained = true)
   alg4 = MethodOfSteps(DP5(); constrained = false,
-                       fpsolve = FPFunctional(; max_iter = 100))
+                       fpsolve = NLFunctional(; max_iter = 100))
 
   ## Single constant delay
   @testset "single constant delay" begin
@@ -93,7 +93,7 @@ end
 ## Non-standard history functions
 @testset "non-standard history" begin
   alg = MethodOfSteps(Tsit5(); constrained = false,
-                      fpsolve = FPFunctional(; max_iter = 100))
+                      fpsolve = NLFunctional(; max_iter = 100))
 
   @testset "idxs" begin
     function f(du,u,h,p,t)

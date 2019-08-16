@@ -7,7 +7,7 @@ struct MethodOfSteps{algType,F,constrained} <: AbstractMethodOfStepsAlgorithm{co
 end
 
 """
-    MethodOfSteps(alg; constrained = false, fpsolve = FPFunctional())
+    MethodOfSteps(alg; constrained = false, fpsolve = NLFunctional())
 
 Construct an algorithm that solves delay differential equations by the method of steps,
 where `alg` is an ODE algorithm from OrdinaryDiffEq.jl upon which the calculation of
@@ -17,5 +17,5 @@ If the algorithm is `constrained` only steps of size at most the minimal delay w
 taken. If it is unconstrained, fixed-point iteration `fpsolve` is applied for step sizes
 that exceed the minimal delay.
 """
-MethodOfSteps(alg; constrained = false, fpsolve = FPFunctional()) =
+MethodOfSteps(alg; constrained = false, fpsolve = NLFunctional()) =
   MethodOfSteps{typeof(alg),typeof(fpsolve),constrained}(alg, fpsolve)

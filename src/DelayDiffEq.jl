@@ -12,11 +12,13 @@ using Roots
 
 using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator, DEIntegrator, AbstractDDEProblem
 
+using DiffEqBase: @..
+
+using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence, Divergence
+
 using OrdinaryDiffEq: GenericImplicitEulerCache, GenericTrapezoidCache, RosenbrockMutableCache
 
 export Discontinuity, MethodOfSteps
-
-export FPFunctional
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")

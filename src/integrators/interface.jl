@@ -128,11 +128,11 @@ function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
   # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
   if history.isout
     # perform fixed-point iteration
-    fpsolve!(integrator)
-  else
-    # update ODE integrator to next time interval together with correct interpolation
-    advance_ode_integrator!(integrator)
+    fpsolve!(integrator.fpsolver, integrator)
   end
+
+  # update ODE integrator to next time interval together with correct interpolation
+  advance_or_update_ode_integrator!(integrator)
 
   nothing
 end
