@@ -9,6 +9,7 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
   if fpcache isa FPAndersonConstantCache
     @unpack aa_start,droptol = fpsolver.alg
     @unpack Δus,Q,R,γs = fpcache
+    local duold, uold
   end
 
   # ODE integrator caches state u at next time point
@@ -23,9 +24,6 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
 
   # fixed point iteration
   local ndu
-  if fpcache isa FPAndersonConstantCache
-    local duold, uold
-  end
   fail_convergence = true
   iter = 0
   while iter < max_iter
@@ -96,10 +94,10 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
         end
 
         # update history of differences of u
-        Δus[history] = @.. integrator.u - uold
+        Δus[history] = @. integrator.u - uold
 
         # replace/add difference of residuals as right-most column to QR decomposition
-        qradd!(Q, R, _vec(du .- duold), history)
+        DiffEqBase.qradd!(Q, R, DiffEqBase._vec(du .- duold), history)
 
         # update cached values
         duold = du
@@ -111,7 +109,7 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
         # check condition (TODO: incremental estimation)
         if droptol !== nothing
           while cond(R) > droptol && history > 1
-            qrdelete!(Q, R, history)
+            DiffEqBase.qrdelete!(Q, R, history)
             history -= 1
             Qcur, Rcur = view(Q, :, 1:history), UpperTriangular(view(R, 1:history, 1:history))
           end
@@ -119,11 +117,11 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
 
         # solve least squares problem
         γscur = view(γs, 1:history)
-        ldiv!(Rcur, mul!(γscur, Qcur', _vec(du)))
+        ldiv!(Rcur, mul!(γscur, Qcur', DiffEqBase._vec(du)))
 
         # update next iterate
         for i in 1:history
-          integrator.u = @.. integrator.u - γs[i] * Δus[i]
+          integrator.u = @. integrator.u - γs[i] * Δus[i]
         end
 
         # update norm of residuals
@@ -152,11 +150,20 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
   fpcache = fpsolver.cache
   @unpack du,atmp = fpcache
 
+  if fpcache isa FPAndersonCache
+    @unpack aa_start,droptol = fpsolver.alg
+    @unpack duold,uold,Δus,Q,R,γs = fpcache
+  end
+
   # ODE integrator caches state u at next time point
   # DDE integrator contains updated state u₊ at next time point
 
   # precalculations
   η = fpsolver.ηold
+  if fpcache isa FPAndersonCache
+    history = 0
+    max_history = length(Δus)
+  end
 
   # fixed-point iteration without Newton
   local ndu
@@ -208,8 +215,8 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
     if fpcache isa FPAndersonConstantCache && iter < max_iter
       if iter == aa_start
         # update cached values for next step of Anderson acceleration
-        duold = du
-        uold = integrator.u
+        @.. duold = du
+        @.. uold = integrator.u
       elseif iter > aa_start
         # increase size of history
         history += 1
@@ -217,9 +224,11 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
         # remove oldest history if maximum size is exceeded
         if history > max_history
           # circularly shift differences of u
+          ptr = Δus[1]
           for i in 1:(max_history-1)
             Δus[i] = Δus[i + 1]
           end
+          Δus[max_history] = ptr
 
           # delete left-most column of QR decomposition
           DiffEqBase.qrdelete!(Q, R, max_history)
@@ -229,14 +238,15 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
         end
 
         # update history of differences of u
-        Δus[history] = @.. integrator.u - uold
+        @.. Δus[history] = integrator.u - uold
 
         # replace/add difference of residuals as right-most column to QR decomposition
-        qradd!(Q, R, _vec(du .- duold), history)
+        @.. duold = du - duold
+        DiffEqBase.qradd!(Q, R, vec(duold), history)
 
         # update cached values
-        duold = du
-        uold = integrator.u
+        @.. duold = du
+        @.. uold = integrator.u
 
         # define current Q and R matrices
         Qcur, Rcur = view(Q, :, 1:history), UpperTriangular(view(R, 1:history, 1:history))
@@ -244,7 +254,7 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
         # check condition (TODO: incremental estimation)
         if droptol !== nothing
           while cond(R) > droptol && history > 1
-            qrdelete!(Q, R, history)
+            DiffEqBase.qrdelete!(Q, R, history)
             history -= 1
             Qcur, Rcur = view(Q, :, 1:history), UpperTriangular(view(R, 1:history, 1:history))
           end
@@ -252,7 +262,7 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
 
         # solve least squares problem
         γscur = view(γs, 1:history)
-        ldiv!(Rcur, mul!(γscur, Qcur', _vec(du)))
+        ldiv!(Rcur, mul!(γscur, Qcur', vec(du)))
 
         # update next iterate
         for i in 1:history
