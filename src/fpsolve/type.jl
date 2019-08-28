@@ -1,34 +1,56 @@
 # solver
-mutable struct FPSolver{algType<:DiffEqBase.AbstractNLSolverAlgorithm,IIP,uTolType,C}
+
+abstract type AbstractFPSolver <: DiffEqBase.AbstractNLSolver end
+
+mutable struct FPSolver{algType<:DiffEqBase.AbstractNLSolverAlgorithm,IIP,uTolType,C} <: AbstractFPSolver
   alg::algType
-  ηold::uTolType
-  fp_iters::Int
+  κ::uTolType
+  η::uTolType
+  ndz::uTolType
+  fast_convergence_cutoff::uTolType
+  iter::Int
+  maxiters::Int
   status::DiffEqBase.NLStatus
   cache::C
 end
 
 # caches
-struct FPFunctionalCache{uType,uNoUnitsType} <: DiffEqBase.AbstractNLSolverCache
-  du::uType
+
+abstract type AbstractFPSolverCache <: DiffEqBase.AbstractNLSolverCache end
+
+struct FPFunctionalCache{uNoUnitsType} <: AbstractFPSolverCache
   atmp::uNoUnitsType
 end
 
-struct FPFunctionalConstantCache <: DiffEqBase.AbstractNLSolverCache end
+struct FPFunctionalConstantCache <: AbstractFPSolverCache end
 
-struct FPAndersonCache{uType,uNoUnitsType,gsType,QType,RType,gType} <: DiffEqBase.AbstractNLSolverCache
-  du::uType
-  duold::uType
-  uold::uType
+mutable struct FPAndersonCache{uType,uNoUnitsType,uEltypeNoUnits,D} <: AbstractFPSolverCache
+  """residuals `g(z) - z` of fixed-point iteration"""
+  dz::uType
   atmp::uNoUnitsType
-  Δus::gsType
-  Q::QType
-  R::RType
-  γs::gType
+  """value `g(z)` of previous fixed-point iteration"""
+  gzprev::uType
+  """residuals `g(z) - z` of previous fixed-point iteration"""
+  dzprev::uType
+  Δgzs::Vector{uType}
+  Q::Matrix{uEltypeNoUnits}
+  R::Matrix{uEltypeNoUnits}
+  γs::Vector{uEltypeNoUnits}
+  history::Int
+  droptol::D
 end
 
-struct FPAndersonConstantCache{gsType,QType,RType,gType} <: DiffEqBase.AbstractNLSolverCache
-  Δus::gsType
-  Q::QType
-  R::RType
-  γs::gType
+mutable struct FPAndersonConstantCache{uType,uEltypeNoUnits,D} <: AbstractFPSolverCache
+  """residuals `g(z) - z` of fixed-point iteration"""
+  dz::uType
+  """value `g(z)` of previous fixed-point iteration"""
+  gzprev::uType
+  """residuals `g(z) - z` of previous fixed-point iteration"""
+  dzprev::uType
+  Δgzs::Vector{uType}
+  Q::Matrix{uEltypeNoUnits}
+  R::Matrix{uEltypeNoUnits}
+  γs::Vector{uEltypeNoUnits}
+  history::Int
+  droptol::D
 end

@@ -124,15 +124,14 @@ function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
   # perform always at least one calculation of the stages
   OrdinaryDiffEq.perform_step!(integrator, cache)
 
+  # update ODE integrator to next time interval together with correct interpolation
+  advance_ode_integrator!(integrator)
+
   # if the history function was evaluated at time points past the final time point of the
   # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
   if history.isout
-    # perform fixed-point iteration
-    fpsolve!(integrator.fpsolver, integrator)
+    DiffEqBase.nlsolve!(integrator.fpsolver, integrator)
   end
-
-  # update ODE integrator to next time interval together with correct interpolation
-  advance_or_update_ode_integrator!(integrator)
 
   nothing
 end

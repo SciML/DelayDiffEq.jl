@@ -22,12 +22,18 @@ export Discontinuity, MethodOfSteps
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")
+
 include("integrators/type.jl")
 include("integrators/utils.jl")
 include("integrators/interface.jl")
+
 include("fpsolve/type.jl")
-include("fpsolve/utils.jl")
+include("fpsolve/interface.jl")
+include("fpsolve/fpsolve.jl")
 include("fpsolve/functional.jl")
+include("fpsolve/anderson.jl")
+include("fpsolve/common.jl")
+
 include("cache_utils.jl")
 include("interpolants.jl")
 include("history_function.jl")

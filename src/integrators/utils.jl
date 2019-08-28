@@ -1,28 +1,11 @@
 """
-    advance_or_update_ode_integrator!(integrator::DDEIntegrator[, always_calc_begin = false])
-
-Advance or update the ODE integrator of `integrator` to the next time interval by updating its
-values and interpolation data with the current values and a full set of interpolation data of
-`integrator`.
-"""
-function advance_or_update_ode_integrator!(integrator, always_calc_begin = false)
-  ode_integrator = integrator.integrator
-
-  if ode_integrator.t != integrator.t + integrator.dt
-    advance_ode_integrator!(integrator, always_calc_begin)
-  else
-    update_ode_integrator!(integrator, always_calc_begin)
-  end
-end
-
-"""
-    advance_ode_integrator!(integrator::DDEIntegrator[, always_calc_begin = false])
+    advance_ode_integrator!(integrator::DDEIntegrator)
 
 Advance the ODE integrator of `integrator` to the next time interval by updating its values
 and interpolation data with the current values and a full set of interpolation data of
 `integrator`.
 """
-function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = false)
+function advance_ode_integrator!(integrator::DDEIntegrator)
   @unpack f, u, t, p, k, dt, uprev, alg, cache = integrator
   ode_integrator = integrator.integrator
 
@@ -36,9 +19,9 @@ function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = 
   # is incorrect
   if iscomposite(alg)
     DiffEqBase.addsteps!(k, t, uprev, u, dt, f, p, cache.caches[cache.current],
-                         always_calc_begin, true, true)
+                         false, true, true)
   else
-    DiffEqBase.addsteps!(k, t, uprev, u, dt, f, p, cache, always_calc_begin, true, true)
+    DiffEqBase.addsteps!(k, t, uprev, u, dt, f, p, cache, false, true, true)
   end
   @inbounds for i in 1:length(k)
     copyat_or_push!(ode_integrator.k, i, k[i])
@@ -67,12 +50,12 @@ function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = 
 end
 
 """
-    update_ode_integrator!(integrator::DDEIntegrator[, always_calc_begin = false])
+    update_ode_integrator!(integrator::DDEIntegrator)
 
 Update the ODE integrator of `integrator` by updating its values and interpolation data
 with the current values and a full set of interpolation data of `integrator`.
 """
-function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = false)
+function update_ode_integrator!(integrator::DDEIntegrator)
   @unpack f, u, t, p, k, dt, uprev, alg, cache = integrator
   ode_integrator = integrator.integrator
 
@@ -82,10 +65,9 @@ function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = f
 
   if iscomposite(alg)
     addsteps!(k, t, uprev, u, dt, f, p, cache.caches[cache.current],
-              always_calc_begin, true, true)
+              false, true, true)
   else
-    addsteps!(k, t, uprev, u, dt, f, p, cache,
-              always_calc_begin, true, true)
+    addsteps!(k, t, uprev, u, dt, f, p, cache, false, true, true)
   end
   @inbounds for i in 1:length(k)
     copyat_or_push!(ode_integrator.k, i, k[i])
@@ -131,6 +113,25 @@ function move_back_ode_integrator!(integrator::DDEIntegrator)
   # time point is not complete!)
   if length(sol.t) > 1
     recursivecopy!(ode_integrator.k, sol.k[end])
+  end
+
+  nothing
+end
+
+function reset_integrator!(integrator::DDEIntegrator)
+  ode_integrator = integrator.integrator
+  @unpack k, sol = ode_integrator
+
+  # reset rates of the integrator to the rates of the ODE integrator
+  @inbounds for i in 1:length(k)
+    copyat_or_push!(integrator.k, i, k[i])
+  end
+
+  # reset states of the integrator to the states of the ODE integrator
+  if isinplace(sol.prob)
+    recursivecopy!(integrator.u, ode_integrator.u)
+  else
+    integrator.u = ode_integrator.u
   end
 
   nothing
