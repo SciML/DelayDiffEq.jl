@@ -152,8 +152,7 @@ end
 Return prototype of rates for a given differential equation problem with state `u` and
 time span `tspan`.
 """
-rate_prototype_of(u0, tspan) =
-  DiffEqBase.@.. u0 * $(inv(oneunit(eltype(tspan))))
+rate_prototype_of(u0, tspan) = @. u0 * $(inv(oneunit(eltype(tspan))))
 
 """
     solution_arrays(u, tspan, rate_prototype; kwargs...)
