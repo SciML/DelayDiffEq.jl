@@ -137,7 +137,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   cache = OrdinaryDiffEq.alg_cache(alg.alg, u, rate_prototype, uEltypeNoUnits,
                                    uBottomEltypeNoUnits, tTypeNoUnits, uprev, uprev2,
                                    f_with_history, t0, zero(tType), reltol_internal, p, calck,
-                                   Val{isinplace(prob)})
+                                   Val(isinplace(prob)))
 
   # separate statistics of the integrator and the history
   destats = DDEStats(0)
