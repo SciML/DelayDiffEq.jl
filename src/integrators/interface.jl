@@ -27,7 +27,7 @@ function DiffEqBase.savevalues!(integrator::HistoryODEIntegrator, force_save = f
   integrator.saveiter_dense += 1
   copyat_or_push!(integrator.sol.k, integrator.saveiter_dense, integrator.k)
 
-
+  
   if iscomposite(integrator.alg)
     copyat_or_push!(integrator.sol.alg_choice, integrator.saveiter, integrator.cache.current)
   end
@@ -469,6 +469,8 @@ end
 @inline function DiffEqBase.get_du!(out,integrator::DDEIntegrator)
   out .= integrator.fsallast
 end
+
+DiffEqBase.has_destats(::DDEIntegrator) = true
 
 DiffEqBase.addsteps!(integrator::DDEIntegrator,args...) = OrdinaryDiffEq._ode_addsteps!(integrator,args...)
 DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,

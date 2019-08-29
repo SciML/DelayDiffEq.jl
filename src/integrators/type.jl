@@ -64,7 +64,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
     reeval_fsal::Bool
     u_modified::Bool
     opts::O
-    destats::DiffEqBase.DEStats
+    destats::DDEStats
     history::H
     integrator::IType
     fsalfirst::FSALType

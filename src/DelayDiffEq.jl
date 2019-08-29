@@ -7,6 +7,7 @@ using DataStructures
 using LinearAlgebra
 using Logging
 using Parameters
+using Printf
 using RecursiveArrayTools
 using Roots
 
@@ -22,6 +23,8 @@ export Discontinuity, MethodOfSteps
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")
+include("ddestats.jl")
+
 include("integrators/type.jl")
 include("integrators/utils.jl")
 include("integrators/interface.jl")

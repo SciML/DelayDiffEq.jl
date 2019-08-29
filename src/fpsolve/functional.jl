@@ -28,6 +28,7 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
   iter = 0
   while iter < max_iter
     iter += 1
+    integrator.destats.nfpiter += 1
 
     # update ODE integrator to next time interval together with correct interpolation
     if iter == 1
@@ -118,6 +119,9 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
         # solve least squares problem
         γscur = view(γs, 1:history)
         ldiv!(Rcur, mul!(γscur, Qcur', DiffEqBase._vec(du)))
+        if DiffEqBase.has_destats(integrator)
+          integrator.destats.nsolve += 1
+        end
 
         # update next iterate
         for i in 1:history
@@ -133,6 +137,10 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},false},
         ndu = integrator.opts.internalnorm(atmp, t)
       end
     end
+  end
+
+  if fail_convergence
+    integrator.destats.nfpconvfail += 1
   end
 
   integrator.force_stepfail = fail_convergence || integrator.force_stepfail
@@ -171,6 +179,7 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
   iter = 0
   while iter < max_iter
     iter += 1
+    integrator.destats.nfpiter += 1
 
     # update ODE integrator to next time interval together with correct interpolation
     if iter == 1
@@ -212,7 +221,7 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
     end
 
     # perform Anderson acceleration
-    if fpcache isa FPAndersonConstantCache && iter < max_iter
+    if fpcache isa FPAndersonCache && iter < max_iter
       if iter == aa_start
         # update cached values for next step of Anderson acceleration
         @.. duold = du
@@ -263,6 +272,9 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
         # solve least squares problem
         γscur = view(γs, 1:history)
         ldiv!(Rcur, mul!(γscur, Qcur', vec(du)))
+        if DiffEqBase.has_destats(integrator)
+          integrator.destats.nsolve += 1
+        end
 
         # update next iterate
         for i in 1:history
@@ -278,6 +290,10 @@ function fpsolve!(fpsolver::FPSolver{<:Union{NLFunctional,NLAnderson},true}, int
         ndu = integrator.opts.internalnorm(atmp, t)
       end
     end
+  end
+
+  if fail_convergence
+    integrator.destats.nfpconvfail += 1
   end
 
   integrator.force_stepfail = fail_convergence || integrator.force_stepfail
