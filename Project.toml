@@ -1,17 +1,13 @@
 name = "DelayDiffEq"
 uuid = "bcd4f6db-9728-5f36-b5f7-82caef46ccdb"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
-version = "v5.15.0"
+version = "5.14.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
-DiffEqDiffTools = "01453d9d-ee7c-5054-8395-0335cb756afa"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
-MuladdMacro = "46d2c3a1-f734-5fdb-9937-b9b9aeba4221"
-NLSolversBase = "d41bc354-129a-5804-8e4c-c37616107c6c"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
@@ -19,14 +15,15 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 
 [compat]
-DataStructures = "≥ 0.4.6"
-DiffEqBase = "6"
-DiffEqDiffTools = "≥ 0.3.0"
-DiffEqProblemLibrary = "≥ 1.1.0"
-NLSolversBase = "≥ 4.2.0"
-OrdinaryDiffEq = "5.15.0"
-RecursiveArrayTools = "≥ 0.18.6"
-Unitful = "≥ 0.7.1"
+DataStructures = "0.17"
+DiffEqBase = "5.20"
+DiffEqProblemLibrary = "4.3"
+OrdinaryDiffEq = "5.13"
+Parameters = "0.11"
+RecursiveArrayTools = "1"
+Reexport = "0.2"
+Roots = "0.8"
+Unitful = "0.16"
 julia = "1"
 
 [extras]
@@ -35,12 +32,10 @@ DiffEqCallbacks = "459566f4-90b8-5000-8ac3-15dfb0a30def"
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
 DiffEqProblemLibrary = "a077e3f3-b75c-5d7f-a0c6-6bc4c8ec64a9"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [targets]
-test = ["Calculus", "DiffEqCallbacks", "DiffEqDevTools", "DiffEqProblemLibrary", "ForwardDiff", "LinearAlgebra", "Random", "RecursiveArrayTools", "SafeTestsets", "Test", "Unitful"]
+test = ["Calculus", "DiffEqCallbacks", "DiffEqDevTools", "DiffEqProblemLibrary", "ForwardDiff", "Random", "SafeTestsets", "Test", "Unitful"]
