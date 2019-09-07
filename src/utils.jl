@@ -294,7 +294,7 @@ function build_history_function(prob, alg, rate_prototype, reltol;
   ode_cache = OrdinaryDiffEq.alg_cache(alg.alg, ode_u, rate_prototype, uEltypeNoUnits,
                                        uBottomEltypeNoUnits, tTypeNoUnits, ode_uprev,
                                        ode_uprev, ode_f, t0, zero(tType), reltol, p, calck,
-                                       Val{isinplace(prob)})
+                                       Val(isinplace(prob)))
 
   # build dense interpolation of history
   if iscomposite(alg)
