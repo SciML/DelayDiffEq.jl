@@ -24,7 +24,7 @@ const algs = Dict(GenericImplicitEuler() => true,
                   Kvaerno4() => false,
                   KenCarp4() => false,
                   Kvaerno5() => false,
-                  KenCarp5() => false)
+                  KenCarp5() => true)
 
 @testset "Algorithm $(nameof(typeof(alg)))" for (alg, pass) in algs
   println(nameof(typeof(alg)))
