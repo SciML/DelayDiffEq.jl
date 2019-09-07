@@ -146,11 +146,7 @@ end
     # check number of function evaluations
     @test !iszero(njacs[])
     @test_broken njacs[] == sol_jac.destats.njacs
-    if alg isa Rosenbrock23
-      @test njacs[] == sol_jac.destats.nw
-    else
-      @test_broken njacs[] == sol_jac.destats.nw
-    end
+    @test_broken njacs[] == sol_jac.destats.nw
 
     # check resulting solution
     @test sol.t ≈ sol_jac.t
