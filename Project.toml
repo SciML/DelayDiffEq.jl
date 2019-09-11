@@ -18,7 +18,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 [compat]
 DataStructures = "0.17"
 DiffEqBase = "6"
-DiffEqProblemLibrary = "4"
+DiffEqProblemLibrary = "4.3"
 OrdinaryDiffEq = "5.15"
 Parameters = "0.10, 0.11"
 RecursiveArrayTools = "1"
