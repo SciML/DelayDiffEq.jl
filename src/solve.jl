@@ -22,7 +22,6 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            callback = nothing,
                            dense = save_everystep && isempty(saveat),
                            calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
-                                   (prob.callback !== nothing && prob.callback != CallbackSet()) || # Empty prob.callback
                                    (!isempty(setdiff(saveat,tstops)) || dense), # and no dense output
                            dt = zero(eltype(prob.tspan)),
                            dtmin = typeof(one(eltype(prob.tspan))) <: AbstractFloat ? eps(eltype(prob.tspan)) :
