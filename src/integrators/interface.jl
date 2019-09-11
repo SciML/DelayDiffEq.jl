@@ -188,8 +188,8 @@ function Base.resize!(integrator::DDEIntegrator, cache, i)
   for c in full_cache(cache)
     resize!(c, i)
   end
-  DiffEqBase.nlsolve_resize!(integrator, i)
-  OrdinaryDiffEq.resize_J_and_W!(integrator, i)
+  OrdinaryDiffEq.resize_nlsolver!(integrator, i)
+  OrdinaryDiffEq.resize_J_W!(cache, integrator, i)
   resize_non_user_cache!(integrator, cache, i)
   fpsolve_resize!(integrator, i)
   nothing
