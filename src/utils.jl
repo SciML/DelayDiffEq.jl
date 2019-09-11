@@ -133,7 +133,7 @@ Return set of callbacks and its cache for the differential equation problem `pro
 user-provided `callback`.
 """
 function callback_set_and_cache(prob, callback)
-  callback_set = CallbackSet(callback, prob.callback)
+  callback_set = CallbackSet(callback)
 
   max_len_cb = DiffEqBase.max_vector_callback_length(callback_set)
   if max_len_cb isa VectorContinuousCallback
