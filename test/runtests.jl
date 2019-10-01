@@ -35,4 +35,5 @@ end
 
 if GROUP == "All" || GROUP == "Regression"
   @time @safetestset "Inference Tests" begin include("regression/inference.jl") end
+  @time @safetestset "Waltman Problem Tests" begin include("regression/waltman.jl") end
 end
