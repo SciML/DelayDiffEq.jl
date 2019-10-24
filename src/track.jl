@@ -132,8 +132,7 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
       θ -> discontinuity_function(integrator, lag, T, t + θ * dt)
     end
 
-    Θ = prevfloat(find_zero(zero_func, (bottom_Θ, top_Θ), Roots.AlefeldPotraShi();
-                            atol = integrator.discontinuity_abstol / 100))
+    Θ = prevfloat(find_zero(zero_func, (bottom_Θ,top_Θ), atol = 0, rtol = 0, xatol = 0, xrtol = 0))
   end
 
   # Θ = prevfloat(...)
