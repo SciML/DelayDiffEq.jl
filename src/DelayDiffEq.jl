@@ -17,7 +17,7 @@ using DiffEqBase: @..
 
 using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence, Divergence
 
-using OrdinaryDiffEq: GenericImplicitEulerCache, GenericTrapezoidCache, RosenbrockMutableCache
+using OrdinaryDiffEq: RosenbrockMutableCache
 
 export Discontinuity, MethodOfSteps
 
