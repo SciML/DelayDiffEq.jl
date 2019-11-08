@@ -38,7 +38,7 @@ const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
   @test sol_oop.destats.nfpiter == sol.destats.nfpiter
   @test sol_oop.destats.nfpconvfail == sol.destats.nfpconvfail
   @test sol_oop.t ≈ sol.t
-  @test_broken sol_oop.u ≈ sol.u
+  @test sol_oop.u ≈ sol.u
   @test isapprox(sol.u, sol_oop.u; atol = 1e-7)
 
   ## scalar problem
@@ -82,10 +82,10 @@ end
   @test_broken sol_oop.destats.nfpconvfail == sol.destats.nfpconvfail
   @test_broken sol_oop.t ≈ sol.t
   @test_broken sol_oop.u ≈ sol.u
-  @test appxtrue(sol, sol_oop).errors[:L∞] < 1.5e-7
+  @test appxtrue(sol, sol_oop).errors[:L∞] < 3e-7
 
   ## scalar problem
-  
+
   sol_scalar = solve(prob_scalar, alg)
 
   # compare it with the in-place solution

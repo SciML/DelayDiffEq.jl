@@ -1,34 +1,46 @@
 # solver
-mutable struct FPSolver{algType<:DiffEqBase.AbstractNLSolverAlgorithm,IIP,uTolType,C}
+mutable struct FPSolver{algType,iip,uTolType,C<:DiffEqBase.AbstractNLSolverCache} <: OrdinaryDiffEq.AbstractNLSolver{algType,iip}
   alg::algType
+  κ::uTolType
+  fast_convergence_cutoff::uTolType
   ηold::uTolType
-  fp_iters::Int
-  status::DiffEqBase.NLStatus
+  iter::Int
+  maxiters::Int
+  status::OrdinaryDiffEq.NLStatus
   cache::C
 end
 
 # caches
 struct FPFunctionalCache{uType,uNoUnitsType} <: DiffEqBase.AbstractNLSolverCache
-  du::uType
   atmp::uNoUnitsType
+  dz::uType
 end
 
 struct FPFunctionalConstantCache <: DiffEqBase.AbstractNLSolverCache end
 
-struct FPAndersonCache{uType,uNoUnitsType,gsType,QType,RType,gType} <: DiffEqBase.AbstractNLSolverCache
-  du::uType
-  duold::uType
-  uold::uType
+mutable struct FPAndersonCache{uType,uNoUnitsType,uEltypeNoUnits,D} <: DiffEqBase.AbstractNLSolverCache
   atmp::uNoUnitsType
-  Δus::gsType
-  Q::QType
-  R::RType
-  γs::gType
+  dz::uType
+  dzold::uType
+  z₊old::uType
+  Δz₊s::Vector{uType}
+  Q::Matrix{uEltypeNoUnits}
+  R::Matrix{uEltypeNoUnits}
+  γs::Vector{uEltypeNoUnits}
+  history::Int
+  aa_start::Int
+  droptol::D
 end
 
-struct FPAndersonConstantCache{gsType,QType,RType,gType} <: DiffEqBase.AbstractNLSolverCache
-  Δus::gsType
-  Q::QType
-  R::RType
-  γs::gType
+mutable struct FPAndersonConstantCache{uType,uEltypeNoUnits,D} <: DiffEqBase.AbstractNLSolverCache
+  dz::uType
+  dzold::uType
+  z₊old::uType
+  Δz₊s::Vector{uType}
+  Q::Matrix{uEltypeNoUnits}
+  R::Matrix{uEltypeNoUnits}
+  γs::Vector{uEltypeNoUnits}
+  history::Int
+  aa_start::Int
+  droptol::D
 end

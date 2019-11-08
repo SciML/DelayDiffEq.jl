@@ -232,7 +232,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                     advance_to_tstop,stop_at_next_tstop)
 
   # create fixed point solver
-  _fpsolver = fpsolver(alg, u, uEltypeNoUnits, uBottomEltypeNoUnits, Val(isinplace(prob)))
+  fpsolver = build_fpsolver(alg, alg.fpsolve, u, uEltypeNoUnits, uBottomEltypeNoUnits,
+                            Val(isinplace(prob)))
 
   # initialize indices of u(t) and u(tprev) in the dense history
   prev_idx = 1
@@ -269,14 +270,14 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   integrator = DDEIntegrator{typeof(alg.alg),isinplace(prob),typeof(u0),tType,typeof(p),
                              typeof(eigen_est),QT,typeof(tdir),typeof(k),typeof(sol),
                              typeof(f_with_history),typeof(cache),
-                             typeof(ode_integrator),typeof(_fpsolver),
+                             typeof(ode_integrator),typeof(fpsolver),
                              typeof(opts),typeof(discontinuity_abstol),
                              typeof(discontinuity_reltol),typeof(history),
                              OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
                              typeof(last_event_error),typeof(callback_cache)}(
                                sol, u, k, t0, tType(dt), f_with_history, p,
                                uprev, uprev2, tprev, prev_idx, prev2_idx,
-                               _fpsolver,
+                               fpsolver,
                                order_discontinuity_t0, tracked_discontinuities,
                                discontinuity_interp_points, discontinuity_abstol,
                                discontinuity_reltol, alg.alg,
