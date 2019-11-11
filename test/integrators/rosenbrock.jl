@@ -21,10 +21,5 @@ const algs = [Rosenbrock23(), Rosenbrock32(), ROS3P(), Rodas3(),
 
   @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
 
-  # Rodas4P tests fail on 32bit
-  if Sys.WORD_SIZE == 32 && alg isa Rodas4P
-    @test_broken sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
-  else
-    @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
-  end
+  @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
 end

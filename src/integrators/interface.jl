@@ -206,13 +206,6 @@ function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
   nothing
 end
 
-function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
-                                           cache::Union{GenericImplicitEulerCache,GenericTrapezoidCache},
-                                           i)
-  cache.nl_rhs = integrator.alg.nlsolve(Val{:init}, cache.rhs, cache.u)
-  nothing
-end
-
 # delete component(s)
 function Base.deleteat!(integrator::DDEIntegrator, idxs)
   # delete components of ODE integrator (do only have to care about u and k)

@@ -45,12 +45,7 @@ DDEProblemLibrary.importddeproblems()
 
     @test sol_ip(ts, idxs=1) ≈ sol_scalar(ts)
 
-    # fails due to floating point issues
-    if Sys.WORD_SIZE == 32
-      @test_broken sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
-    else
-      @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
-    end
+    @test sol_ip.t ≈ sol_scalar.t && sol_ip[1, :] ≈ sol_scalar.u
   end
 
   # Vern8

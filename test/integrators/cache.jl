@@ -39,12 +39,6 @@ end
 
 println("Check some other integrators")
 
-println("GenericImplicitEuler")
-@test_nowarn solve(prob, MethodOfSteps(GenericImplicitEuler(nlsolve = OrdinaryDiffEq.NLSOLVEJL_SETUP(chunk_size = 1))); dt = 0.5)
-
-println("GenericTrapezoid")
-@test_nowarn solve(prob, MethodOfSteps(GenericTrapezoid(nlsolve = OrdinaryDiffEq.NLSOLVEJL_SETUP(chunk_size = 1))); dt = 0.5)
-
 println("Rosenbrock23")
 @test_nowarn solve(prob, MethodOfSteps(Rosenbrock23(chunk_size = 1)); dt = 0.5)
 

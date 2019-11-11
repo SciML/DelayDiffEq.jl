@@ -8,9 +8,7 @@ const prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
 const ts = 0:0.1:10
 
 # ODE algorithms
-const algs = Dict(GenericImplicitEuler() => true,
-                  GenericTrapezoid() => true,
-                  ImplicitEuler() => false,
+const algs = Dict(ImplicitEuler() => false,
                   ImplicitMidpoint() => true,
                   Trapezoid() => false,
                   TRBDF2() => false,
