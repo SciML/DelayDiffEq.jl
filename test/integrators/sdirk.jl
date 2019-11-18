@@ -20,7 +20,7 @@ const algs = Dict(ImplicitEuler() => false,
                   Hairer4() => false,
                   Hairer42() => false,
                   Kvaerno4() => false,
-                  KenCarp4() => false,
+                  KenCarp4() => true,
                   Kvaerno5() => false,
                   KenCarp5() => true)
 
