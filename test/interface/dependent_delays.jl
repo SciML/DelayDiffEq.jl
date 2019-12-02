@@ -53,6 +53,6 @@ end
   sol2 = solve(prob2, alg)
 
   @test sol2.errors[:l∞] > 1.0e-2
-  @test sol2.errors[:final] > 6.3e-6
+  @test sol2.errors[:final] > 1e-6
   @test sol2.errors[:l2] > 4.6e-3
 end
