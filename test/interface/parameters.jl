@@ -22,7 +22,7 @@ h(p, t; idxs=nothing) = 0.1
 
   # solve problem with initial parameter:
   sol1 = solve(prob, MethodOfSteps(Tsit5()))
-  @test length(sol1) == 22
+  @test length(sol1) == 21
   @test first(sol1(12)) ≈ 0.884 atol = 1e-4
   @test first(sol1[end]) ≈ 1 atol = 1e-5
 

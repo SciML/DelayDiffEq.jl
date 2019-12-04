@@ -82,7 +82,7 @@ end
   @test_broken sol_oop.destats.nfpconvfail == sol.destats.nfpconvfail
   @test_broken sol_oop.t ≈ sol.t
   @test_broken sol_oop.u ≈ sol.u
-  @test appxtrue(sol, sol_oop).errors[:L∞] < 3e-7
+  @test appxtrue(sol, sol_oop).errors[:L∞] < 3e-6
 
   ## scalar problem
 
