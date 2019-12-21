@@ -7,11 +7,10 @@ os:
   - linux
 #  - osx
 julia:
-  - 1.1
-  - nightly
-matrix:
-  allow_failures:
-    - julia: nightly
+  - 1
+#matrix:
+#  allow_failures:
+#    - julia: nightly
 env:
   - GROUP=Interface
   - GROUP=Integrators
