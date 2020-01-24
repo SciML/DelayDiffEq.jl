@@ -13,11 +13,20 @@ const alg = MethodOfSteps(Tsit5(); constrained=false)
     integrator -> (integrator.u = - integrator.u))
 
   sol1 = solve(prob, alg, callback=cb)
-  sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
-  sol3 = appxtrue(sol1, sol2)
+  ts = findall(==(2.6), sol1.t)
+  @test length(ts) == 2
+  @test sol1.u[ts[1]] == -sol1.u[ts[2]]
+  @test sol1(2.6; continuity = :right) ≈ -sol1(2.6) atol=1e-5
 
-  @test sol3.errors[:L2] < 4.1e-3
-  @test sol3.errors[:L∞] < 1.3e-2
+  sol2 = solve(prob, alg, callback=cb, dtmax=0.01)
+  ts = findall(==(2.6), sol2.t)
+  @test length(ts) == 2
+  @test sol2.u[ts[1]] == -sol2.u[ts[2]]
+  @test sol2(2.6; continuity = :right) ≈ -sol2(2.6)
+
+  sol3 = appxtrue(sol1, sol2)
+  @test sol3.errors[:L2] < 1.5e-2
+  @test sol3.errors[:L∞] < 3.5e-2
 end
 
 # discrete callback
