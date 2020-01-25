@@ -442,14 +442,9 @@ function OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinui
   # saving time points
   saveat_internal = BinaryMinHeap{tType}()
   if typeof(saveat) <: Number
-    if (t0:saveat:tf)[end] == tf
-      for t in (t0 + saveat):saveat:tf
-        push!(saveat_internal, tdir * t)
-      end
-    else
-      for t in (t0 + saveat):saveat:(tf - saveat)
-        push!(saveat_internal, tdir * t)
-      end
+    directional_saveat = tdir * abs(saveat)
+    for t in (t0 + directional_saveat):directional_saveat:tf
+      push!(saveat_internal, tdir * t)
     end
   elseif !isempty(saveat)
     for t in saveat

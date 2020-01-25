@@ -135,3 +135,9 @@ end
     @test sol.u == dde_int2.integrator.sol.u
   end
 end
+
+@testset "not matching end time point" begin
+  sol = solve(prob, alg; saveat = 40)
+
+  @test sol.t == [0.0, 40, 80, 100]
+end
