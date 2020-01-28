@@ -14,7 +14,7 @@ functionality should check out [DifferentialEquations.jl](https://github.com/Jul
 
 ## API
 
-DelayDiffEq.jl is part of the JuliaDiffEq common interface, but can be used independently of DifferentialEquations.jl. The only requirement is that the user passes a DelayDiffEq.jl algorithm to `solve`. For example, we can solve the [DDE tutorial from the documentation](http://docs.juliadiffeq.org/latest/tutorials/dde_example.html) using the `MethodOfSteps(Tsit5())` algorithm:
+DelayDiffEq.jl is part of the JuliaDiffEq common interface, but can be used independently of DifferentialEquations.jl. The only requirement is that the user passes a DelayDiffEq.jl algorithm to `solve`. For example, we can solve the [DDE tutorial from the documentation](https://docs.juliadiffeq.org/latest/tutorials/dde_example/) using the `MethodOfSteps(Tsit5())` algorithm:
 
 ```julia
 using DelayDiffEq
@@ -41,4 +41,4 @@ Both constant and state-dependent lags are supported. Interfacing with OrdinaryD
 
 ## Available Solvers
 
-For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](http://docs.juliadiffeq.org/latest/solvers/dde_solve.html). For options for the `solve` command, see the [common solver options page](http://docs.juliadiffeq.org/latest/basics/common_solver_opts.html).
+For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](https://docs.juliadiffeq.org/latest/solvers/dde_solve/). For options for the `solve` command, see the [common solver options page](https://docs.juliadiffeq.org/latest/basics/common_solver_opts/).
