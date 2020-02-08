@@ -201,8 +201,8 @@ function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
                                            cache::RosenbrockMutableCache, i)
   cache.J = similar(cache.J, i, i)
   cache.W = similar(cache.W, i, i)
-  cache.jac_config = DiffEqBase.resize_jac_config!(cache.jac_config, i)
-  cache.grad_config = OrdinaryDiffEq.resize_grad_config!(cache.grad_config, i)
+  OrdinaryDiffEq.resize_jac_config!(cache.jac_config, i)
+  OrdinaryDiffEq.resize_grad_config!(cache.grad_config, i)
   nothing
 end
 
