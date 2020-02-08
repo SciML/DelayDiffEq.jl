@@ -462,10 +462,17 @@ function OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinui
   end
 
   for d in d_discontinuities
-    tdir_t = tdir * d.t
-
-    if tdir_t0 < tdir_t < tdir_tf && d.order ≤ alg_maximum_order + 1
-      push!(d_discontinuities_internal, Discontinuity{tType}(tdir_t, d.order))
+    if typeof(d) <: Number
+      # Interpret numbers as 0th order discontinuities
+      tdir_t = tdir * d
+      if tdir_t0 < tdir_t < tdir_tf && 0 ≤ alg_maximum_order + 1
+        push!(d_discontinuities_internal, Discontinuity{tType}(tdir_t, 0))
+      end
+    else
+      tdir_t = tdir * d.t
+      if tdir_t0 < tdir_t < tdir_tf && d.order ≤ alg_maximum_order + 1
+        push!(d_discontinuities_internal, Discontinuity{tType}(tdir_t, d.order))
+      end
     end
   end
 
