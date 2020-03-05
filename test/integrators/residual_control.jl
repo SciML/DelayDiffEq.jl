@@ -35,7 +35,7 @@ const prob_wo = remake(prob; constant_lags = nothing)
   sol = solve(prob_wo, alg; abstol = 1e-13, reltol = 1e-13)
 
   # relaxed tests to prevent floating point issues
-  @test sol.errors[:l∞] < 5e-11
+  @test sol.errors[:l∞] < 5e-10
   @test sol.errors[:final] < 4.5e-12
   @test sol.errors[:l2] < 7.7e-11 # 7.7e-12
 end
