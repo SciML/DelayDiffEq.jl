@@ -24,7 +24,7 @@ macro wrap_h(signature)
   end |> esc
 end
 
-struct ODEFunctionWrapper{iip,F,H,TMM,Ta,Tt,TJ,JP,TW,TWt,TPJ,S,TCV} <: DiffEqBase.AbstractODEFunction{iip}
+struct ODEFunctionWrapper{iip,F,H,TMM,Ta,Tt,TJ,JP,SP,TW,TWt,TPJ,S,TCV} <: DiffEqBase.AbstractODEFunction{iip}
   f::F
   h::H
   mass_matrix::TMM
@@ -32,6 +32,7 @@ struct ODEFunctionWrapper{iip,F,H,TMM,Ta,Tt,TJ,JP,TW,TWt,TPJ,S,TCV} <: DiffEqBas
   tgrad::Tt
   jac::TJ
   jac_prototype::JP
+  sparsity::SP
   Wfact::TW
   Wfact_t::TWt
   paramjac::TPJ
@@ -47,11 +48,12 @@ function ODEFunctionWrapper(f::DDEFunction, h)
 
   ODEFunctionWrapper{isinplace(f),typeof(f.f),typeof(h),typeof(f.mass_matrix),
                      typeof(f.analytic),typeof(f.tgrad),typeof(jac),
-                     typeof(f.jac_prototype),typeof(Wfact),typeof(Wfact_t),
+                     typeof(f.jac_prototype),typeof(f.sparsity),
+                     typeof(Wfact),typeof(Wfact_t),
                      typeof(f.paramjac),typeof(f.syms),typeof(f.colorvec)}(
                        f.f, h, f.mass_matrix, f.analytic, f.tgrad, jac,
-                       f.jac_prototype, Wfact, Wfact_t, f.paramjac, f.syms,
-                       f.colorvec)
+                       f.jac_prototype, f.sparsity, Wfact, Wfact_t, f.paramjac, 
+                       f.syms, f.colorvec)
 end
 
 (f::ODEFunctionWrapper{true})(du, u, p, t) = f.f(du, u, f.h, p, t)
