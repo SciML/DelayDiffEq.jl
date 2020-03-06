@@ -6,10 +6,10 @@ using Reexport
 using DataStructures
 using LinearAlgebra
 using Logging
-using Parameters
 using Printf
 using RecursiveArrayTools
 using Roots
+using UnPack
 
 using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator, DEIntegrator, AbstractDDEProblem
 
