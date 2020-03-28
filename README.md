@@ -1,20 +1,19 @@
 # DelayDiffEq.jl
 
-[![Join the chat at https://gitter.im/JuliaDiffEq/Lobby](https://badges.gitter.im/JuliaDiffEq/Lobby.svg)](https://gitter.im/JuliaDiffEq/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/JuliaDiffEq/DelayDiffEq.jl.svg?branch=master)](https://travis-ci.org/JuliaDiffEq/DelayDiffEq.jl)
-[![Build Status](https://github.com/JuliaDiffEq/DelayDiffEq.jl/workflows/CI/badge.svg)](https://github.com/JuliaDiffEq/DelayDiffEq.jl/actions?query=workflow%3ACI)
-[![Coverage Status](https://coveralls.io/repos/JuliaDiffEq/DelayDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaDiffEq/DelayDiffEq.jl?branch=master)
-[![codecov.io](http://codecov.io/github/JuliaDiffEq/DelayDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaDiffEq/DelayDiffEq.jl?branch=master)
+[![Build Status](https://travis-ci.org/SciML/DelayDiffEq.jl.svg?branch=master)](https://travis-ci.org/SciML/DelayDiffEq.jl)
+[![Build Status](https://github.com/SciML/DelayDiffEq.jl/workflows/CI/badge.svg)](https://github.com/SciML/DelayDiffEq.jl/actions?query=workflow%3ACI)
+[![Coverage Status](https://coveralls.io/repos/SciML/DelayDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/SciML/DelayDiffEq.jl?branch=master)
+[![codecov](https://codecov.io/gh/SciML/DelayDiffEq.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SciML/DelayDiffEq.jl)
 
 DelayDiffEq.jl is a component package in the DifferentialEquations ecosystem. It holds the
 delay differential equation solvers and utilities. It is built on top of OrdinaryDiffEq
 to extend those solvers for delay differential equations. While completely independent
 and usable on its own, users interested in using this
-functionality should check out [DifferentialEquations.jl](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
+functionality should check out [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl).
 
 ## API
 
-DelayDiffEq.jl is part of the JuliaDiffEq common interface, but can be used independently of DifferentialEquations.jl. The only requirement is that the user passes a DelayDiffEq.jl algorithm to `solve`. For example, we can solve the [DDE tutorial from the documentation](https://docs.juliadiffeq.org/latest/tutorials/dde_example/) using the `MethodOfSteps(Tsit5())` algorithm:
+DelayDiffEq.jl is part of the JuliaDiffEq common interface, but can be used independently of DifferentialEquations.jl. The only requirement is that the user passes a DelayDiffEq.jl algorithm to `solve`. For example, we can solve the [DDE tutorial from the documentation](https://docs.sciml.ai/stable/tutorials/dde_example/) using the `MethodOfSteps(Tsit5())` algorithm:
 
 ```julia
 using DelayDiffEq
@@ -41,4 +40,4 @@ Both constant and state-dependent lags are supported. Interfacing with OrdinaryD
 
 ## Available Solvers
 
-For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](https://docs.juliadiffeq.org/latest/solvers/dde_solve/). For options for the `solve` command, see the [common solver options page](https://docs.juliadiffeq.org/latest/basics/common_solver_opts/).
+For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](https://docs.sciml.ai/stable/solvers/dde_solve/). For options for the `solve` command, see the [common solver options page](https://docs.sciml.ai/stable/basics/common_solver_opts/).
