@@ -22,7 +22,7 @@ OrdinaryDiffEq = "5.28"
 RecursiveArrayTools = "2"
 Reexport = "0.2"
 Roots = "0.8, 1.0"
-UnPack = "0.1"
+UnPack = "0.1, 1.0"
 julia = "1"
 
 [extras]
