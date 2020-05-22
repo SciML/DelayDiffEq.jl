@@ -34,7 +34,9 @@ h(p, t) = [p[4]]
   fordiff2 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.gradient(p -> test(vcat(1, p)), p)
   @test_broken findiff2 ≈ fordiff2
 
+  # consistency checks
   @test findiff[2:end] ≈ findiff2
+  @test fordiff[2:end] ≈ fordiff2
 end
 
 @testset "Jacobian" begin
@@ -56,7 +58,9 @@ end
   fordiff2 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.jacobian(p -> test(vcat(1, p)), p)
   @test_broken findiff2 ≈ fordiff2
 
+  # consistency checks
   @test findiff[:, 2:end] ≈ findiff2
+  @test fordiff[:, 2:end] ≈ fordiff2
 end
 
 @testset "Hessian" begin
@@ -80,5 +84,7 @@ end
   fordiff2 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.hessian(p -> test(vcat(1, p)), p)
   @test_broken findiff2 ≈ fordiff2
 
+  # consistency checks
   @test findiff[2:end, 2:end] ≈ findiff2
+  @test fordiff[2:end, 2:end] ≈ fordiff2
 end
