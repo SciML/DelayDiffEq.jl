@@ -26,10 +26,10 @@ UnPack = "0.1, 1.0"
 julia = "1"
 
 [extras]
-Calculus = "49dc2e85-a5d0-5ad3-a950-438e2897f1b9"
 DiffEqCallbacks = "459566f4-90b8-5000-8ac3-15dfb0a30def"
 DiffEqDevTools = "f3b72e0c-5b89-59e1-b016-84e28bfd966d"
 DiffEqProblemLibrary = "a077e3f3-b75c-5d7f-a0c6-6bc4c8ec64a9"
+FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
@@ -37,4 +37,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [targets]
-test = ["Calculus", "DiffEqCallbacks", "DiffEqDevTools", "DiffEqProblemLibrary", "ForwardDiff", "Random", "SafeTestsets", "Test", "Unitful"]
+test = ["DiffEqCallbacks", "DiffEqDevTools", "DiffEqProblemLibrary", "FiniteDiff", "ForwardDiff", "Random", "SafeTestsets", "Test", "Unitful"]
