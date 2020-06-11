@@ -3,88 +3,113 @@ using DelayDiffEq
 import FiniteDiff
 import ForwardDiff
 
-using LinearAlgebra, Test
+using Test
 
 # Hutchinson's equation
-function f(du, u, h, p, t)
-  du[1] = p[2] * u[1] * (1 - h(p, t - p[1])[1] / p[3])
-  nothing
-end
-
-h(p, t) = [p[4]]
+f(u, h, p, t) = p[2] * u * (1 - h(p, t - p[1]) / p[3])
+h(p, t) = p[4]
 
 @testset "Gradient" begin
   function test(p)
-    prob = DDEProblem(f, [p[5]], h, eltype(p).((0.0, 20.0)), copy(p);
-                      constant_lags = [p[2]])
-    sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14)
-    diff = @. sol[1, :] - 10 * exp(-sol.t)
-    dot(diff, diff)
+    prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
+                      constant_lags = (p[1],))
+    sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
+                saveat = 1.0)
+    sum(sol)
   end
 
-  # with delay length estimation
-  p = [1.0, 1.0, 1.0, 0.0, 1.0]
-  findiff = FiniteDiff.finite_difference_gradient(test, p)
-  fordiff = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.gradient(test, p)
-  @test_broken findiff ≈ fordiff
+   # without delay length estimation
+  p = [1.5, 1.0, 0.5]
+  findiff = FiniteDiff.finite_difference_gradient(p -> test(vcat(1, p, p[end])), p)
+  fordiff = ForwardDiff.gradient(p -> test(vcat(1, p, p[end])), p)
+  @test maximum(abs.(findiff .- fordiff)) < 1e-6
 
-  # without delay length estimation
-  p = [1.0, 1.0, 0.0, 1.0]
-  findiff2 = FiniteDiff.finite_difference_gradient(p -> test(vcat(1, p)), p)
-  fordiff2 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.gradient(p -> test(vcat(1, p)), p)
-  @test_broken findiff2 ≈ fordiff2
+  # with delay length estimation and without discontinuity
+  p = [1.0, 1.5, 1.0, 0.5]
+  findiff2 = FiniteDiff.finite_difference_gradient(p -> test(vcat(p, p[end])), p)
+  fordiff2 = ForwardDiff.gradient(p -> test(vcat(p, p[end])), p)
+  @test_broken maximum(abs.(findiff2 .- fordiff2)) < 2
+
+  # with discontinuity and without delay length estimation
+  p = [1.5, 1.0, 0.5, 1.0]
+  findiff3 = FiniteDiff.finite_difference_gradient(p -> test(vcat(1, p)), p)
+  fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.gradient(p -> test(vcat(1, p)),
+                                                                      p)
+  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 9
 
   # consistency checks
-  @test findiff[2:end] ≈ findiff2
-  @test fordiff[2:end] ≈ fordiff2
+  @test findiff2[2:end] ≈ findiff
+  @test fordiff2[2:end] ≈ fordiff
+  @test_broken findiff3[1:(end-1)] ≈ findiff
+  @test_broken fordiff3[1:(end-1)] ≈ fordiff
 end
 
 @testset "Jacobian" begin
   function test(p)
-    prob = DDEProblem(f, [p[5]], h, eltype(p).((0.0, 20.0)), copy(p);
-                      constant_lags = [p[2]])
-    solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14).u[end]
+    prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
+                      constant_lags = (p[1],))
+    sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
+                saveat = 1.0)
+    sol.u
   end
 
-  # with delay length estimation
-  p = [1.0, 1.0, 1.0, 0.0, 1.0]
-  findiff = FiniteDiff.finite_difference_jacobian(test, p)
-  fordiff = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.jacobian(test, p)
-  @test_broken findiff ≈ fordiff
-
   # without delay length estimation
-  p = [1.0, 1.0, 0.0, 1.0]
-  findiff2 = FiniteDiff.finite_difference_jacobian(p -> test(vcat(1, p)), p)
-  fordiff2 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.jacobian(p -> test(vcat(1, p)), p)
-  @test_broken findiff2 ≈ fordiff2
+  p = [1.5, 1.0, 0.5]
+  findiff = FiniteDiff.finite_difference_jacobian(p -> test(vcat(1, p, p[end])), p)
+  fordiff = ForwardDiff.jacobian(p -> test(vcat(1, p, p[end])), p)
+  @test maximum(abs.(findiff .- fordiff)) < 1e-6
+
+  # with delay length estimation and without discontinuity
+  p = [1.0, 1.5, 1.0, 0.5]
+  findiff2 = FiniteDiff.finite_difference_jacobian(p -> test(vcat(p, p[end])), p)
+  fordiff2 = ForwardDiff.jacobian(p -> test(vcat(p, p[end])), p)
+  @test_broken maximum(abs.(findiff2 .- fordiff2)) < 3
+
+  # with discontinuity and without delay length estimation
+  p = [1.5, 1.0, 0.5, 1.0]
+  findiff3 = FiniteDiff.finite_difference_jacobian(p -> test(vcat(1, p)), p)
+  fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.jacobian(p -> test(vcat(1, p)),
+                                                                      p)
+  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 10
 
   # consistency checks
-  @test findiff[:, 2:end] ≈ findiff2
-  @test fordiff[:, 2:end] ≈ fordiff2
+  @test findiff2[:, 2:end] ≈ findiff
+  @test fordiff2[:, 2:end] ≈ fordiff
+  @test_broken findiff3[:, 1:(end-1)] ≈ findiff
+  @test_broken fordiff3[:, 1:(end-1)] ≈ fordiff
 end
 
 @testset "Hessian" begin
   function test(p)
-    prob = DDEProblem(f, [p[5]], h, eltype(p).((0.0, 20.0)), copy(p);
-                      constant_lags = [p[2]])
-    sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14)
-    diff = @. sol[1, :] - 10 * exp(-sol.t)
-    dot(diff, diff)
+    prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
+                      constant_lags = (p[1],))
+    sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
+                saveat = 1.0)
+    sum(sol)
   end
 
-  # with delay length estimation
-  p = [1.0, 1.0, 1.0, 0.0, 1.0]
-  findiff = FiniteDiff.finite_difference_hessian(test, p)
-  fordiff = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.hessian(test, p)
-  @test_broken findiff ≈ fordiff
+  # without delay length estimation and without discontinuity
+  p = [1.5, 1.0, 0.5]
+  findiff = FiniteDiff.finite_difference_hessian(p -> test(vcat(1, p, p[end])), p)
+  fordiff = ForwardDiff.hessian(p -> test(vcat(1, p, p[end])), p)
+  @test maximum(abs.(findiff .- fordiff)) < 1e-5
 
-  # without delay length estimation
-  p = [1.0, 1.0, 0.0, 1.0]
-  findiff2 = FiniteDiff.finite_difference_hessian(p -> test(vcat(1, p)), p)
-  fordiff2 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.hessian(p -> test(vcat(1, p)), p)
-  @test_broken findiff2 ≈ fordiff2
+  # with delay length estimation and without discontinuity
+  p = [1.0, 1.5, 1.0, 0.5]
+  findiff2 = FiniteDiff.finite_difference_hessian(p -> test(vcat(p, p[end])), p)
+  fordiff2 = ForwardDiff.hessian(p -> test(vcat(p, p[end])), p)
+  @test_broken maximum(abs.(findiff2 .- fordiff2)) < 25
+
+  # with discontinuity and without delay length estimation
+  p = [1.5, 1.0, 0.5, 1.0]
+  findiff3 = FiniteDiff.finite_difference_hessian(p -> test(vcat(1, p)), p)
+  fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.hessian(p -> test(vcat(1, p)),
+                                                                     p)
+  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 6
 
   # consistency checks
-  @test findiff[2:end, 2:end] ≈ findiff2
-  @test fordiff[2:end, 2:end] ≈ fordiff2
+  @test findiff2[2:end, 2:end] ≈ findiff
+  @test fordiff2[2:end, 2:end] ≈ fordiff
+  @test_broken findiff3[1:(end-1), 1:(end-1)] ≈ findiff
+  @test_broken fordiff3[1:(end-1), 1:(end-1)] ≈ fordiff
 end
