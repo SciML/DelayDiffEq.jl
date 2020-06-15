@@ -16,6 +16,20 @@ steps is based.
 If the algorithm is `constrained` only steps of size at most the minimal delay will be
 taken. If it is unconstrained, fixed-point iteration `fpsolve` is applied for step sizes
 that exceed the minimal delay.
+
+
+Citations:
+
+General Approach
+
+ZivariPiran, Hossein, and Wayne H. Enright. "An efficient unified approach for the numerical 
+solution of delay differential equations." Numerical Algorithms 53.2-3 (2010): 397-417.
+
+State-Dependent Delays
+
+S. P. Corwin, D. Sarafyan and S. Thompson in "DKLAG6: a code based on continuously imbedded
+sixth-order Runge-Kutta methods for the solution of state-dependent functional differential
+equations", Applied Numerical Mathematics, 1997.
 """
 MethodOfSteps(alg; constrained = false, fpsolve = NLFunctional()) =
   MethodOfSteps{typeof(alg),typeof(fpsolve),constrained}(alg, fpsolve)
