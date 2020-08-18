@@ -16,7 +16,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-DataStructures = "0.17"
+DataStructures = "0.17, 0.18"
 DiffEqBase = "6"
 OrdinaryDiffEq = "5.28"
 RecursiveArrayTools = "2"
