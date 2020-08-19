@@ -161,7 +161,7 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
     d = pop!(integrator.opts.d_discontinuities)
     order = d.order
     while !isempty(integrator.opts.d_discontinuities) &&
-        top(integrator.opts.d_discontinuities) == integrator.tdir * integrator.t
+        first(integrator.opts.d_discontinuities) == integrator.tdir * integrator.t
 
         d2 = pop!(integrator.opts.d_discontinuities)
         order = min(order, d2.order)
@@ -174,7 +174,7 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
         maxΔt = 10eps(integrator.t)
 
         while !isempty(integrator.opts.d_discontinuities) &&
-            abs(top(integrator.opts.d_discontinuities).t - integrator.tdir * integrator.t) < maxΔt
+            abs(first(integrator.opts.d_discontinuities).t - integrator.tdir * integrator.t) < maxΔt
 
             d2 = pop!(integrator.opts.d_discontinuities)
             order = min(order, d2.order)
@@ -182,7 +182,7 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
 
         # also remove all corresponding time stops
         while !isempty(integrator.opts.tstops) &&
-            abs(top(integrator.opts.tstops) - integrator.tdir * integrator.t) < maxΔt
+            abs(first(integrator.opts.tstops) - integrator.tdir * integrator.t) < maxΔt
 
             pop!(integrator.opts.tstops)
         end

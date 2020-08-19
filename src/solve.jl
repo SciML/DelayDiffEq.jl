@@ -310,7 +310,7 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
 
   # step over all stopping time points, similar to solving with ODE integrators
   @inbounds while !isempty(tstops)
-    while tdir * integrator.t < top(tstops)
+    while tdir * integrator.t < first(tstops)
       # apply step or adapt step size
       OrdinaryDiffEq.loopheader!(integrator)
 
