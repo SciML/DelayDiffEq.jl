@@ -511,7 +511,7 @@ end
 function DiffEqBase.step!(integrator::DDEIntegrator)
   @inbounds begin
     if integrator.opts.advance_to_tstop
-      while integrator.tdir * integrator.t < top(integrator.opts.tstops)
+      while integrator.tdir * integrator.t < first(integrator.opts.tstops)
         OrdinaryDiffEq.loopheader!(integrator)
         DiffEqBase.check_error!(integrator) === :Success || return
         OrdinaryDiffEq.perform_step!(integrator)
