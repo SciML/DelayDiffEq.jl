@@ -1,4 +1,4 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, RecursiveArrayTools
+using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
 using Test
 
 DDEProblemLibrary.importddeproblems()
