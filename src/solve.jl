@@ -72,6 +72,23 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     order_discontinuity_t0 = prob.order_discontinuity_t0
   end
 
+  if alg.alg isa CompositeAlgorithm && alg.alg.choice_function isa AutoSwitch
+    auto = alg.alg.choice_function
+    alg = MethodOfSteps(CompositeAlgorithm(alg.alg.algs,
+                             OrdinaryDiffEq.AutoSwitchCache(
+                                             0,
+                                             auto.nonstiffalg,
+                                             auto.stiffalg,
+                                             auto.stiffalgfirst,
+                                             auto.maxstiffstep,
+                                             auto.maxnonstiffstep,
+                                             auto.nonstifftol,
+                                             auto.stifftol,
+                                             auto.dtfac,
+                                             auto.stiffalgfirst,
+                                            )))
+  end
+
   if haskey(kwargs, :minimal_solution)
     @warn "minimal_solution is ignored"
   end

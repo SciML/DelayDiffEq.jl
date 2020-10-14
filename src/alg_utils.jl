@@ -19,4 +19,3 @@ Return if algorithm `alg` is a composite algorithm.
 iscomposite(alg) = false
 iscomposite(::OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm) = true
 iscomposite(alg::AbstractMethodOfStepsAlgorithm) = iscomposite(alg.alg)
-
