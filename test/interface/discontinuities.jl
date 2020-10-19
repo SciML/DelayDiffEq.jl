@@ -64,3 +64,15 @@ end
     issubset([Discontinuity(1/5, 1), Discontinuity(1/3, 1), Discontinuity(0.3, 4)],
              integrator.opts.d_discontinuities.valtree)
 end
+
+# discontinuities induced by callbacks
+@testset "#190" begin
+    cb = ContinuousCallback((u, t, integrator) -> 1, integrator -> nothing)
+    integrator = init(DDEProblemLibrary.prob_dde_constant_1delay_ip, MethodOfSteps(Tsit5());
+                      callback = cb)
+    sol = solve!(integrator)
+    for t in 0:5
+        @test t ∈ sol.t
+        @test Discontinuity(Float64(t), t) ∈ integrator.tracked_discontinuities
+    end
+end

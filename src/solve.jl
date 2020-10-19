@@ -395,7 +395,7 @@ function OrdinaryDiffEq.initialize_callbacks!(integrator::DDEIntegrator,
 
     # update heap of discontinuities
     # discontinuity is assumed to be of order 0, i.e. solution x is discontinuous
-    push!(integrator.opts.d_discontinuities, Discontinuity(integrator.tdir * integrator.t, 0))
+    add_next_discontinuities!(integrator, 0, integrator.t)
 
     # reset this as it is now handled so the integrators should proceed as normal
     reeval_internals_due_to_modification!(integrator, Val{false})
