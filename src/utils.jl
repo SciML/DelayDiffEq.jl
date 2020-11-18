@@ -162,24 +162,25 @@ Return arrays of saved time points, states, and rates, initialized with the solu
 first time point if `save_start = true` (the default).
 """
 function solution_arrays(u, tspan, rate_prototype;
-                         timeseries_init = typeof(u)[],
-                         ts_init = eltype(tspan)[],
-                         ks_init = [],
-                         save_idxs = nothing,
-                         save_start = true)
+                         timeseries_init,
+                         ts_init,
+                         ks_init,
+                         save_idxs,
+                         save_start)
   # determine types of time and state
   uType = typeof(u)
   tType = eltype(tspan)
 
   # initialize vector of saved time points
-  ts = convert(Vector{tType}, ts_init)
+  ts = ts_init === () ? tType[] : convert(Vector{tType}, ts_init)
 
   # initialize vector of saved states
   if save_idxs === nothing
-    timeseries = convert(Vector{uType}, timeseries_init)
+    timeseries = timeseries_init === () ? uType[] : convert(Vector{uType}, timeseries_init)
   else
     u_initial = u[save_idxs]
-    timeseries = convert(Vector{typeof(u_initial)}, timeseries_init)
+    timeseries = timeseries_init === () ? typeof(u_initial)[] :
+      convert(Vector{typeof(u_initial)}, timeseries_init)
   end
 
   # initialize vector of saved rates
@@ -189,7 +190,7 @@ function solution_arrays(u, tspan, rate_prototype;
     ks_prototype = rate_prototype[save_idxs]
     ksEltype = Vector{typeof(ks_prototype)}
   end
-  ks = convert(Vector{ksEltype}, ks_init)
+  ks = ks_init === () ? ksEltype[] : convert(Vector{ksEltype}, ks_init)
 
   # save solution at initial time point
   if save_start
@@ -227,10 +228,7 @@ Suggest that solution `sol` reserves capacity for a number of elements that
 depends on the parameter settings of the numerical solver.
 """
 function Base.sizehint!(sol::DESolution, alg, tspan, tstops, saveat;
-                        save_everystep = isempty(saveat),
-                        adaptive = isadaptive(alg),
-                        internalnorm = DiffEqBase.ODE_DEFAULT_NORM,
-                        dt = zero(eltype(tspan)))
+                        save_everystep, adaptive, internalnorm, dt, dtmin)
   # obtain integration time
   t0 = first(tspan)
   integrationtime = last(tspan) - t0
@@ -240,9 +238,9 @@ function Base.sizehint!(sol::DESolution, alg, tspan, tstops, saveat;
     if iszero(dt)
       steps = length(tstops)
     else
+      abs(dt) < dtmin && throw(ArgumentError("Supplied dt is smaller than dtmin"))
       steps = ceil(Int, internalnorm(integrationtime / dt, t0))
     end
-
     sizehint!(sol, steps + 1)
   elseif save_everystep
     sizehint!(sol, 50)
@@ -256,10 +254,7 @@ function Base.sizehint!(sol::DESolution, alg, tspan, tstops, saveat;
 end
 
 function build_history_function(prob, alg, rate_prototype, reltol;
-                                dt = zero(eltype(prob.tspan)),
-                                adaptive = DiffEqBase.isadaptive(alg.alg),
-                                calck = false,
-                                internalnorm = DiffEqBase.ODE_DEFAULT_NORM)
+                                dt, dtmin, adaptive, calck, internalnorm)
   @unpack f, u0, tspan, p = prob
 
   t0 = first(tspan)
@@ -287,6 +282,9 @@ function build_history_function(prob, alg, rate_prototype, reltol;
   # initialize output arrays
   ode_k = typeof(rate_prototype)[]
   ode_ts, ode_timeseries, ode_ks = solution_arrays(ode_u, tspan, rate_prototype;
+                                                   timeseries_init = (),
+                                                   ts_init = (),
+                                                   ks_init = (),
                                                    save_idxs = nothing,
                                                    save_start = true)
 
@@ -314,7 +312,7 @@ function build_history_function(prob, alg, rate_prototype, reltol;
 
   # reserve capacity
   sizehint!(ode_sol, alg.alg, tspan, (), ();
-            save_everystep = true, adaptive = adaptive, internalnorm = internalnorm, dt = tType(dt))
+            save_everystep = true, adaptive = adaptive, internalnorm = internalnorm, dt = dt, dtmin = dtmin)
 
   # create simple integrator
   tdirType = typeof(sign(zero(tType)))

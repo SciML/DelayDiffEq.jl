@@ -8,12 +8,12 @@ end
 
 function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            alg::AbstractMethodOfStepsAlgorithm,
-                           timeseries_init = typeof(prob.u0)[],
-                           ts_init = eltype(prob.tspan)[],
-                           ks_init = [];
-                           saveat = eltype(prob.tspan)[],
-                           tstops = eltype(prob.tspan)[],
-                           d_discontinuities = Discontinuity{eltype(prob.tspan)}[],
+                           timeseries_init = (),
+                           ts_init = (),
+                           ks_init = ();
+                           saveat = (),
+                           tstops = (),
+                           d_discontinuities = (),
                            save_idxs = nothing,
                            save_everystep = isempty(saveat),
                            save_on = true,
@@ -22,10 +22,9 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            callback = nothing,
                            dense = save_everystep && isempty(saveat),
                            calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
-                                   (!isempty(setdiff(saveat,tstops)) || dense), # and no dense output
+                           dense, # and no dense output
                            dt = zero(eltype(prob.tspan)),
-                           dtmin = typeof(one(eltype(prob.tspan))) <: AbstractFloat ? eps(eltype(prob.tspan)) :
-                                   typeof(one(eltype(prob.tspan))) <: Integer ? 0 : eltype(prob.tspan)(1//10^(10)),
+                           dtmin = DiffEqBase.prob2dtmin(prob; use_end_time=false),
                            dtmax = eltype(prob.tspan)(prob.tspan[end]-prob.tspan[1]),
                            force_dtmin = false,
                            adaptive = DiffEqBase.isadaptive(alg),
@@ -36,7 +35,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            qmax = OrdinaryDiffEq.qmax_default(alg.alg),
                            qsteady_min = OrdinaryDiffEq.qsteady_min_default(alg.alg),
                            qsteady_max = OrdinaryDiffEq.qsteady_max_default(alg.alg),
-                           qoldinit = 1//10^4,
+                           qoldinit = DiffEqBase.isadaptive(alg) ? 1//10^4 : 0,
                            fullnormalize = true,
                            failfactor = 2,
                            beta1 = nothing,
@@ -126,8 +125,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
   # create a history function
   history = build_history_function(prob, alg, rate_prototype, reltol_internal;
-                                   dt = dt, adaptive = adaptive,
-                                   internalnorm = internalnorm)
+                                   dt = dt, dtmin = dtmin, calck = false,
+                                   adaptive = adaptive, internalnorm = internalnorm)
   f_with_history = ODEFunctionWrapper(f, history)
 
   # get states (possibly different from the ODE integrator!)
@@ -182,7 +181,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
   # reserve capacity for the solution
   sizehint!(sol, alg, tspan, tstops_internal, saveat_internal;
-            save_everystep = save_everystep, adaptive = adaptive, dt = tType(dt))
+            save_everystep = save_everystep, adaptive = adaptive, dt = tType(dt),
+            dtmin = dtmin, internalnorm = internalnorm)
 
   # create array of tracked discontinuities
   # used to find propagated discontinuities with callbacks and to keep track of all
@@ -197,32 +197,18 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
   # separate options of integrator and of dummy ODE integrator since ODE integrator always saves
   # every step and every index (necessary for history function)
-  QT = tTypeNoUnits <: Integer ? typeof(qmin) : tTypeNoUnits
+  QT = tTypeNoUnits <: Integer ? typeof(qmin) : typeof(internalnorm(u, t0))
 
   if iscomposite(alg)
-    if beta2 === nothing
-      _beta2 = QT(OrdinaryDiffEq.beta2_default(alg.alg.algs[cache.current]))
-    else
-      _beta2 = QT(beta2)
-    end
-
-    if beta1 === nothing
-      _beta1 = QT(OrdinaryDiffEq.beta1_default(alg.alg.algs[cache.current], _beta2))
-    else
-      _beta1 = QT(beta1)
-    end
+    _beta2 = beta2 === nothing ?
+      OrdinaryDiffEq._composite_beta2_default(alg.alg.algs, cache.current, QT) :
+      beta2
+    _beta1 = beta1 === nothing ?
+      OrdinaryDiffEq._composite_beta1_default(alg.alg.algs, cache.current, QT, _beta2) :
+      beta1
   else
-    if beta2 === nothing
-      _beta2 = QT(OrdinaryDiffEq.beta2_default(alg.alg))
-    else
-      _beta2 = QT(beta2)
-    end
-
-    if beta1 === nothing
-      _beta1 = QT(OrdinaryDiffEq.beta1_default(alg.alg, _beta2))
-    else
-      _beta1 = QT(beta1)
-    end
+    _beta2 = beta2 === nothing ? OrdinaryDiffEq.beta2_default(alg.alg) : beta2
+    _beta1 = beta1 === nothing ? OrdinaryDiffEq.beta1_default(alg.alg, _beta2) : beta1
   end
 
   opts = OrdinaryDiffEq.DEOptions{typeof(abstol_internal),typeof(reltol_internal),QT,tType,
@@ -261,7 +247,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # parameters of fixed-point iteration
   # do not initialize fsalfirst and fsallast
   # rate/state = (state/time)/state = 1/t units, internalnorm drops units
-  eigen_est = one(uBottomEltypeNoUnits)/one(tType)
+  eigen_est = inv(one(tType))
   tprev = t0
   dtcache = tType(dt)
   dtpropose = tType(dt)
@@ -269,7 +255,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   kshortsize = 0
   reeval_fsal = false
   u_modified = false
-  EEst = tTypeNoUnits(1)
+  EEst = QT(1)
   just_hit_tstop = false
   isout = false
   accept_step = false
@@ -279,9 +265,9 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   vector_event_last_time = 1
   last_event_error = zero(uBottomEltypeNoUnits)
   dtchangeable = OrdinaryDiffEq.isdtchangeable(alg.alg)
-  q11 = tTypeNoUnits(1)
+  q11 = QT(1)
   success_iter = 0
-  erracc = tTypeNoUnits(1)
+  erracc = QT(1)
   dtacc = tType(1)
 
   integrator = DDEIntegrator{typeof(alg.alg),isinplace(prob),typeof(u0),tType,typeof(p),
