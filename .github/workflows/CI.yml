@@ -8,9 +8,19 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    continue-on-error: ${{ matrix.version == 'nightly' }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        version:
+          - '1'
+        os:
+          - ubuntu-latest
+          - windows-latest
+        arch:
+          - x86
+          - x64
         group:
           - Interface
           - Integrators
@@ -19,7 +29,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
-          version: 1
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
       - uses: actions/cache@v1
         env:
           cache-name: cache-artifacts
@@ -30,36 +41,15 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
         env:
           GROUP: ${{ matrix.group }}
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
         with:
           file: lcov.info
-
-
-jobs:
-  test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
-    continue-on-error: ${{ matrix.version == 'nightly' }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        version:
-          - '1'
-        os:
-          - windows-latest
-        arch:
-          - x86
-          - x64
-      
-    steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: coverallsapp/github-action@master
         with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-runtest@latest
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: lcov.info
