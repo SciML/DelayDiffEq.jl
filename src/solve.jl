@@ -173,11 +173,17 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   end
 
   # retrieve time stops, time points at which solutions is saved, and discontinuities
+  tstops_internal =
+    OrdinaryDiffEq.initialize_tstops(tType, tstops, d_discontinuities, tspan)
+  saveat_internal = OrdinaryDiffEq.initialize_saveat(tType, saveat, tspan)
+  d_discontinuities_internal =
+    OrdinaryDiffEq.initialize_d_discontinuities(Discontinuity{tType}, d_discontinuities, tspan)
+
   maximum_order = OrdinaryDiffEq.alg_maximum_order(alg)
-  tstops_internal, saveat_internal, d_discontinuities_internal =
-    OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tspan,
-                                              order_discontinuity_t0, maximum_order,
-                                              constant_lags, neutral)
+  tstops_propagated, d_discontinuities_propagated =
+    initialize_tstops_d_discontinuities_propagated(tType, tstops, d_discontinuities,
+                                                   tspan, order_discontinuity_t0,
+                                                   maximum_order, constant_lags, neutral)
 
   # reserve capacity for the solution
   sizehint!(sol, alg, tspan, tstops_internal, saveat_internal;
@@ -276,6 +282,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                              typeof(ode_integrator),typeof(fpsolver),
                              typeof(opts),typeof(discontinuity_abstol),
                              typeof(discontinuity_reltol),typeof(history),
+                             typeof(tstops_propagated),typeof(d_discontinuities_propagated),
                              OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
                              typeof(last_event_error),typeof(callback_cache)}(
                                sol, u, k, t0, tType(dt), f_with_history, p,
@@ -283,7 +290,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                fpsolver,
                                order_discontinuity_t0, tracked_discontinuities,
                                discontinuity_interp_points, discontinuity_abstol,
-                               discontinuity_reltol, alg.alg,
+                               discontinuity_reltol, tstops_propagated,
+                               d_discontinuities_propagated, alg.alg,
                                dtcache, dtchangeable, dtpropose, tdir,
                                eigen_est, EEst, QT(qoldinit), q11,
                                erracc, dtacc, success_iter,
@@ -397,88 +405,35 @@ function OrdinaryDiffEq.initialize_callbacks!(integrator::DDEIntegrator,
   integrator.u_modified = false
 end
 
-function OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities, tspan,
-                                                   order_discontinuity_t0, alg_maximum_order, constant_lags,
-                                                   neutral)
-  tType = eltype(tspan)
-  t0, tf = tspan
-  tdir = sign(tf - t0)
-  tdir_t0 = tdir * t0
-  tdir_tf = tdir * tf
+function initialize_tstops_d_discontinuities_propagated(
+  ::Type{T}, tstops, d_discontinuities, tspan, order_discontinuity_t0, alg_maximum_order,
+  constant_lags, neutral,
+) where T
+  # create heaps for propagated discontinuities and corresponding time stops
+  tstops_propagated = BinaryMinHeap{T}()
+  d_discontinuities_propagated = BinaryMinHeap{Discontinuity{T}}()
 
-  # add discontinuities propagated from initial discontinuity
-  add_propagated_constant_lags = order_discontinuity_t0 ≤ alg_maximum_order &&
-    constant_lags !== nothing && !isempty(constant_lags)
+  # add discontinuities and time stops propagated from initial discontinuity
+  if constant_lags !== nothing && !isempty(constant_lags) &&
+    order_discontinuity_t0 ≤ alg_maximum_order
 
-  if add_propagated_constant_lags
-    maxlag = tdir_tf - tdir_t0
+    sizehint!(tstops_propagated, length(constant_lags))
+    sizehint!(d_discontinuities_propagated, length(constant_lags))
+
+    t0, tf = tspan
+    tdir = sign(tf - t0)
+    maxlag = tdir * (tf - t0)
     next_order = neutral ? order_discontinuity_t0 : order_discontinuity_t0 + 1
-  end
-
-  # time stops
-  tstops_internal = BinaryMinHeap{tType}()
-  if isempty(d_discontinuities) && !add_propagated_constant_lags && isempty(tstops) # TODO: Specialize more
-    push!(tstops_internal, tdir_tf)
-  else
-    for t in tstops
-      tdir_t = tdir * t
-      tdir_t0 < tdir_t ≤ tdir_tf && push!(tstops_internal, tdir_t)
-    end
-
-    for t in d_discontinuities
-      tdir_t = tdir * t
-      tdir_t0 < tdir_t ≤ tdir_tf && push!(tstops_internal, tdir_t)
-    end
-
-    # add propagated discontinuities
-    if add_propagated_constant_lags
-      for lag in constant_lags
-        if tdir * lag < maxlag
-          push!(tstops_internal, tdir * (t0 + lag))
-        end
-      end
-    end
-
-    push!(tstops_internal, tdir_tf)
-  end
-
-  # saving time points
-  saveat_internal = BinaryMinHeap{tType}()
-  if typeof(saveat) <: Number
-    directional_saveat = tdir * abs(saveat)
-    for t in (t0 + directional_saveat):directional_saveat:tf
-      push!(saveat_internal, tdir * t)
-    end
-  elseif !isempty(saveat)
-    for t in saveat
-      tdir_t = tdir * t
-      tdir_t0 < tdir_t < tdir_tf && push!(saveat_internal, tdir_t)
-    end
-  end
-
-  # discontinuities
-  d_discontinuities_internal = BinaryMinHeap{Discontinuity{tType}}()
-  if add_propagated_constant_lags
-    sizehint!(d_discontinuities_internal.valtree, length(d_discontinuities) + length(constant_lags))
-  else
-    sizehint!(d_discontinuities_internal.valtree, length(d_discontinuities))
-  end
-
-  for d in d_discontinuities
-    tdir_t = d isa Discontinuity ? tdir * d.t : tdir * d
-    order = d isa Discontinuity ? d.order : 0
-    if tdir_t0 < tdir_t < tdir_tf && order ≤ alg_maximum_order + 1
-      push!(d_discontinuities_internal, Discontinuity{tType}(tdir_t, order))
-    end
-  end
-
-  if add_propagated_constant_lags
     for lag in constant_lags
       if tdir * lag < maxlag
-        push!(d_discontinuities_internal, Discontinuity{tType}(tdir * (t0 + lag), next_order))
+        t = tdir * (t0 + lag)
+        push!(tstops_propagated, t)
+
+        d = Discontinuity{T}(t, next_order)
+        push!(d_discontinuities_propagated, d)
       end
     end
   end
 
-  tstops_internal, saveat_internal, d_discontinuities_internal
+  return tstops_propagated, d_discontinuities_propagated
 end

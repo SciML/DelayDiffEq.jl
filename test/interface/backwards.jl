@@ -26,11 +26,16 @@ end
         prob = DDEProblem(dde_f, h, tspan; constant_lags = [-1.0])
 
         dde_int = init(prob, MethodOfSteps(Tsit5()))
-        @test dde_int.opts.d_discontinuities.valtree == [Discontinuity(-1.0, 2)]
+        @test dde_int.tracked_discontinuities == [Discontinuity(-2.0, 1)]
+        @test dde_int.d_discontinuities_propagated.valtree == [Discontinuity(-1.0, 2)]
+        @test isempty(dde_int.opts.d_discontinuities)
 
         sol = solve!(dde_int)
         @test sol.errors[:l∞] < 3.9e-12 # 3.9e-15
-        @test dde_int.tracked_discontinuities == [Discontinuity(-2.0, 1)]
+        @test dde_int.tracked_discontinuities ==
+            [Discontinuity(-2.0, 1), Discontinuity(-1.0, 2)]
+        @test isempty(dde_int.d_discontinuities_propagated)
+        @test isempty(dde_int.opts.d_discontinuities)
     end
 end
 

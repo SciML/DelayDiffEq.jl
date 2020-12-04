@@ -32,16 +32,16 @@ end
 
   # initial discontinuities
   @testset "initial" begin
-    @test isempty(integrator.opts.d_discontinuities_cache)
-    @test length(integrator.opts.d_discontinuities) == 2 &&
+    @test integrator.tracked_discontinuities == [Discontinuity(0.0, 0)]
+    @test length(integrator.d_discontinuities_propagated) == 2 &&
       issubset([Discontinuity(1/5, 1), Discontinuity(1/3, 1)],
-               integrator.opts.d_discontinuities.valtree)
+               integrator.d_discontinuities_propagated.valtree)
+    @test isempty(integrator.opts.d_discontinuities)
+    @test isempty(integrator.opts.d_discontinuities_cache)
   end
 
   # tracked discontinuities
   @testset "tracked" begin
-    @test integrator.tracked_discontinuities == [Discontinuity(0., 0)]
-
     solve!(integrator)
 
     discs = [Discontinuity(t, order) for (t, order) in
@@ -59,10 +59,15 @@ end
   integrator = init(prob, MethodOfSteps(BS3());
                     d_discontinuities = [Discontinuity(0.3, 4), Discontinuity(0.6, 5)])
 
-  @test integrator.opts.d_discontinuities_cache == [Discontinuity(0.3, 4), Discontinuity(0.6, 5)]
-  @test length(integrator.opts.d_discontinuities) == 3 &&
-    issubset([Discontinuity(1/5, 1), Discontinuity(1/3, 1), Discontinuity(0.3, 4)],
+  @test integrator.tracked_discontinuities == [Discontinuity(0.0, 0)]
+  @test length(integrator.d_discontinuities_propagated) == 2 &&
+    issubset([Discontinuity(1/5, 1), Discontinuity(1/3, 1)],
+             integrator.d_discontinuities_propagated.valtree)
+  @test length(integrator.opts.d_discontinuities) == 2 &&
+    issubset([Discontinuity(0.3, 4), Discontinuity(0.6, 5)],
              integrator.opts.d_discontinuities.valtree)
+  @test integrator.opts.d_discontinuities_cache ==
+    [Discontinuity(0.3, 4), Discontinuity(0.6, 5)]
 end
 
 # discontinuities induced by callbacks

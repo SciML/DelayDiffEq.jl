@@ -16,7 +16,7 @@ end
 
 mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,
                              ksEltype,SolType,F,CacheType,IType,FP,O,dAbsType,dRelType,H,
-                             FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
+                             tstopsType,discType,FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
     sol::SolType
     u::uType
     k::ksEltype
@@ -31,10 +31,15 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
     prev2_idx::Int
     fpsolver::FP
     order_discontinuity_t0::Int
+    "Discontinuities tracked by callback."
     tracked_discontinuities::Vector{Discontinuity{tType}}
     discontinuity_interp_points::Int
     discontinuity_abstol::dAbsType
     discontinuity_reltol::dRelType
+    "Future time stops for propagated discontinuities."
+    tstops_propagated::tstopsType
+    "Future propagated discontinuities."
+    d_discontinuities_propagated::discType
     alg::algType
     dtcache::tType
     dtchangeable::Bool
@@ -73,11 +78,12 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
     # incomplete initialization without fsalfirst and fsallast
     function DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,
                            tdirType,ksEltype,SolType,F,CacheType,IType,FP,
-                           O,dAbsType,dRelType,H,FSALType,EventErrorType,
-                           CallbackCacheType}(
+                           O,dAbsType,dRelType,H,tstopsType,discType,
+                           FSALType,EventErrorType,CallbackCacheType}(
                                sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,
                                fpsolver,order_discontinuity_t0,tracked_discontinuities,
                                discontinuity_interp_points,discontinuity_abstol,discontinuity_reltol,
+                               tstops_propagated, d_discontinuities_propagated,
                                alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
                                cache,callback_cache,kshortsize,force_stepfail,last_stepfail,
@@ -85,14 +91,16 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
                                accept_step,isout,reeval_fsal,u_modified,opts,destats,
                                history,integrator) where
       {algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,ksEltype,SolType,F,
-       CacheType,IType,FP,O,dAbsType,dRelType,H,FSALType,EventErrorType,CallbackCacheType}
+       CacheType,IType,FP,O,dAbsType,dRelType,H,tstopsType,discType,
+       FSALType,EventErrorType,CallbackCacheType}
 
       new{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,ksEltype,SolType,F,
-          CacheType,IType,FP,O,dAbsType,dRelType,H,FSALType,EventErrorType,
-          CallbackCacheType}(
+          CacheType,IType,FP,O,dAbsType,dRelType,H,tstopsType,discType,FSALType,
+          EventErrorType,CallbackCacheType}(
             sol,u,k,t,dt,f,p,uprev,uprev2,tprev,prev_idx,prev2_idx,fpsolver,
             order_discontinuity_t0,tracked_discontinuities,discontinuity_interp_points,
-            discontinuity_abstol,discontinuity_reltol,alg,dtcache,dtchangeable,dtpropose,tdir,
+            discontinuity_abstol,discontinuity_reltol,tstops_propagated,
+            d_discontinuities_propagated,alg,dtcache,dtchangeable,dtpropose,tdir,
             eigen_est,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
             cache,callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
             event_last_time,vector_event_last_time,last_event_error,accept_step,isout,
