@@ -158,12 +158,13 @@ discontinuities that are checked by a `DiscontinuityCallback` (if existent).
 function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
     # remove all discontinuities at current time point and calculate minimal order
     # of these discontinuities
-    d = pop!(integrator.opts.d_discontinuities)
+    d = OrdinaryDiffEq.pop_discontinuity!(integrator)
     order = d.order
-    while !isempty(integrator.opts.d_discontinuities) &&
-        first(integrator.opts.d_discontinuities) == integrator.tdir * integrator.t
+    tdir_t = integrator.tdir * integrator.t
+    while OrdinaryDiffEq.has_discontinuity(integrator) &&
+        OrdinaryDiffEq.first_discontinuity(integrator) == tdir_t
 
-        d2 = pop!(integrator.opts.d_discontinuities)
+        d2 = OrdinaryDiffEq.pop_discontinuity!(integrator)
         order = min(order, d2.order)
     end
 
@@ -173,18 +174,18 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
     if typeof(integrator.EEst) <: AbstractFloat
         maxΔt = 10eps(integrator.t)
 
-        while !isempty(integrator.opts.d_discontinuities) &&
-            abs(first(integrator.opts.d_discontinuities).t - integrator.tdir * integrator.t) < maxΔt
+        while OrdinaryDiffEq.has_discontinuity(integrator) &&
+            abs(OrdinaryDiffEq.first_discontinuity(integrator).t - tdir_t) < maxΔt
 
-            d2 = pop!(integrator.opts.d_discontinuities)
+            d2 = OrdinaryDiffEq.pop_discontinuity!(integrator)
             order = min(order, d2.order)
         end
 
         # also remove all corresponding time stops
-        while !isempty(integrator.opts.tstops) &&
-            abs(first(integrator.opts.tstops) - integrator.tdir * integrator.t) < maxΔt
+        while OrdinaryDiffEq.has_tstop(integrator) &&
+            abs(OrdinaryDiffEq.first_tstop(integrator) - tdir_t) < maxΔt
 
-            pop!(integrator.opts.tstops)
+            OrdinaryDiffEq.pop_tstop!(integrator)
         end
     end
 
@@ -221,8 +222,8 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
       if integrator.tdir * lag < maxlag
         # calculate discontinuity and add it to heap of discontinuities and time stops
         d = Discontinuity(integrator.tdir * (t + lag), next_order)
-        push!(integrator.opts.d_discontinuities, d)
-        push!(integrator.opts.tstops, d.t)
+        push!(integrator.d_discontinuities_propagated, d)
+        push!(integrator.tstops_propagated, d.t)
       end
     end
   end
@@ -231,4 +232,52 @@ function add_next_discontinuities!(integrator, order, t=integrator.t)
   push!(integrator.tracked_discontinuities, Discontinuity(integrator.tdir * t, order))
 
   nothing
+end
+
+# Interface for accessing and removing next time stops and discontinuities
+function OrdinaryDiffEq.has_tstop(integrator::DDEIntegrator)
+    return _has(integrator.opts.tstops, integrator.tstops_propagated)
+end
+function OrdinaryDiffEq.first_tstop(integrator::DDEIntegrator)
+    return _first(integrator.opts.tstops, integrator.tstops_propagated)
+end
+function OrdinaryDiffEq.pop_tstop!(integrator::DDEIntegrator)
+    return _pop!(integrator.opts.tstops, integrator.tstops_propagated)
+end
+
+function OrdinaryDiffEq.has_discontinuity(integrator::DDEIntegrator)
+    return _has(integrator.opts.d_discontinuities,
+                integrator.d_discontinuities_propagated)
+end
+function OrdinaryDiffEq.first_discontinuity(integrator::DDEIntegrator)
+    return _first(integrator.opts.d_discontinuities,
+                  integrator.d_discontinuities_propagated)
+end
+function OrdinaryDiffEq.pop_discontinuity!(integrator::DDEIntegrator)
+    return _pop!(integrator.opts.d_discontinuities,
+                 integrator.d_discontinuities_propagated)
+end
+
+_has(x, y) = !isempty(x) || !isempty(y)
+function _first(x, y)
+    if isempty(x)
+        return first(y)
+    elseif isempty(y)
+        return first(x)
+    else
+        return min(first(x), first(y))
+    end
+end
+function _pop!(x, y)
+    if isempty(x)
+        pop!(y)
+    elseif isempty(y)
+        pop!(x)
+    else
+        if first(x) < first(y)
+            pop!(x)
+        else
+            pop!(y)
+        end
+    end
 end

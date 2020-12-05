@@ -26,12 +26,18 @@ Base.isequal(a::Discontinuity, b::Number) = isequal(a.t, b)
 Base.isequal(a::Number, b::Discontinuity) = isequal(a, b.t)
 
 # multiplication with numbers
-Base.:*(a::Discontinuity, b::Number) = a.t * b
-Base.:*(a::Number, b::Discontinuity) = a * b.t
+Base.:*(a::Discontinuity, b::Number) = Discontinuity(a.t * b, a.order)
+Base.:*(a::Number, b::Discontinuity) = Discontinuity(a * b.t, b.order)
 
 # conversion to numbers
 Base.convert(::Type{T}, d::Discontinuity) where {T<:Number} = convert(T, d.t)
 Base.convert(::Type{T}, d::Discontinuity{T}) where {T<:Number} = d.t
+
+# conversion to discontinuity
+function Base.convert(::Type{Discontinuity{T}}, x::Number) where {T<:Number}
+    return Discontinuity{T}(convert(T, x), 0)
+end
+Base.convert(::Type{Discontinuity{T}}, x::T) where {T<:Number} = Discontinuity{T}(x, 0)
 
 # display
 Base.show(io::IO, d::Discontinuity) = print(io, d.t, " (order ", d.order, ")")

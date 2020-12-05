@@ -8,15 +8,20 @@ const prob = DDEProblemLibrary.prob_dde_constant_1delay_scalar
 @testset "Basic iterator" begin
   # compute the solution of the DDE
   sol = solve(prob, MethodOfSteps(BS3());
-              dt = 1//2^(4), tstops = [0.5], saveat = 0.01, save_everystep = true)
+              dt = 1//2^(4), tstops = [1.5], saveat = 0.01, save_everystep = true)
 
   # initialize integrator
   integrator = init(prob, MethodOfSteps(BS3());
-                    dt = 1//2^(4), tstops = [0.5], saveat = 0.01, save_everystep = true)
+                    dt = 1//2^(4), tstops = [1.5], saveat = 0.01, save_everystep = true)
 
   # perform one step
   step!(integrator)
   @test integrator.iter == 1
+
+  # move to next grid point
+  integrator.opts.advance_to_tstop = true
+  step!(integrator)
+  @test integrator.t == 1.5
 
   # solve the DDE
   solve!(integrator)
@@ -25,7 +30,6 @@ const prob = DDEProblemLibrary.prob_dde_constant_1delay_scalar
 
   # move to next grid point
   push!(integrator.opts.tstops, 15)
-  integrator.opts.advance_to_tstop = true
   step!(integrator)
   @test integrator.t == 15
 

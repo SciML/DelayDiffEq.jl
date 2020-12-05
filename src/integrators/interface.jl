@@ -343,21 +343,26 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
   integrator.tprev = t0
 
   # reinit time stops, time points at which solution is saved, and discontinuities
-  maximum_order = OrdinaryDiffEq.alg_maximum_order(integrator.alg)
   tType = typeof(integrator.t)
-  tstops_internal, saveat_internal, d_discontinuities_internal =
-    OrdinaryDiffEq.tstop_saveat_disc_handling(tstops, saveat, d_discontinuities,
-                                              (tType(t0), tType(tf)),
-                                              order_discontinuity_t0, maximum_order,
-                                              integrator.sol.prob.constant_lags,
-                                              integrator.sol.prob.neutral)
+  tspan = (tType(t0), tType(tf))
+  integrator.opts.tstops =
+    OrdinaryDiffEq.initialize_tstops(tType, tstops, d_discontinuities, tspan)
+  integrator.opts.saveat = OrdinaryDiffEq.initialize_saveat(tType, saveat, tspan)
+  integrator.opts.d_discontinuities =
+    OrdinaryDiffEq.initialize_d_discontinuities(Discontinuity{tType}, d_discontinuities,
+                                                tspan)
 
-  integrator.opts.tstops = tstops_internal
-  integrator.opts.saveat = saveat_internal
-  integrator.opts.d_discontinuities = d_discontinuities_internal
-
-  # update order of initial discontinuity
+  # update order of initial discontinuity and propagated discontinuities
   integrator.order_discontinuity_t0 = order_discontinuity_t0
+  maximum_order = OrdinaryDiffEq.alg_maximum_order(integrator.alg)
+  tstops_propagated, d_discontinuities_propagated =
+    initialize_tstops_d_discontinuities_propagated(tType, tstops, d_discontinuities,
+                                                   tspan, order_discontinuity_t0,
+                                                   maximum_order,
+                                                   integrator.sol.prob.constant_lags,
+                                                   integrator.sol.prob.neutral)
+  integrator.tstops_propagated = tstops_propagated
+  integrator.d_discontinuities_propagated = d_discontinuities_propagated
 
   # erase solution
   if erase_sol
