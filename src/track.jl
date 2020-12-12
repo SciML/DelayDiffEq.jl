@@ -129,20 +129,14 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
   else
     # define function for root finding
     zero_func = let integrator = integrator, lag = lag, T = T, t = integrator.t, dt = integrator.dt
-      θ -> discontinuity_function(integrator, lag, T, t + θ * dt)
+      (θ, p=nothing) -> discontinuity_function(integrator, lag, T, t + θ * dt)
     end
 
-    Θ = prevfloat(find_zero(zero_func, (bottom_Θ,top_Θ), atol = 0, rtol = 0, xatol = 0, xrtol = 0))
+    Θ = NonlinearSolve.solve(
+      NonlinearSolve.NonlinearProblem(zero_func, (bottom_Θ, top_Θ)),
+      NonlinearSolve.Falsi(),
+    ).left
   end
-
-  # Θ = prevfloat(...)
-  # prevfloat guerentees that the new time is either 1 floating point
-  # numbers just before the event or directly at zero, but not after.
-  # If there's a barrier which is never supposed to be crossed,
-  # then this will ensure that
-  # The item never leaves the domain. Otherwise Roots.jl can return
-  # a float which is slightly after, making it out of the domain, causing
-  # havoc.
 
   integrator.t + Θ * integrator.dt
 end

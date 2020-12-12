@@ -8,8 +8,9 @@ using LinearAlgebra
 using Logging
 using Printf
 using RecursiveArrayTools
-using Roots
 using UnPack
+
+import NonlinearSolve
 
 using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator, DEIntegrator, AbstractDDEProblem
 
