@@ -3,7 +3,7 @@ using Random
 Random.seed!(213)
 
 const CACHE_TEST_ALGS = [Vern7(), Euler(), Midpoint(), RK4(), SSPRK22(), SSPRK33(),
-                         ORK256(), CarpenterKennedy2N54(), HSLDDRK64(), DGLDDRK73_C(),
+                         ORK256(), CarpenterKennedy2N54(), SHLDDRK64(), DGLDDRK73_C(),
                          CFRLDDRK64(), TSLDDRK74(),
                          CKLLSRK43_2(),
                          ParsaniKetchesonDeconinck3S32(),
