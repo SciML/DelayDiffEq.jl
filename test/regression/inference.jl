@@ -23,3 +23,13 @@ DDEProblemLibrary.importddeproblems()
         @test_broken @inferred init(prob_scalar, ddealg)
     end
 end
+
+@testset "discontinuity_time" begin
+    prob_inplace = DDEProblemLibrary.prob_dde_constant_1delay_ip
+    prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+
+    for prob in (prob_inplace, prob_scalar)
+        int = init(prob, MethodOfSteps(Tsit5()))
+        @inferred DelayDiffEq.discontinuity_time(int, (u, p, t) -> 1.0, 0.0, (0.5, 1.5))
+    end
+end

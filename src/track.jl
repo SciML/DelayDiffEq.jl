@@ -133,7 +133,7 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
     end
 
     Θ = NonlinearSolve.solve(
-      NonlinearSolve.NonlinearProblem(zero_func, (bottom_Θ, top_Θ)),
+      NonlinearSolve.NonlinearProblem{false}(zero_func, (bottom_Θ, top_Θ)),
       NonlinearSolve.Falsi(),
     ).left
   end
