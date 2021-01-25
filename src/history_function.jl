@@ -87,6 +87,6 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
     # handle extrapolations at initial time point
     return constant_extrapolant!(val, t, integrator, idxs, Val{deriv})
   else
-    return integrator!(val, t, Val{deriv}; idxs=idxs)
+    return integrator(val, t, Val{deriv}; idxs=idxs)
   end
 end
