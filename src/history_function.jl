@@ -50,7 +50,7 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing) whe
     # handle extrapolations at initial time point
     return constant_extrapolant(t, integrator, idxs, Val{deriv})
   else
-    return OrdinaryDiffEq.current_interpolant(t, integrator, idxs, Val{deriv})
+    return integrator(t, Val{deriv}; idxs=idxs)
   end
 end
 
@@ -87,6 +87,6 @@ function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}}=Val{0}; idxs=nothing
     # handle extrapolations at initial time point
     return constant_extrapolant!(val, t, integrator, idxs, Val{deriv})
   else
-    return OrdinaryDiffEq.current_interpolant!(val, t, integrator, idxs, Val{deriv})
+    return integrator!(val, t, Val{deriv}; idxs=idxs)
   end
 end
