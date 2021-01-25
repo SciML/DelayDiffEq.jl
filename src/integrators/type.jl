@@ -14,6 +14,16 @@ mutable struct HistoryODEIntegrator{algType,IIP,uType,tType,tdirType,ksEltype,So
   cache::CacheType
 end
 
+function (integrator::HistoryODEIntegrator)(t, deriv::Type=Val{0}; idxs=nothing)
+    OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
+end
+
+function (integrator::HistoryODEIntegrator)(
+    val::AbstractArray, t::Union{Number,AbstractArray}, deriv::Type=Val{0}; idxs=nothing
+)
+    OrdinaryDiffEq.current_interpolant!(val, t, integrator, idxs, deriv)
+end
+
 mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,
                              ksEltype,SolType,F,CacheType,IType,FP,O,dAbsType,dRelType,H,
                              tstopsType,discType,FSALType,EventErrorType,CallbackCacheType} <: AbstractDDEIntegrator{algType,IIP,uType,tType}
