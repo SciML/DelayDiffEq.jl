@@ -42,7 +42,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
     fpsolver::FP
     order_discontinuity_t0::Int
     "Discontinuities tracked by callback."
-    tracked_discontinuities::Vector{Discontinuity{tType}}
+    tracked_discontinuities::Vector{Discontinuity{tType,Int}}
     discontinuity_interp_points::Int
     discontinuity_abstol::dAbsType
     discontinuity_reltol::dRelType
