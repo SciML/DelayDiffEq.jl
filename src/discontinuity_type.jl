@@ -1,18 +1,18 @@
 """
-    Discontinuity(t, order::Int)
+    Discontinuity(t, order)
 
-Object of discontinuity of order `order` at time `t`, i.e. discontinuity of
-`order`th derivative at time `t`.
+Object of discontinuity of order `order` at time `t`, i.e. discontinuity of `order`th
+derivative at time `t`.
 """
-struct Discontinuity{tType}
+struct Discontinuity{tType,O}
     t::tType
-    order::Int
+    order::O
 end
 
 # ordering of discontinuities
 Base.:<(a::Discontinuity, b::Discontinuity) = a.t < b.t || (a.t == b.t && a.order < b.order)
-Base.isless(a::Discontinuity, b::Discontinuity) = isless(a.t, b.t) || (isequal(a.t, b.t) && a.order < b.order)
-Base.isequal(a::Discontinuity, b::Discontinuity) = isequal(a.t, b.t) && a.order == b.order
+Base.isless(a::Discontinuity, b::Discontinuity) = isless(a.t, b.t) || (isequal(a.t, b.t) && isless(a.order, b.order))
+Base.isequal(a::Discontinuity, b::Discontinuity) = isequal(a.t, b.t) && isequal(a.order, b.order)
 Base.:(==)(a::Discontinuity, b::Discontinuity) = a.t == b.t && a.order == b.order
 
 # ordering with numbers
@@ -35,11 +35,15 @@ Base.convert(::Type{T}, d::Discontinuity{T}) where {T<:Number} = d.t
 
 # conversion to discontinuity
 function Base.convert(::Type{Discontinuity{T}}, x::Number) where {T<:Number}
-    return Discontinuity{T}(convert(T, x), 0)
+    return convert(Discontinuity{T,Int}, x)
 end
-Base.convert(::Type{Discontinuity{T}}, x::T) where {T<:Number} = Discontinuity{T}(x, 0)
+function Base.convert(::Type{Discontinuity{T,O}}, x::Number) where {T<:Number,O}
+    return Discontinuity{T,O}(convert(T, x), zero(O))
+end
+function Base.convert(::Type{Discontinuity{T,O}}, x::T) where {T<:Number,O}
+    return Discontinuity{T,O}(x, zero(O))
+end
 
 # display
 Base.show(io::IO, d::Discontinuity) = print(io, d.t, " (order ", d.order, ")")
-Base.show(io::IO, ::MIME"text/plain", d::Discontinuity{T}) where {T} =
-    print(io, "Discontinuity{", T, "}:\n   ", d)
+Base.show(io::IO, ::MIME"text/plain", d::Discontinuity) = print(io, typeof(d), ":\n   ", d)

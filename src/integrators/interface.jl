@@ -349,7 +349,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
     OrdinaryDiffEq.initialize_tstops(tType, tstops, d_discontinuities, tspan)
   integrator.opts.saveat = OrdinaryDiffEq.initialize_saveat(tType, saveat, tspan)
   integrator.opts.d_discontinuities =
-    OrdinaryDiffEq.initialize_d_discontinuities(Discontinuity{tType}, d_discontinuities,
+    OrdinaryDiffEq.initialize_d_discontinuities(Discontinuity{tType,Int}, d_discontinuities,
                                                 tspan)
 
   # update order of initial discontinuity and propagated discontinuities

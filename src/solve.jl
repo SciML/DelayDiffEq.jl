@@ -66,7 +66,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            kwargs... )
   if haskey(kwargs, :initial_order)
     @warn "initial_order has been deprecated. Please specify order_discontinuity_t0 in the DDEProblem instead."
-    order_discontinuity_t0 = kwargs[:initial_order]
+    order_discontinuity_t0::Int = kwargs[:initial_order]
   else
     order_discontinuity_t0 = prob.order_discontinuity_t0
   end
@@ -176,8 +176,9 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   tstops_internal =
     OrdinaryDiffEq.initialize_tstops(tType, tstops, d_discontinuities, tspan)
   saveat_internal = OrdinaryDiffEq.initialize_saveat(tType, saveat, tspan)
-  d_discontinuities_internal =
-    OrdinaryDiffEq.initialize_d_discontinuities(Discontinuity{tType}, d_discontinuities, tspan)
+  d_discontinuities_internal = OrdinaryDiffEq.initialize_d_discontinuities(
+    Discontinuity{tType,Int}, d_discontinuities, tspan
+  )
 
   maximum_order = OrdinaryDiffEq.alg_maximum_order(alg)
   tstops_propagated, d_discontinuities_propagated =
@@ -193,7 +194,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # create array of tracked discontinuities
   # used to find propagated discontinuities with callbacks and to keep track of all
   # passed discontinuities
-  tracked_discontinuities = Discontinuity{tType}[]
+  tracked_discontinuities = Discontinuity{tType,Int}[]
   if order_discontinuity_t0 ≤ maximum_order
     push!(tracked_discontinuities, Discontinuity(tdir * t0, order_discontinuity_t0))
   end
@@ -411,7 +412,7 @@ function initialize_tstops_d_discontinuities_propagated(
 ) where T
   # create heaps for propagated discontinuities and corresponding time stops
   tstops_propagated = BinaryMinHeap{T}()
-  d_discontinuities_propagated = BinaryMinHeap{Discontinuity{T}}()
+  d_discontinuities_propagated = BinaryMinHeap{Discontinuity{T,Int}}()
 
   # add discontinuities and time stops propagated from initial discontinuity
   if constant_lags !== nothing && !isempty(constant_lags) &&
@@ -429,7 +430,7 @@ function initialize_tstops_d_discontinuities_propagated(
         t = tdir * (t0 + lag)
         push!(tstops_propagated, t)
 
-        d = Discontinuity{T}(t, next_order)
+        d = Discontinuity{T,Int}(t, next_order)
         push!(d_discontinuities_propagated, d)
       end
     end
