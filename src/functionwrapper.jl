@@ -40,7 +40,7 @@ struct ODEFunctionWrapper{iip,F,H,TMM,Ta,Tt,TJ,JP,SP,TW,TWt,TPJ,S,TCV} <: DiffEq
   colorvec::TCV
 end
 
-function ODEFunctionWrapper(f::DDEFunction, h)
+function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
   # wrap functions
   jac = @wrap_h jac(J, u, h, p, t)
   Wfact = @wrap_h Wfact(W, u, h, p, dtgamma, t)
