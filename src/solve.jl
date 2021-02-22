@@ -219,7 +219,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   end
 
   save_end_user = save_end
-  save_end = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[end] in saveat
+  save_end = save_end === nothing ? save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[2] in saveat : save_end
 
   opts = OrdinaryDiffEq.DEOptions{typeof(abstol_internal),typeof(reltol_internal),QT,tType,
                                   typeof(internalnorm),typeof(internalopnorm),
