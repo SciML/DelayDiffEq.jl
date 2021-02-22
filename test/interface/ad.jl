@@ -70,7 +70,7 @@ end
   findiff3 = FiniteDiff.finite_difference_jacobian(p -> test(vcat(1, p)), p)
   fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.jacobian(p -> test(vcat(1, p)),
                                                                       p)
-  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 10
+  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 1
 
   # consistency checks
   @test findiff2[:, 2:end] ≈ findiff
@@ -105,7 +105,7 @@ end
   findiff3 = FiniteDiff.finite_difference_hessian(p -> test(vcat(1, p)), p)
   fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.hessian(p -> test(vcat(1, p)),
                                                                      p)
-  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 6
+  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 1
 
   # consistency checks
   @test findiff2[2:end, 2:end] ≈ findiff
