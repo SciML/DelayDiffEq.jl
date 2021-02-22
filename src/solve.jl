@@ -18,7 +18,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            save_everystep = isempty(saveat),
                            save_on = true,
                            save_start = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[1] in saveat,
-                           save_end = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[end] in saveat,
+                           save_end = nothing,
                            callback = nothing,
                            dense = save_everystep && isempty(saveat),
                            calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
@@ -218,8 +218,12 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     _beta1 = beta1 === nothing ? OrdinaryDiffEq.beta1_default(alg.alg, _beta2) : beta1
   end
 
+  save_end_user = save_end
+  save_end = save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[end] in saveat
+
   opts = OrdinaryDiffEq.DEOptions{typeof(abstol_internal),typeof(reltol_internal),QT,tType,
                                   typeof(internalnorm),typeof(internalopnorm),
+                                  typeof(save_end_user),
                                   typeof(callback_set),typeof(isoutofdomain),
                                   typeof(progress_message),typeof(unstable_check),
                                   typeof(tstops_internal),
@@ -237,7 +241,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                     userdata,progress,progress_steps,
                                     progress_name,progress_message,timeseries_errors,
                                     dense_errors,_beta1,_beta2,QT(qoldinit),dense,
-                                    save_on,save_start,save_end,callback_set,
+                                    save_on,save_start,save_end,save_end_user,callback_set,
                                     isoutofdomain,unstable_check,verbose,calck,force_dtmin,
                                     advance_to_tstop,stop_at_next_tstop)
 
