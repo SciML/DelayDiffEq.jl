@@ -268,6 +268,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   u_modified = false
   EEst = QT(1)
   just_hit_tstop = false
+  do_error_check = true
   isout = false
   accept_step = false
   force_stepfail = false
@@ -302,7 +303,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                erracc, dtacc, success_iter,
                                iter, length(ts), length(ts), cache, callback_cache,
                                kshortsize, force_stepfail, last_stepfail,
-                               just_hit_tstop, event_last_time, vector_event_last_time,
+                               just_hit_tstop, do_error_check, event_last_time, vector_event_last_time,
                                last_event_error, accept_step,
                                isout, reeval_fsal,
                                u_modified, opts, destats, history, ode_integrator)
