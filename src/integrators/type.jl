@@ -71,6 +71,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
     force_stepfail::Bool
     last_stepfail::Bool
     just_hit_tstop::Bool
+    do_error_check::Bool
     event_last_time::Int
     vector_event_last_time::Int
     last_event_error::EventErrorType
@@ -97,7 +98,8 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
                                alg,dtcache,dtchangeable,dtpropose,tdir,eigen_est,EEst,qold,
                                q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
                                cache,callback_cache,kshortsize,force_stepfail,last_stepfail,
-                               just_hit_tstop,event_last_time,vector_event_last_time,last_event_error,
+                               just_hit_tstop,do_error_check,event_last_time,
+                               vector_event_last_time,last_event_error,
                                accept_step,isout,reeval_fsal,u_modified,opts,destats,
                                history,integrator) where
       {algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,ksEltype,SolType,F,
@@ -113,7 +115,8 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
             d_discontinuities_propagated,alg,dtcache,dtchangeable,dtpropose,tdir,
             eigen_est,EEst,qold,q11,erracc,dtacc,success_iter,iter,saveiter,saveiter_dense,
             cache,callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
-            event_last_time,vector_event_last_time,last_event_error,accept_step,isout,
+            do_error_check,event_last_time,vector_event_last_time,
+            last_event_error,accept_step,isout,
             reeval_fsal,u_modified,opts,destats,history,integrator)
     end
 end
