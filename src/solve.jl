@@ -99,7 +99,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   progress && @logmsg(-1, progress_name, _id = _id = :DelayDiffEq, progress = 0)
 
   isdae = prob.f.mass_matrix != I && !(typeof(prob.f.mass_matrix)<:Tuple) &&
-                                ArrayInterface.issingular(prob.f.mass_matrix))
+                                ArrayInterface.issingular(prob.f.mass_matrix)
 
   # unpack problem
   @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
