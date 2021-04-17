@@ -79,6 +79,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
     isout::Bool
     reeval_fsal::Bool
     u_modified::Bool
+    isdae::Bool
     opts::O
     destats::DDEStats
     history::H
@@ -100,7 +101,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
                                cache,callback_cache,kshortsize,force_stepfail,last_stepfail,
                                just_hit_tstop,do_error_check,event_last_time,
                                vector_event_last_time,last_event_error,
-                               accept_step,isout,reeval_fsal,u_modified,opts,destats,
+                               accept_step,isout,reeval_fsal,u_modified,isdae,opts,destats,
                                history,integrator) where
       {algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,tdirType,ksEltype,SolType,F,
        CacheType,IType,FP,O,dAbsType,dRelType,H,tstopsType,discType,
@@ -117,7 +118,7 @@ mutable struct DDEIntegrator{algType,IIP,uType,tType,P,eigenType,tTypeNoUnits,td
             cache,callback_cache,kshortsize,force_stepfail,last_stepfail,just_hit_tstop,
             do_error_check,event_last_time,vector_event_last_time,
             last_event_error,accept_step,isout,
-            reeval_fsal,u_modified,opts,destats,history,integrator)
+            reeval_fsal,u_modified,isdae,opts,destats,history,integrator)
     end
 end
 

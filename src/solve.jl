@@ -96,7 +96,10 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     @warn("Dense output is incompatible with saveat. Please use the SavingCallback from the Callback Library to mix the two behaviors.")
   end
 
-  progress && @logmsg(-1, progress_name, _id = _id = :OrdinaryDiffEq, progress = 0)
+  progress && @logmsg(-1, progress_name, _id = _id = :DelayDiffEq, progress = 0)
+
+  isdae = prob.f.mass_matrix != I && !(typeof(prob.f.mass_matrix)<:Tuple) &&
+                                ArrayInterface.issingular(prob.f.mass_matrix)
 
   # unpack problem
   @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
@@ -306,7 +309,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                just_hit_tstop, do_error_check, event_last_time, vector_event_last_time,
                                last_event_error, accept_step,
                                isout, reeval_fsal,
-                               u_modified, opts, destats, history, ode_integrator)
+                               u_modified, isdae, opts, destats, history,
+                               ode_integrator)
 
   # initialize DDE integrator
   if initialize_integrator
