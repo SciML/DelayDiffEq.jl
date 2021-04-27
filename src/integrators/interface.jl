@@ -294,6 +294,7 @@ function DiffEqBase.reinit!(integrator::HistoryODEIntegrator, u0 = integrator.so
 
     # reset iteration counter
     integrator.saveiter = 1
+    integrator.saveiter_dense = 1
   end
 
   nothing
@@ -387,6 +388,9 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
 
     # reset iteration counter
     integrator.saveiter = resize_start
+    if integrator.opts.dense
+      integrator.saveiter_dense = resize_start
+    end
 
     # erase array of tracked discontinuities
     if order_discontinuity_t0 ≤ OrdinaryDiffEq.alg_maximum_order(integrator.alg)

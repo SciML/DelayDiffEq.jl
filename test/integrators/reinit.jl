@@ -40,4 +40,24 @@ const alg = MethodOfSteps(BS3(); constrained = false)
     @test u == sol.u
     @test t == sol.t
   end
+
+  # https://github.com/SciML/OrdinaryDiffEq.jl/issues/1394
+  @testset "saveiter_dense" begin
+    integrator = init(prob, alg)
+    solve!(integrator)
+
+    # ensure that the counters were updated
+    for i in (integrator, integrator.integrator)
+        @test i.saveiter > 1
+        @test i.saveiter_dense > 1
+    end
+
+    reinit!(integrator)
+
+    # check that the counters are reset
+    for i in (integrator, integrator.integrator)
+        @test i.saveiter == 1
+        @test i.saveiter_dense == 1
+    end
+  end
 end
