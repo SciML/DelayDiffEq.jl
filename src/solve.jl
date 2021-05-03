@@ -75,7 +75,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     auto = alg.alg.choice_function
     alg = MethodOfSteps(CompositeAlgorithm(alg.alg.algs,
                              OrdinaryDiffEq.AutoSwitchCache(
-                                             0,
+                                             0,0,
                                              auto.nonstiffalg,
                                              auto.stiffalg,
                                              auto.stiffalgfirst,
@@ -85,6 +85,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                              auto.stifftol,
                                              auto.dtfac,
                                              auto.stiffalgfirst,
+                                             auto.switch_max
                                             )))
   end
 
