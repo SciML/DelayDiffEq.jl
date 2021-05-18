@@ -36,6 +36,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            qsteady_min = OrdinaryDiffEq.qsteady_min_default(alg.alg),
                            qsteady_max = OrdinaryDiffEq.qsteady_max_default(alg.alg),
                            qoldinit = DiffEqBase.isadaptive(alg) ? 1//10^4 : 0,
+                           controller = nothing,
                            fullnormalize = true,
                            failfactor = 2,
                            beta1 = nothing,
@@ -210,17 +211,22 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   # every step and every index (necessary for history function)
   QT = tTypeNoUnits <: Integer ? typeof(qmin) : typeof(internalnorm(u, t0))
 
-  if iscomposite(alg)
-    _beta2 = beta2 === nothing ?
-      OrdinaryDiffEq._composite_beta2_default(alg.alg.algs, cache.current, QT) :
-      beta2
-    _beta1 = beta1 === nothing ?
-      OrdinaryDiffEq._composite_beta1_default(alg.alg.algs, cache.current, QT, _beta2) :
-      beta1
-  else
-    _beta2 = beta2 === nothing ? OrdinaryDiffEq.beta2_default(alg.alg) : beta2
-    _beta1 = beta1 === nothing ? OrdinaryDiffEq.beta1_default(alg.alg, _beta2) : beta1
+  # Setting up the step size controller
+  if (beta1 !== nothing || beta2 !== nothing) && controller !== nothing
+    throw(ArgumentError(
+      "Setting both the legacy PID parameters `beta1, beta2 = $((beta1, beta2))` and the `controller = $controller` is not allowed."))
   end
+
+  if (beta1 !== nothing || beta2 !== nothing)
+    message = "Providing the legacy PID parameters `beta1, beta2` is deprecated. Use the keyword argument `controller` instead."
+    Base.depwarn(message, :init)
+    Base.depwarn(message, :solve)
+  end
+
+  if controller === nothing
+    controller = OrdinaryDiffEq.default_controller(_alg, cache, convert(T, qoldinit)::QT, beta1, beta2)
+  end
+
 
   save_end_user = save_end
   save_end = save_end === nothing ? save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[2] in saveat : save_end
@@ -238,7 +244,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                     reltol_internal,QT(gamma),QT(qmax),
                                     QT(qmin),QT(qsteady_max),
                                     QT(qsteady_min),QT(failfactor),tType(dtmax),
-                                    tType(dtmin),internalnorm,internalopnorm,save_idxs,
+                                    tType(dtmin),controller,internalnorm,internalopnorm,save_idxs,
                                     tstops_internal,saveat_internal,
                                     d_discontinuities_internal,
                                     tstops,saveat,d_discontinuities,
