@@ -224,35 +224,43 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   end
 
   if controller === nothing
-    controller = OrdinaryDiffEq.default_controller(_alg, cache, convert(T, qoldinit)::QT, beta1, beta2)
+    controller = OrdinaryDiffEq.default_controller(alg.alg, cache, convert(QT, qoldinit)::QT, beta1, beta2)
   end
 
 
   save_end_user = save_end
   save_end = save_end === nothing ? save_everystep || isempty(saveat) || saveat isa Number || prob.tspan[2] in saveat : save_end
 
-  opts = OrdinaryDiffEq.DEOptions{typeof(abstol_internal),typeof(reltol_internal),QT,tType,
+  opts = OrdinaryDiffEq.DEOptions{typeof(abstol_internal),typeof(reltol_internal),
+                                  QT,tType,typeof(controller),
                                   typeof(internalnorm),typeof(internalopnorm),
                                   typeof(save_end_user),
-                                  typeof(callback_set),typeof(isoutofdomain),
+                                  typeof(callback_set),
+                                  typeof(isoutofdomain),
                                   typeof(progress_message),typeof(unstable_check),
                                   typeof(tstops_internal),
                                   typeof(d_discontinuities_internal),typeof(userdata),
-                                  typeof(save_idxs),typeof(maxiters),typeof(tstops),
+                                  typeof(save_idxs),
+                                  typeof(maxiters),typeof(tstops),
                                   typeof(saveat),typeof(d_discontinuities)}(
-                                    maxiters,save_everystep,adaptive,abstol_internal,
-                                    reltol_internal,QT(gamma),QT(qmax),
-                                    QT(qmin),QT(qsteady_max),
-                                    QT(qsteady_min),QT(failfactor),tType(dtmax),
-                                    tType(dtmin),controller,internalnorm,internalopnorm,save_idxs,
-                                    tstops_internal,saveat_internal,
+                                    maxiters,save_everystep,
+                                    adaptive,abstol_internal,reltol_internal,
+                                    QT(gamma),QT(qmax),QT(qmin),
+                                    QT(qsteady_max),QT(qsteady_min),
+                                    QT(qoldinit),QT(failfactor),
+                                    tType(dtmax),tType(dtmin),
+                                    controller,
+                                    internalnorm,internalopnorm,
+                                    save_idxs,tstops_internal,saveat_internal,
                                     d_discontinuities_internal,
                                     tstops,saveat,d_discontinuities,
                                     userdata,progress,progress_steps,
-                                    progress_name,progress_message,timeseries_errors,
-                                    dense_errors,_beta1,_beta2,QT(qoldinit),dense,
-                                    save_on,save_start,save_end,save_end_user,callback_set,
-                                    isoutofdomain,unstable_check,verbose,calck,force_dtmin,
+                                    progress_name,progress_message,
+                                    timeseries_errors,dense_errors,dense,
+                                    save_on,save_start,save_end,save_end_user,
+                                    callback_set,
+                                    isoutofdomain,unstable_check,
+                                    verbose,calck,force_dtmin,
                                     advance_to_tstop,stop_at_next_tstop)
 
   # create fixed point solver
