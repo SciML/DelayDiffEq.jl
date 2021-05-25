@@ -13,6 +13,7 @@ if GROUP == "All" || GROUP == "Interface"
   @time @safetestset "Fixed-point Iteration Tests" begin include("interface/fpsolve.jl") end
   @time @safetestset "History Function Tests" begin include("interface/history_function.jl") end
   @time @safetestset "Jacobian Tests" begin include("interface/jacobian.jl") end
+  @time @safetestset "Mass matrix Tests" begin include("interface/mass_matrix.jl") end
   @time @safetestset "Parameterized Function Tests" begin include("interface/parameters.jl") end
   @time @safetestset "saveat Tests" begin include("interface/saveat.jl") end
   @time @safetestset "save_idxs Tests" begin include("interface/save_idxs.jl") end
