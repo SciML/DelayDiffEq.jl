@@ -10,6 +10,7 @@ using Printf
 using RecursiveArrayTools
 using UnPack
 
+import ArrayInterface
 import NonlinearSolve
 
 using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator, DEIntegrator, AbstractDDEProblem
