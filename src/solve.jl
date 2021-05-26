@@ -224,7 +224,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
   end
 
   if controller === nothing
-    controller = OrdinaryDiffEq.default_controller(_alg, cache, convert(QT,qoldinit),
+    controller = OrdinaryDiffEq.default_controller(alg.alg, cache, convert(QT,qoldinit),
                                     beta1 === nothing ? nothing : convert(QT,beta1),
                                     beta2 === nothing ? nothing : convert(QT,beta2))
   end
