@@ -32,7 +32,7 @@ function build_fpsolver(alg, fpalg::Union{NLFunctional,NLAnderson}, u, uEltypeNo
 
   FPSolver{typeof(fpalg),true,uTolType,typeof(fpcache)}(
     fpalg, uTolType(fpalg.κ), uTolType(fpalg.fast_convergence_cutoff), ηold, 10000,
-    fpalg.max_iter, SlowConvergence, fpcache)
+    fpalg.max_iter, SlowConvergence, fpcache, 0)
 end
 
 function build_fpsolver(alg, fpalg::Union{NLFunctional,NLAnderson}, u, uEltypeNoUnits,
@@ -66,7 +66,7 @@ function build_fpsolver(alg, fpalg::Union{NLFunctional,NLAnderson}, u, uEltypeNo
 
   FPSolver{typeof(fpalg),false,uTolType,typeof(fpcache)}(
     fpalg, uTolType(fpalg.κ), uTolType(fpalg.fast_convergence_cutoff), ηold, 10_000,
-    fpalg.max_iter, SlowConvergence, fpcache)
+    fpalg.max_iter, SlowConvergence, fpcache, 0)
 end
 
 ## resize
