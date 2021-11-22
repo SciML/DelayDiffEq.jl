@@ -8,7 +8,7 @@ mutable struct FPSolver{algType,iip,uTolType,C<:DiffEqBase.AbstractNLSolverCache
   maxiters::Int
   status::OrdinaryDiffEq.NLStatus
   cache::C
-  nfail::Int
+  nfails::Int
 end
 
 # caches
