@@ -6,6 +6,12 @@ on:
       - master
   pull_request:
 
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
 jobs:
   test:
     continue-on-error: ${{ matrix.version == 'nightly' }}
@@ -14,16 +20,19 @@ jobs:
       matrix:
         version:
           - '1'
+          - '1.6'
         os:
           - ubuntu-latest
-          - windows-latest
         arch:
-          - x86
           - x64
+          - x86
         group:
           - Interface
           - Integrators
           - Regression
+        exclude: # test 32bit only with Julia 1 but not LTS
+          - version: '1.6'
+            arch: x86
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -42,13 +51,30 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
+        with:
+          coverage: ${{ matrix.version == '1' && matrix.arch == 'x64' }}
         env:
           GROUP: ${{ matrix.group }}
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v1
+        if: matrix.version == '1' && matrix.arch == 'x64'
+      - uses: codecov/codecov-action@v2
+        if: matrix.version == '1' && matrix.arch == 'x64'
         with:
           file: lcov.info
       - uses: coverallsapp/github-action@master
+        if: matrix.version == '1' && matrix.arch == 'x64'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: lcov.info
+          flag-name: group-${{ matrix.group }} # unique name for coverage report of each group
+          parallel: true
+  # combine coveralls coverage reports
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
