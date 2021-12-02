@@ -25,13 +25,13 @@ jobs:
           - ubuntu-latest
         arch:
           - x64
+          - x86
         group:
           - Interface
           - Integrators
           - Regression
-        include: # test Julia 1 on 32bit
-          - version: '1'
-            os: ubuntu-latest
+        exclude: # test 32bit only with Julia 1 but not LTS
+          - version: '1.6'
             arch: x86
     steps:
       - uses: actions/checkout@v2
