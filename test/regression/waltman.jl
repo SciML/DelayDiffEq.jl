@@ -1,5 +1,5 @@
 using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
-using LinearAlgebra, Test
+using LinearAlgebra, Test, LinearSolve
 
 DDEProblemLibrary.importddeproblems()
 const PROB_WALTMAN = DDEProblemLibrary.prob_dde_RADAR5_waltman_5
@@ -26,12 +26,12 @@ sol1 = solve(PROB_WALTMAN, MethodOfSteps(Rosenbrock23()); PROB_KWARGS...)
 test_waltman_sol(sol1)
 
 # in-place LU factorization
-sol2 = solve(PROB_WALTMAN, MethodOfSteps(Rosenbrock23(linsolve=LinSolveFactorize(lu!)));
+sol2 = solve(PROB_WALTMAN, MethodOfSteps(Rosenbrock23(linsolve=GenericFactorization(lu!)));
              PROB_KWARGS...)
 test_waltman_sol(sol2)
 
 # out-of-place LU factorization
-sol3 = solve(PROB_WALTMAN, MethodOfSteps(Rosenbrock23(linsolve=LinSolveFactorize(lu)));
+sol3 = solve(PROB_WALTMAN, MethodOfSteps(Rosenbrock23(linsolve=GenericFactorization(lu)));
              PROB_KWARGS...)
 test_waltman_sol(sol3)
 
