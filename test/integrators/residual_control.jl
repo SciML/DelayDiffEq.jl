@@ -28,7 +28,7 @@ const prob_wo = remake(prob; constant_lags = nothing)
 
   sol = solve(prob_wo, alg; abstol = 1e-9, reltol = 1e-6)
 
-  @test sol.errors[:l∞] < 5.0e-8
+  @test sol.errors[:l∞] < 6.0e-8
   @test sol.errors[:final] < 3.4e-9
   @test sol.errors[:l2] < 2.2e-8
 
