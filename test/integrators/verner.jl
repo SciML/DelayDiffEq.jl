@@ -52,7 +52,7 @@ DDEProblemLibrary.importddeproblems()
 
     @test sol_ip.errors[:l∞] < 2.0e-3
     @test sol_ip.errors[:final] < 1.8e-5
-    @test sol_ip.errors[:l2] < 8.4e-4
+    @test sol_ip.errors[:l2] < 8.8e-4
 
     sol_scalar = solve(prob_scalar, alg)
 
