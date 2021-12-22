@@ -50,7 +50,7 @@ const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
   @test sol_scalar.destats.nsolve == sol.destats.nsolve
   @test sol_scalar.destats.nfpiter == sol.destats.nfpiter
   @test sol_scalar.destats.nfpconvfail == sol.destats.nfpconvfail
-  @test sol_scalar.t ≈ sol.t atol=1e-5
+  @test sol_scalar.t ≈ sol.t atol=1e-3
   @test sol_scalar.u ≈ sol[1, :]
 end
 
