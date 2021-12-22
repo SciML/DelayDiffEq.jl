@@ -57,7 +57,7 @@ end
   p = [1.5, 1.0, 0.5]
   findiff = FiniteDiff.finite_difference_jacobian(p -> test(vcat(1, p, p[end])), p)
   fordiff = ForwardDiff.jacobian(p -> test(vcat(1, p, p[end])), p)
-  @test maximum(abs.(findiff .- fordiff)) < 1e-6
+  @test maximum(abs.(findiff .- fordiff)) < 2e-6
 
   # with delay length estimation and without discontinuity
   p = [1.0, 1.5, 1.0, 0.5]
