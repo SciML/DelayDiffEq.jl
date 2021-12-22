@@ -14,6 +14,7 @@ functionality should check out [DifferentialEquations.jl](https://github.com/Sci
 
 DelayDiffEq.jl is part of the JuliaDiffEq common interface, but can be used independently of DifferentialEquations.jl. The only requirement is that the user passes a DelayDiffEq.jl algorithm to `solve`. For example, we can solve the [DDE tutorial from the documentation](https://diffeq.sciml.ai/stable/tutorials/dde_example/) using the `MethodOfSteps(Tsit5())` algorithm:
 
+
 ```julia
 using DelayDiffEq
 const p0 = 0.2; const q0 = 0.3; const v0 = 1; const d0 = 5
