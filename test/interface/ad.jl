@@ -33,9 +33,8 @@ h(p, t) = p[4]
   # with discontinuity and without delay length estimation
   p = [1.5, 1.0, 0.5, 1.0]
   findiff3 = FiniteDiff.finite_difference_gradient(p -> test(vcat(1, p)), p)
-  fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.gradient(p -> test(vcat(1, p)),
-                                                                      p)
-  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 9
+  fordiff3 = ForwardDiff.gradient(p -> test(vcat(1, p)),p)
+  @test maximum(abs.(findiff3 .- fordiff3)) < 9
 
   # consistency checks
   @test findiff2[2:end] ≈ findiff
@@ -68,9 +67,8 @@ end
   # with discontinuity and without delay length estimation
   p = [1.5, 1.0, 0.5, 1.0]
   findiff3 = FiniteDiff.finite_difference_jacobian(p -> test(vcat(1, p)), p)
-  fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.jacobian(p -> test(vcat(1, p)),
-                                                                      p)
-  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 1
+  fordiff3 = ForwardDiff.jacobian(p -> test(vcat(1, p)),p)
+  @test maximum(abs.(findiff3 .- fordiff3)) < 1
 
   # consistency checks
   @test findiff2[:, 2:end] ≈ findiff
@@ -103,9 +101,8 @@ end
   # with discontinuity and without delay length estimation
   p = [1.5, 1.0, 0.5, 1.0]
   findiff3 = FiniteDiff.finite_difference_hessian(p -> test(vcat(1, p)), p)
-  fordiff3 = @test_logs (:warn, r"^dt <= dtmin") ForwardDiff.hessian(p -> test(vcat(1, p)),
-                                                                     p)
-  @test_broken maximum(abs.(findiff3 .- fordiff3)) < 1
+  fordiff3 = ForwardDiff.hessian(p -> test(vcat(1, p)),p)
+  @test maximum(abs.(findiff3 .- fordiff3)) < 1
 
   # consistency checks
   @test findiff2[2:end, 2:end] ≈ findiff
