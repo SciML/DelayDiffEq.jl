@@ -18,6 +18,8 @@ OrdinaryDiffEq.alg_order(alg::AbstractMethodOfStepsAlgorithm) = OrdinaryDiffEq.a
 OrdinaryDiffEq.alg_maximum_order(alg::AbstractMethodOfStepsAlgorithm) = OrdinaryDiffEq.alg_maximum_order(alg.alg)
 OrdinaryDiffEq.alg_adaptive_order(alg::AbstractMethodOfStepsAlgorithm) = OrdinaryDiffEq.alg_adaptive_order(alg.alg)
 
+SciMLBase.isautodifferentiable(alg::AbstractMethodOfStepsAlgorithm) = true
+
 """
     iscomposite(alg)
 
