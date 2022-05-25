@@ -21,6 +21,8 @@ using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConverg
 
 using OrdinaryDiffEq: RosenbrockMutableCache
 
+import SciMLBase
+
 export Discontinuity, MethodOfSteps
 
 include("discontinuity_type.jl")
