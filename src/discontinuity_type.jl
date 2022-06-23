@@ -11,8 +11,10 @@ end
 
 # ordering of discontinuities
 Base.:<(a::Discontinuity, b::Discontinuity) = a.t < b.t || (a.t == b.t && a.order < b.order)
-Base.isless(a::Discontinuity, b::Discontinuity) = isless(a.t, b.t) || (isequal(a.t, b.t) && isless(a.order, b.order))
-Base.isequal(a::Discontinuity, b::Discontinuity) = isequal(a.t, b.t) && isequal(a.order, b.order)
+Base.isless(a::Discontinuity, b::Discontinuity) =
+    isless(a.t, b.t) || (isequal(a.t, b.t) && isless(a.order, b.order))
+Base.isequal(a::Discontinuity, b::Discontinuity) =
+    isequal(a.t, b.t) && isequal(a.order, b.order)
 Base.:(==)(a::Discontinuity, b::Discontinuity) = a.t == b.t && a.order == b.order
 
 # ordering with numbers

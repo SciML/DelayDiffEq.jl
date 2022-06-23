@@ -8,7 +8,7 @@ using Test
         S, I, _ = u
         γ, τ = p
         infection = γ * I * S
-        Sd, Id, _ = h(p, t-τ)
+        Sd, Id, _ = h(p, t - τ)
         recovery = γ * Id * Sd
         @inbounds begin
             du[1] = -infection
@@ -24,14 +24,14 @@ using Test
 
     prob_dde = DDEProblem(sir_dde!, u0, sir_history, tspan, p; constant_lags = (p.τ,))
     sol_dde = TestSolution(
-        solve(prob_dde, MethodOfSteps(Vern9()); reltol=1e-14, abstol=1e-14)
+        solve(prob_dde, MethodOfSteps(Vern9()); reltol = 1e-14, abstol = 1e-14),
     )
 
     function sir_ddae!(du, u, h, p, t)
         S, I, R = u
         γ, τ = p
         infection = γ * I * S
-        Sd, Id, _ = h(p, t-τ)
+        Sd, Id, _ = h(p, t - τ)
         recovery = γ * Id * Sd
         @inbounds begin
             du[1] = -infection
@@ -42,7 +42,7 @@ using Test
     end
 
     prob_ddae = DDEProblem(
-        DDEFunction{true}(sir_ddae!; mass_matrix=Diagonal([1.0, 1.0, 0.0])),
+        DDEFunction{true}(sir_ddae!; mass_matrix = Diagonal([1.0, 1.0, 0.0])),
         u0,
         sir_history,
         tspan,
@@ -54,7 +54,7 @@ using Test
 
     int = init(prob_ddae, MethodOfSteps(Rosenbrock23()))
     @test int.isdae
-    @test int.f.mass_matrix == Diagonal([1.0, 1.0, 0.0])  
+    @test int.f.mass_matrix == Diagonal([1.0, 1.0, 0.0])
 
     for (alg, reltol) in (
         (Rosenbrock23(), nothing),
@@ -62,7 +62,7 @@ using Test
         (QNDF(), 1e-6),
         (Trapezoid(), 1e-6),
     )
-        sol_ddae = solve(prob_ddae, MethodOfSteps(alg); reltol=reltol)
+        sol_ddae = solve(prob_ddae, MethodOfSteps(alg); reltol = reltol)
         sol = appxtrue(sol_ddae, sol_dde)
         @test sol.errors[:L∞] < 5e-3
     end

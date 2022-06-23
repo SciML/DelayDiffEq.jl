@@ -13,11 +13,17 @@ using UnPack
 import ArrayInterface
 import NonlinearSolve
 
-using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator, DEIntegrator, AbstractDDEProblem
+using DiffEqBase:
+    AbstractDDEAlgorithm,
+    AbstractDDEIntegrator,
+    AbstractODEIntegrator,
+    DEIntegrator,
+    AbstractDDEProblem
 
 using DiffEqBase: @..
 
-using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence, Divergence
+using DiffEqBase:
+    FastConvergence, Convergence, SlowConvergence, VerySlowConvergence, Divergence
 
 using OrdinaryDiffEq: RosenbrockMutableCache
 

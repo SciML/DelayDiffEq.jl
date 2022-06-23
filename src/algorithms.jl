@@ -2,8 +2,8 @@ abstract type DelayDiffEqAlgorithm <: AbstractDDEAlgorithm end
 abstract type AbstractMethodOfStepsAlgorithm{constrained} <: DelayDiffEqAlgorithm end
 
 struct MethodOfSteps{algType,F,constrained} <: AbstractMethodOfStepsAlgorithm{constrained}
-  alg::algType
-  fpsolve::F
+    alg::algType
+    fpsolve::F
 end
 
 """
@@ -32,4 +32,4 @@ sixth-order Runge-Kutta methods for the solution of state-dependent functional d
 equations", Applied Numerical Mathematics, 1997.
 """
 MethodOfSteps(alg; constrained = false, fpsolve = NLFunctional()) =
-  MethodOfSteps{typeof(alg),typeof(fpsolve),constrained}(alg, fpsolve)
+    MethodOfSteps{typeof(alg),typeof(fpsolve),constrained}(alg, fpsolve)
