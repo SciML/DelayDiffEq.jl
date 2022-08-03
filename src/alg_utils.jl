@@ -36,5 +36,6 @@ iscomposite(alg) = false
 iscomposite(::OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm) = true
 iscomposite(alg::AbstractMethodOfStepsAlgorithm) = iscomposite(alg.alg)
 
-DiffEqBase.prepare_alg(alg::MethodOfSteps) = MethodOfSteps(DiffEqBase.prepare_alg(alg.alg),
-                                                                                alg.fpsolve)
+DiffEqBase.prepare_alg(alg::MethodOfSteps, u0, p, prob) = MethodOfSteps(
+    DiffEqBase.prepare_alg(alg.alg, u0, p, prob); constrained=isconstrained(alg),
+    fpsolve=alg.fpsolve)
