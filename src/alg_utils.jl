@@ -8,7 +8,7 @@ SciMLBase.isadaptive(alg::AbstractMethodOfStepsAlgorithm) = SciMLBase.isadaptive
 
 ## DelayDiffEq Internal Traits
 
-isconstrained(alg::AbstractMethodOfStepsAlgorithm{constrained}) where constrained =
+isconstrained(alg::AbstractMethodOfStepsAlgorithm{constrained}) where {constrained} =
     constrained
 OrdinaryDiffEq.uses_uprev(alg::AbstractMethodOfStepsAlgorithm, adaptive) = true
 
@@ -35,3 +35,7 @@ Return if algorithm `alg` is a composite algorithm.
 iscomposite(alg) = false
 iscomposite(::OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm) = true
 iscomposite(alg::AbstractMethodOfStepsAlgorithm) = iscomposite(alg.alg)
+
+DiffEqBase.prepare_alg(alg::MethodOfSteps, u0, p, prob) = MethodOfSteps(
+    DiffEqBase.prepare_alg(alg.alg, u0, p, prob); constrained=isconstrained(alg),
+    fpsolve=alg.fpsolve)
