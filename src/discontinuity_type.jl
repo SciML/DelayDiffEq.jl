@@ -4,15 +4,19 @@
 Object of discontinuity of order `order` at time `t`, i.e. discontinuity of `order`th
 derivative at time `t`.
 """
-struct Discontinuity{tType,O}
+struct Discontinuity{tType, O}
     t::tType
     order::O
 end
 
 # ordering of discontinuities
 Base.:<(a::Discontinuity, b::Discontinuity) = a.t < b.t || (a.t == b.t && a.order < b.order)
-Base.isless(a::Discontinuity, b::Discontinuity) = isless(a.t, b.t) || (isequal(a.t, b.t) && isless(a.order, b.order))
-Base.isequal(a::Discontinuity, b::Discontinuity) = isequal(a.t, b.t) && isequal(a.order, b.order)
+function Base.isless(a::Discontinuity, b::Discontinuity)
+    isless(a.t, b.t) || (isequal(a.t, b.t) && isless(a.order, b.order))
+end
+function Base.isequal(a::Discontinuity, b::Discontinuity)
+    isequal(a.t, b.t) && isequal(a.order, b.order)
+end
 Base.:(==)(a::Discontinuity, b::Discontinuity) = a.t == b.t && a.order == b.order
 
 # ordering with numbers
@@ -30,18 +34,18 @@ Base.:*(a::Discontinuity, b::Number) = Discontinuity(a.t * b, a.order)
 Base.:*(a::Number, b::Discontinuity) = Discontinuity(a * b.t, b.order)
 
 # conversion to numbers
-Base.convert(::Type{T}, d::Discontinuity) where {T<:Number} = convert(T, d.t)
-Base.convert(::Type{T}, d::Discontinuity{T}) where {T<:Number} = d.t
+Base.convert(::Type{T}, d::Discontinuity) where {T <: Number} = convert(T, d.t)
+Base.convert(::Type{T}, d::Discontinuity{T}) where {T <: Number} = d.t
 
 # conversion to discontinuity
-function Base.convert(::Type{Discontinuity{T}}, x::Number) where {T<:Number}
-    return convert(Discontinuity{T,Int}, x)
+function Base.convert(::Type{Discontinuity{T}}, x::Number) where {T <: Number}
+    return convert(Discontinuity{T, Int}, x)
 end
-function Base.convert(::Type{Discontinuity{T,O}}, x::Number) where {T<:Number,O}
-    return Discontinuity{T,O}(convert(T, x), zero(O))
+function Base.convert(::Type{Discontinuity{T, O}}, x::Number) where {T <: Number, O}
+    return Discontinuity{T, O}(convert(T, x), zero(O))
 end
-function Base.convert(::Type{Discontinuity{T,O}}, x::T) where {T<:Number,O}
-    return Discontinuity{T,O}(x, zero(O))
+function Base.convert(::Type{Discontinuity{T, O}}, x::T) where {T <: Number, O}
+    return Discontinuity{T, O}(x, zero(O))
 end
 
 # display

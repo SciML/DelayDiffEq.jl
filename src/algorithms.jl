@@ -1,9 +1,9 @@
 abstract type DelayDiffEqAlgorithm <: AbstractDDEAlgorithm end
 abstract type AbstractMethodOfStepsAlgorithm{constrained} <: DelayDiffEqAlgorithm end
 
-struct MethodOfSteps{algType,F,constrained} <: AbstractMethodOfStepsAlgorithm{constrained}
-  alg::algType
-  fpsolve::F
+struct MethodOfSteps{algType, F, constrained} <: AbstractMethodOfStepsAlgorithm{constrained}
+    alg::algType
+    fpsolve::F
 end
 
 """
@@ -31,5 +31,6 @@ S. P. Corwin, D. Sarafyan and S. Thompson in "DKLAG6: a code based on continuous
 sixth-order Runge-Kutta methods for the solution of state-dependent functional differential
 equations", Applied Numerical Mathematics, 1997.
 """
-MethodOfSteps(alg; constrained = false, fpsolve = NLFunctional()) =
-  MethodOfSteps{typeof(alg),typeof(fpsolve),constrained}(alg, fpsolve)
+function MethodOfSteps(alg; constrained = false, fpsolve = NLFunctional())
+    MethodOfSteps{typeof(alg), typeof(fpsolve), constrained}(alg, fpsolve)
+end
