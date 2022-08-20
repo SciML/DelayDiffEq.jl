@@ -1,9 +1,7 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob = DDEProblemLibrary.prob_dde_constant_1delay_long_ip
+const prob = prob_dde_constant_1delay_long_ip
 const alg = MethodOfSteps(Tsit5())
 
 # reference integrator and solution
