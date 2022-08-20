@@ -1,7 +1,6 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using LinearAlgebra, Test, LinearSolve
 
-DDEProblemLibrary.importddeproblems()
 const PROB_WALTMAN = DDEProblemLibrary.prob_dde_RADAR5_waltman_5
 const PROB_KWARGS = (reltol = 1e-6, abstol = [1e-21, 1e-21, 1e-21, 1e-21, 1e-9, 1e-9])
 

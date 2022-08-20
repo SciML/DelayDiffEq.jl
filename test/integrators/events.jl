@@ -1,9 +1,7 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, DiffEqDevTools, DiffEqCallbacks
+using DelayDiffEq, DDEProblemLibrary, DiffEqDevTools, DiffEqCallbacks
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+const prob = prob_dde_constant_1delay_scalar
 const alg = MethodOfSteps(Tsit5(); constrained = false)
 
 # continuous callback

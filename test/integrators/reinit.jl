@@ -1,10 +1,8 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, RecursiveArrayTools
+using DelayDiffEq, DDEProblemLibrary, RecursiveArrayTools
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob_ip = DDEProblemLibrary.prob_dde_constant_1delay_ip
-const prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+const prob_ip = prob_dde_constant_1delay_ip
+const prob_scalar = prob_dde_constant_1delay_scalar
 
 const alg = MethodOfSteps(BS3(); constrained = false)
 

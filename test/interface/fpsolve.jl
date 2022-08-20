@@ -1,12 +1,10 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, DiffEqDevTools
+using DelayDiffEq, DDEProblemLibrary, DiffEqDevTools
 using LinearAlgebra
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob = DDEProblemLibrary.prob_dde_constant_2delays_long_ip
-const prob_oop = DDEProblemLibrary.prob_dde_constant_2delays_long_oop
-const prob_scalar = DDEProblemLibrary.prob_dde_constant_2delays_long_scalar
+const prob = prob_dde_constant_2delays_long_ip
+const prob_oop = prob_dde_constant_2delays_long_oop
+const prob_scalar = prob_dde_constant_2delays_long_scalar
 
 const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
                                    abstol = 1 / 10^14, reltol = 1 / 10^14))

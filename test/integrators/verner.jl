@@ -1,12 +1,10 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
-
-DDEProblemLibrary.importddeproblems()
 
 # simple problems
 @testset "simple problems" begin
-    prob_ip = DDEProblemLibrary.prob_dde_constant_1delay_ip
-    prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+    prob_ip = prob_dde_constant_1delay_ip
+    prob_scalar = prob_dde_constant_1delay_scalar
     ts = 0:0.1:10
 
     # Vern6
@@ -78,7 +76,7 @@ end
 # model of Mackey and Glass
 println("Mackey and Glass")
 @testset "Mackey and Glass" begin
-    prob = DDEProblemLibrary.prob_dde_DDETST_A1
+    prob = prob_dde_DDETST_A1
 
     # Vern6
     solve(prob, MethodOfSteps(Vern6()))
