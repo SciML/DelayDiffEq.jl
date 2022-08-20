@@ -20,11 +20,7 @@ using Test
         sol_scalar = solve(prob_scalar, alg)
 
         # fails due to floating point issues
-        if Sys.WORD_SIZE == 32
-            @test_broken sol_ip(ts, idxs = 1) ≈ sol_scalar(ts)
-        else
-            @test sol_ip(ts, idxs = 1) ≈ sol_scalar(ts)
-        end
+        @test sol_ip(ts, idxs = 1) ≈ sol_scalar(ts)
     end
 
     # Vern7
