@@ -1,11 +1,8 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary, Unitful
+using DelayDiffEq, Unitful
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-using DiffEqProblemLibrary.DDEProblemLibrary: remake_dde_constant_u0_tType,
-                                              prob_dde_constant_1delay_long_ip,
-                                              prob_dde_constant_1delay_long_scalar
+using DDEProblemLibrary: remake_dde_constant_u0_tType,
+  prob_dde_constant_1delay_long_ip, prob_dde_constant_1delay_long_scalar
 
 const probs = Dict(true => remake_dde_constant_u0_tType(prob_dde_constant_1delay_long_ip,
                                                         [1.0u"N"],
