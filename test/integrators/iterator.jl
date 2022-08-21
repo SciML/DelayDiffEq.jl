@@ -1,9 +1,7 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+const prob = prob_dde_constant_1delay_scalar
 
 @testset "Basic iterator" begin
     # compute the solution of the DDE

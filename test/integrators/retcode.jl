@@ -1,9 +1,7 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob = DDEProblemLibrary.prob_dde_constant_1delay_ip
+const prob = prob_dde_constant_1delay_ip
 
 @testset for composite in (true, false)
     alg = MethodOfSteps(composite ? AutoTsit5(Rosenbrock23()) : Tsit5();

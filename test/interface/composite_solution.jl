@@ -1,12 +1,10 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
-
-DDEProblemLibrary.importddeproblems()
 
 const T = OrdinaryDiffEq.ODECompositeSolution
 
 @testset "integrator" begin
-    prob = DDEProblemLibrary.prob_dde_constant_1delay_ip
+    prob = prob_dde_constant_1delay_ip
 
     integrator = init(prob, MethodOfSteps(AutoTsit5(Rosenbrock23())))
     @test integrator.sol isa T

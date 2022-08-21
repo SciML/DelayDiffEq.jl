@@ -1,10 +1,8 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
 const alg = MethodOfSteps(RK4(); constrained = false)
-const prob = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+const prob = prob_dde_constant_1delay_scalar
 
 # reference solution with delays specified
 @testset "reference" begin

@@ -1,10 +1,8 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob_ip = DDEProblemLibrary.prob_dde_constant_1delay_ip
-const prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+const prob_ip = prob_dde_constant_1delay_ip
+const prob_scalar = prob_dde_constant_1delay_scalar
 const ts = 0:0.1:10
 
 # ODE algorithms

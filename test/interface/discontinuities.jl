@@ -1,9 +1,7 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
-const prob = DDEProblemLibrary.prob_dde_constant_2delays_ip
+const prob = prob_dde_constant_2delays_ip
 
 # total order
 @testset "total order" begin
@@ -74,7 +72,7 @@ end
 # discontinuities induced by callbacks
 @testset "#190" begin
     cb = ContinuousCallback((u, t, integrator) -> 1, integrator -> nothing)
-    integrator = init(DDEProblemLibrary.prob_dde_constant_1delay_ip, MethodOfSteps(Tsit5());
+    integrator = init(prob_dde_constant_1delay_ip, MethodOfSteps(Tsit5());
                       callback = cb)
     sol = solve!(integrator)
     for t in 0:5

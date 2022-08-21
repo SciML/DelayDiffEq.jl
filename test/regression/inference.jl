@@ -1,11 +1,9 @@
-using DelayDiffEq, DiffEqProblemLibrary.DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary
 using Test
 
-DDEProblemLibrary.importddeproblems()
-
 @testset "init" begin
-    prob = DDEProblemLibrary.prob_dde_constant_1delay_ip
-    prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+    prob = prob_dde_constant_1delay_ip
+    prob_scalar = prob_dde_constant_1delay_scalar
 
     inferred = [BS3(), Tsit5(), RK4(), Vern6()]
     for alg in inferred
@@ -25,8 +23,8 @@ DDEProblemLibrary.importddeproblems()
 end
 
 @testset "discontinuity_time" begin
-    prob_inplace = DDEProblemLibrary.prob_dde_constant_1delay_ip
-    prob_scalar = DDEProblemLibrary.prob_dde_constant_1delay_scalar
+    prob_inplace = prob_dde_constant_1delay_ip
+    prob_scalar = prob_dde_constant_1delay_scalar
 
     for prob in (prob_inplace, prob_scalar)
         int = init(prob, MethodOfSteps(Tsit5()))
