@@ -1,0 +1,29 @@
+\begin{tikzpicture}
+\begin{groupplot}[
+    group style={
+        group size={1 by 2},
+        x descriptions at={edge bottom},
+        vertical sep={2\baselineskip},
+    },
+    xlabel={$t$},
+    xmin={0.0},
+    xmax={300.0},
+    width={0.9\linewidth},
+    height={0.4\linewidth},
+    legend pos={outer north east},
+    no marks
+]
+    \nextgroupplot[xmode=normal,ymode=log,ymin={1.0e-20},filter discard warning={false}]
+    \foreach \i in {1,...,4}{
+        \addplot+ table[x=timestamp,y={value\i}] {waltman.csv};
+        \addlegendentryexpanded{$x_\i$}
+    }
+
+    \nextgroupplot[]
+    \foreach \i in {5,6}{
+        \addplot+[] table[x=timestamp,y={value\i}] {waltman.csv};
+        \addlegendentryexpanded{$x_\i$}
+    }
+    \node [right] at (10, 250) {arguments};
+\end{groupplot}
+\end{tikzpicture}

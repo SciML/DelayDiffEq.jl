@@ -1,0 +1,124 @@
+diff '--color=auto' -ruN RADAR5-V2.1.orig/WALTMAN/dr-waltman.f RADAR5-V2.1.new/WALTMAN/dr-waltman.f
+--- RADAR5-V2.1.orig/WALTMAN/dr-waltman.f	2005-07-20 15:36:00.000000000 +0200
++++ RADAR5-V2.1.new/WALTMAN/dr-waltman.f	2022-08-22 00:14:59.265238455 +0200
+@@ -6,7 +6,6 @@
+         IMPLICIT REAL*8 (A-H,O-Z)
+ 
+ C --- PARAMETERS FOR RADAR5 (FULL JACOBIAN)
+-        REAL*4 TARRAY(2)
+         INTEGER, PARAMETER :: DP=kind(1D0)
+ C --->  PARAMETERS FOR RADAR5 (FULL JACOBIAN) <---
+         INTEGER, PARAMETER :: ND=6
+@@ -32,16 +31,14 @@
+         EXTERNAL  FCN,PHI,ARGLAG,JACLAG,SOLOUT
+ 
+ C ------ FILE DE DONNEES ----------
+-        OPEN(9,FILE='sol.out')
+-        OPEN(10,FILE='cont.out')
+-        REWIND 9
++        OPEN(10,FILE='waltman.csv')
+         REWIND 10
+ 
+   
+ C --- PARAMETER IN THE DIFFERENTIAL EQUATION
+         
+-	WRITE(6,*) 'TOLL = '
+-        READ(*,*) TOLL
++C ----  relative tolerance
++        TOLL= 1.0D-9
+ C ---   alpha
+         RPAR(1)= 1.8D0   
+ C ---   beta
+@@ -132,8 +129,7 @@
+         IWORK(14)=2
+ 
+ C _____________________________________________________________________
+-C --- CALL OF THE SUBROUTINE RADAR5   
+-        CALL DTIME(TARRAY)
++C --- CALL OF THE SUBROUTINE RADAR5
+         CALL RADAR5(N,FCN,PHI,ARGLAG,X,Y,XEND,H,
+      &                  RTOL,ATOL,ITOL,
+      &                  DUMMY,IJAC,MLJAC,MUJAC,
+@@ -141,7 +137,6 @@
+      &                  IMAS,SOLOUT,IOUT,
+      &                  WORK,IWORK,RPAR,IPAR,IDID,
+      &                  GRID,IPAST,DUMMY,MLMAS,MUMAS)
+-        CALL DTIME(TARRAY)
+ 
+ C --- PRINT FINAL SOLUTION SOLUTION
+         WRITE (6,90) X,Y(1),Y(2),Y(3),Y(4)
+@@ -149,7 +144,6 @@
+          DO J=14,20
+             ISTAT(J)=IWORK(J)
+          END DO
+-        WRITE(6,*)' ***** TOL=',RTOL,'  ELAPSED TIME=',TARRAY(1),' ****'
+         WRITE (6,91) (ISTAT(J),J=14,20)
+         WRITE (6,92) ISTAT(13)
+  90     FORMAT(1X,'X =',F8.2,'    Y =',4E18.10)
+@@ -157,7 +151,6 @@
+      &        ' accpt=',I6,' rejct=',I6,' dec=',I6,
+      &        ' sol=',I7)
+  92     FORMAT(' full its =',I7)
+-        WRITE(6,*) 'SOLUTION IS TABULATED IN FILES: sol.out & cont.out'
+ 
+         STOP
+         END
+@@ -169,17 +162,17 @@
+ C       AT EQUIDISTANT OUTPUT-POINTS
+         IMPLICIT REAL*8 (A-H,O-Z)
+         INTEGER, PARAMETER :: DP=kind(1D0)
+-        REAL(kind=DP), PARAMETER :: XSTEP=0.01D0
++        REAL(kind=DP), PARAMETER :: XSTEP=0.1D0
+         REAL(kind=DP), dimension(N) :: Y
+         REAL(kind=DP), dimension(LRC) :: CONT
+         REAL(kind=DP), dimension(1) :: RPAR
+         EXTERNAL PHI
+ C       XOUT IS USED FOR THE DENSE OUTPUT
+         COMMON /INTERN/XOUT
+-
+-        WRITE (9,99) X,Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
++        
+ C
+         IF (NR.EQ.1) THEN
++           WRITE (10,'("timestamp,",6("value",I1,:,","))') 1,2,3,4,5,6
+            WRITE (10,99) X,Y(1),Y(2),Y(3),Y(4),Y(5),Y(6)
+            XOUT=XSTEP
+         ELSE
+@@ -197,7 +190,7 @@
+               GOTO 10
+            END IF
+         END IF
+- 99     FORMAT(1X,'X =',F12.6,'    Y =',6E18.10)
++ 99     FORMAT((F0.6,:,','),6(G0.10,:,','))
+         RETURN
+         END
+ C
+diff '--color=auto' -ruN RADAR5-V2.1.orig/WALTMAN/Makefile RADAR5-V2.1.new/WALTMAN/Makefile
+--- RADAR5-V2.1.orig/WALTMAN/Makefile	2005-05-09 19:00:22.000000000 +0200
++++ RADAR5-V2.1.new/WALTMAN/Makefile	2022-08-25 22:37:49.866650847 +0200
+@@ -1,16 +1,12 @@
+-FC = f90
++FC := gfortran
++FCFLAGS := -c -w -std=legacy
+ 
+-FCFLAGS = -c
++OBJ1 := dr-waltman.o
++OBJ2 := ../radar5.o ../dc_decdel.o ../decsol.o ../contr5.o
+ 
+-DEBUGFLAGS = -O
++.PHONY: prog
++prog: ${OBJ1} ${OBJ2}
++	${FC} -o waltman ${OBJ1} ${OBJ2}
+ 
+-LIB = /lib /usr/lib
+-
+-.f.o:
+-	$(FC) $(FCFLAGS) $(DEBUGFLAGS) $*.f
+-
+-OBJ2 =    ../radar5.o ../dc_decdel.o ../decsol.o ../contr5.o 
+-OBJ1 = dr-waltman.o     
+-
+-prog :  $(OBJ1) 
+-	$(FC) $(DEBUGFLAGS) -o driver $(OBJ1) $(OBJ2)
++%.o: %.f
++	${FC} ${FCFLAGS} -o $@ $<

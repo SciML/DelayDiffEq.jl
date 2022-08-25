@@ -1,0 +1,17 @@
+\begin{tikzpicture}
+\begin{axis}[
+    xlabel={error},
+    ylabel={time (s)},
+    xmode={log},
+    ymode={log},
+    filter discard warning={false},
+    legend pos={north east},
+    width={0.95\linewidth},
+    height={1.05\linewidth},
+]
+    \foreach \alg in {RK4,DP5,OwrenZen3,OwrenZen5,Vern6,Vern7,Vern8,Vern9,Rosenbrock23,Rodas4,Rodas5P}{
+        \addplot+ table [discard if not={alg}{\alg}, x=error, y=time] {benchmark.csv};
+        \addlegendentryexpanded{\alg}
+    }
+\end{axis}
+\end{tikzpicture}

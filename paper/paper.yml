@@ -1,0 +1,23 @@
+title: "DelayDiffEq: Generating Delay Differential Equation Solvers via Recursive Embedding of Ordinary Differential Equation Solvers"
+keywords:
+  - Julia
+  - Delay Differential Equation
+  - Scientific Computing
+authors:
+  - name: David Widmann
+    orcid: 0000-0001-9282-053X
+    affiliation: 1
+  - name: Chris Rackauckas
+    orcid: 0000-0001-5850-0663
+    affiliation: 2,3,4
+affiliations:
+  - name: Uppsala University, Sweden
+    index: 1
+  - name: Massachusetts Institute of Technology, USA
+    index: 2
+  - name: Julia Computing
+    index: 3
+  - name: Pumas-AI
+    index: 4
+date: 25 August 2022
+bibliography: ref.bib

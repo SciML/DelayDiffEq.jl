@@ -1,0 +1,27 @@
+\begin{tikzpicture}
+    \begin{groupplot}[
+        group style={
+            group size={1 by 2},
+            vertical sep={5\baselineskip},
+        },
+        width={0.9\linewidth},
+        height={0.5\linewidth},
+        no marks,
+    ]  
+        \nextgroupplot[
+            title={solution},
+            xlabel={$t$},
+            ylabel={$x(t)$},
+            xmin={300.0},
+            xmax={600.0},
+        ]
+        \addplot+ table [x=t,y=x] {mackey_glass.csv};
+    
+        \nextgroupplot[
+            title={time delay embedding},
+            xlabel={$x(t)$},
+            ylabel={$x(t - \tau)$},
+        ]
+        \addplot+ table [x=x,y=xtau] {mackey_glass.csv};
+    \end{groupplot}
+\end{tikzpicture}
