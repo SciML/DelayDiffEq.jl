@@ -490,8 +490,14 @@ end
 
 DiffEqBase.has_destats(::DDEIntegrator) = true
 
-function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
-    OrdinaryDiffEq._ode_addsteps!(integrator, args...)
+@static if isdefined(OrdinaryDiffEq,:DEPRECATED_ADDSTEPS)
+    function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
+        OrdinaryDiffEq.ode_addsteps!(integrator, args...)
+    end
+else
+    function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
+        OrdinaryDiffEq._ode_addsteps!(integrator, args...)
+    end
 end
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
                                                 t,
