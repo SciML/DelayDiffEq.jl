@@ -36,10 +36,10 @@ function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = 
     # is incorrect
     if iscomposite(alg)
         _ode_addsteps!(k, t, uprev, u, dt, f, p, cache.caches[cache.current],
-                                      always_calc_begin, true, true)
+                       always_calc_begin, true, true)
     else
         _ode_addsteps!(k, t, uprev, u, dt, f, p, cache, always_calc_begin,
-                                      true, true)
+                       true, true)
     end
     @inbounds for i in 1:length(k)
         copyat_or_push!(ode_integrator.k, i, k[i])
@@ -83,10 +83,10 @@ function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = f
 
     if iscomposite(alg)
         _ode_addsteps!(k, t, uprev, u, dt, f, p, cache.caches[cache.current],
-                                      always_calc_begin, true, true)
+                       always_calc_begin, true, true)
     else
         _ode_addsteps!(k, t, uprev, u, dt, f, p, cache,
-                                      always_calc_begin, true, true)
+                       always_calc_begin, true, true)
     end
     @inbounds for i in 1:length(k)
         copyat_or_push!(ode_integrator.k, i, k[i])
