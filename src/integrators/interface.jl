@@ -490,15 +490,18 @@ end
 
 DiffEqBase.has_destats(::DDEIntegrator) = true
 
-@static if isdefined(OrdinaryDiffEq,:DEPRECATED_ADDSTEPS)
+@static if isdefined(OrdinaryDiffEq, :DEPRECATED_ADDSTEPS)
     function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
         OrdinaryDiffEq.ode_addsteps!(integrator, args...)
     end
+    const _ode_addsteps! = OrdinaryDiffEq._ode_addsteps!
 else
     function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
-        OrdinaryDiffEq._ode_addsteps!(integrator, args...)
+        _ode_addsteps!(integrator, args...)
     end
+    const _ode_addsteps! = DiffEqBase.addsteps!
 end
+
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
                                                 t,
                                                 modify_save_endpoint::Type{Val{T}} = Val{
@@ -532,7 +535,7 @@ function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegra
         # update interpolation data of the integrator using the old dense history
         # of the ODE integrator
         resize!(integrator.k, integrator.kshortsize)
-        DiffEqBase.addsteps!(integrator, integrator.f, true, true, true)
+        _ode_addsteps!(integrator, integrator.f, true, true, true)
 
         # copy interpolation data to the ODE integrator
         recursivecopy!(ode_integrator.k, integrator.k)
