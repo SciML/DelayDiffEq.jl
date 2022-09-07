@@ -490,16 +490,18 @@ end
 
 DiffEqBase.has_destats(::DDEIntegrator) = true
 
+# https://github.com/SciML/OrdinaryDiffEq.jl/pull/1753
+# Backwards compatability
 @static if isdefined(OrdinaryDiffEq, :DEPRECATED_ADDSTEPS)
-    function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
-        OrdinaryDiffEq.ode_addsteps!(integrator, args...)
-    end
     const _ode_addsteps! = OrdinaryDiffEq._ode_addsteps!
+    const ode_addsteps! = OrdinaryDiffEq.ode_addsteps!
 else
-    function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
-        _ode_addsteps!(integrator, args...)
-    end
     const _ode_addsteps! = DiffEqBase.addsteps!
+    const ode_addsteps! = OrdinaryDiffEq._ode_addsteps!
+end
+
+function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
+    ode_addsteps!(integrator, args...)
 end
 
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
@@ -535,7 +537,7 @@ function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegra
         # update interpolation data of the integrator using the old dense history
         # of the ODE integrator
         resize!(integrator.k, integrator.kshortsize)
-        _ode_addsteps!(integrator, integrator.f, true, true, true)
+        ode_addsteps!(integrator, integrator.f, true, true, true)
 
         # copy interpolation data to the ODE integrator
         recursivecopy!(ode_integrator.k, integrator.k)
