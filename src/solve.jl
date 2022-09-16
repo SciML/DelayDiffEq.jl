@@ -25,7 +25,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
                                dense, # and no dense output
                            dt = zero(eltype(prob.tspan)),
-                           dtmin = DiffEqBase.prob2dtmin(prob; use_end_time = false),
+                           dtmin = DiffEqBase.prob2dtmin(prob),
                            dtmax = eltype(prob.tspan)(prob.tspan[end] - prob.tspan[1]),
                            force_dtmin = false,
                            adaptive = DiffEqBase.isadaptive(alg),
