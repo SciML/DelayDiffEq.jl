@@ -422,7 +422,7 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
 
             # abort integration following same criteria as for ODEs:
             # maxiters exceeded, dt <= dtmin, integration unstable
-            DiffEqBase.check_error!(integrator) === :Success || return sol
+            DiffEqBase.check_error!(integrator) == :Success || return sol
 
             # calculate next step
             OrdinaryDiffEq.perform_step!(integrator)

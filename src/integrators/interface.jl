@@ -561,13 +561,13 @@ function DiffEqBase.step!(integrator::DDEIntegrator)
         if integrator.opts.advance_to_tstop
             while integrator.tdir * integrator.t < first(integrator.opts.tstops)
                 OrdinaryDiffEq.loopheader!(integrator)
-                DiffEqBase.check_error!(integrator) === :Success || return
+                DiffEqBase.check_error!(integrator) == :Success || return
                 OrdinaryDiffEq.perform_step!(integrator)
                 OrdinaryDiffEq.loopfooter!(integrator)
             end
         else
             OrdinaryDiffEq.loopheader!(integrator)
-            DiffEqBase.check_error!(integrator) === :Success || return
+            DiffEqBase.check_error!(integrator) == :Success || return
             OrdinaryDiffEq.perform_step!(integrator)
             OrdinaryDiffEq.loopfooter!(integrator)
 
