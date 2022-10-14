@@ -447,7 +447,7 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
                                               timeseries_errors = opts.timeseries_errors,
                                               dense_errors = opts.dense_errors)
     end
-    sol.retcode === :Default || return sol
+    sol.retcode == :Default || return sol
 
     integrator.sol = DiffEqBase.solution_new_retcode(sol, :Success)
 end
