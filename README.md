@@ -41,3 +41,30 @@ Both constant and state-dependent lags are supported. Interfacing with OrdinaryD
 ## Available Solvers
 
 For the list of available solvers, please refer to the [DifferentialEquations.jl DDE Solvers page](https://diffeq.sciml.ai/stable/solvers/dde_solve/). For options for the `solve` command, see the [common solver options page](https://diffeq.sciml.ai/stable/basics/common_solver_opts/).
+
+## Citing
+
+If you use DelayDiffEq.jl in your work, please cite the following:
+
+```bib
+@article{DifferentialEquations.jl-2017,
+ author = {Rackauckas, Christopher and Nie, Qing},
+ doi = {10.5334/jors.151},
+ journal = {The Journal of Open Research Software},
+ keywords = {Applied Mathematics},
+ note = {Exported from https://app.dimensions.ai on 2019/05/05},
+ number = {1},
+ pages = {},
+ title = {DifferentialEquations.jl – A Performant and Feature-Rich Ecosystem for Solving Differential Equations in Julia},
+ url = {https://app.dimensions.ai/details/publication/pub.1085583166 and http://openresearchsoftware.metajnl.com/articles/10.5334/jors.151/galley/245/download/},
+ volume = {5},
+ year = {2017}
+}
+
+@article{widmann2022delaydiffeq,
+  title={DelayDiffEq: Generating Delay Differential Equation Solvers via Recursive Embedding of Ordinary Differential Equation Solvers},
+  author={Widmann, David and Rackauckas, Chris},
+  journal={arXiv preprint arXiv:2208.12879},
+  year={2022}
+}
+```
