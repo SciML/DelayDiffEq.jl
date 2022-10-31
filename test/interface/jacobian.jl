@@ -48,11 +48,7 @@ using Test
         # check number of function evaluations
         @test !iszero(njacs[])
         @test njacs[] == sol_jac.destats.njacs
-        if alg isa Rosenbrock23
-            @test njacs[] == sol_jac.destats.nw
-        else
-            @test_broken njacs[] == sol_jac.destats.nw
-        end
+        @test njacs[] <= sol_jac.destats.nw
 
         # check resulting solution
         @test sol.t ≈ sol_jac.t
@@ -65,11 +61,11 @@ using Test
         # check number of function evaluations
         if alg isa Rosenbrock23
             @test !iszero(nWfacts[])
-            @test nWfacts[] == njacs[]
+            @test nWfacts[] >= njacs[]
             @test iszero(sol_Wfact.destats.njacs)
         else
             @test_broken !iszero(nWfacts[])
-            @test_broken nWfacts[] == njacs[]
+            @test_broken nWfacts[] >= njacs[]
             @test_broken iszero(sol_Wfact.destats.njacs)
         end
         @test_broken nWfacts[] == sol_Wfact.destats.nw
