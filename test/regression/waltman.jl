@@ -11,7 +11,7 @@ const RADAR5_SOL = [6.154488183e-16, 3.377120916e-7, 4.22140331e-7,
     2.142554562e-6, 299.9999999, 299.6430338]
 
 function test_waltman_sol(sol)
-    @test sol.retcode == :Success
+    @test sol.retcode == ReturnCode.Success
     @test sol.t[end] == 300
 
     # compare solution at the final time point with RADAR5
