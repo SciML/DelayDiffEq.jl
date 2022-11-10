@@ -422,7 +422,7 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
 
             # abort integration following same criteria as for ODEs:
             # maxiters exceeded, dt <= dtmin, integration unstable
-            DiffEqBase.check_error!(integrator) == :Success || return sol
+            DiffEqBase.check_error!(integrator) == ReturnCode.Success || return sol
 
             # calculate next step
             OrdinaryDiffEq.perform_step!(integrator)
@@ -447,9 +447,9 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
                                               timeseries_errors = opts.timeseries_errors,
                                               dense_errors = opts.dense_errors)
     end
-    sol.retcode == :Default || return sol
+    sol.retcode == ReturnCode.Default || return sol
 
-    integrator.sol = DiffEqBase.solution_new_retcode(sol, :Success)
+    integrator.sol = DiffEqBase.solution_new_retcode(sol, ReturnCode.Success)
 end
 
 function OrdinaryDiffEq.initialize_callbacks!(integrator::DDEIntegrator,
