@@ -11,7 +11,7 @@ using RecursiveArrayTools
 using UnPack
 
 import ArrayInterface
-import NonlinearSolve
+import SimpleNonlinearSolve
 
 using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
                   DEIntegrator, AbstractDDEProblem
