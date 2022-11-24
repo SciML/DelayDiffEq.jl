@@ -1,7 +1,7 @@
 name = "DelayDiffEq"
 uuid = "bcd4f6db-9728-5f36-b5f7-82caef46ccdb"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
-version = "5.39.1"
+version = "5.40.0"
 
 [deps]
 ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
@@ -9,22 +9,22 @@ DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
-NonlinearSolve = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+SimpleNonlinearSolve = "727e6d20-b764-4bd8-a329-72de5adea6c7"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 ArrayInterface = "3, 4, 5, 6"
 DataStructures = "0.18"
 DiffEqBase = "6"
-NonlinearSolve = "0.3"
 OrdinaryDiffEq = "6.19.3"
 RecursiveArrayTools = "2"
 Reexport = "0.2, 1.0"
 SciMLBase = "1.70"
+SimpleNonlinearSolve = "0.1"
 UnPack = "0.1, 1.0"
 julia = "1.6"
