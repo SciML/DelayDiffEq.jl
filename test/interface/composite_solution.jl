@@ -1,17 +1,15 @@
 using DelayDiffEq, DDEProblemLibrary
 using Test
 
-const T = OrdinaryDiffEq.ODECompositeSolution
-
 @testset "integrator" begin
     prob = prob_dde_constant_1delay_ip
 
     integrator = init(prob, MethodOfSteps(AutoTsit5(Rosenbrock23())))
-    @test integrator.sol isa T
-    @test integrator.integrator.sol isa T
+    @test integrator.sol isa SciMLBase.ODESolution
+    @test integrator.integrator.sol isa SciMLBase.ODESolution
 
     sol1 = solve!(integrator)
-    @test sol1 isa T
+    @test sol1 isa SciMLBase.ODESolution
 
     # compare integration grid
     sol2 = solve(prob, MethodOfSteps(Tsit5()))
@@ -30,7 +28,7 @@ end
                       [1.0], (p, t) -> [1.0], (0.0, 5.0))
     sol = solve(prob, alg)
     compositesol = solve(prob, compositealg)
-    @test compositesol isa T
+    @test compositesol isa SciMLBase.ODESolution
     @test sol.t == compositesol.t
     @test sol.u == compositesol.u
 
@@ -38,7 +36,7 @@ end
                           (0.0, 5.0))
     sol_oop = solve(prob_oop, alg)
     compositesol_oop = solve(prob_oop, compositealg)
-    @test compositesol_oop isa T
+    @test compositesol_oop isa SciMLBase.ODESolution
     @test sol_oop.t == compositesol_oop.t
     @test sol_oop.u == compositesol_oop.u
 end
