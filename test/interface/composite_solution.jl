@@ -5,11 +5,11 @@ using Test
     prob = prob_dde_constant_1delay_ip
 
     integrator = init(prob, MethodOfSteps(AutoTsit5(Rosenbrock23())))
-    @test integrator.sol isa T
-    @test integrator.integrator.sol isa T
+    @test integrator.sol isa SciMLBase.ODESolution
+    @test integrator.integrator.sol isa SciMLBase.ODESolution
 
     sol1 = solve!(integrator)
-    @test sol1 isa T
+    @test sol1 isa SciMLBase.ODESolution
 
     # compare integration grid
     sol2 = solve(prob, MethodOfSteps(Tsit5()))
