@@ -1,5 +1,5 @@
 # solver
-mutable struct FPSolver{algType, iip, uTolType, C <: DiffEqBase.AbstractNLSolverCache} <:
+mutable struct FPSolver{algType, iip, uTolType, C <: AbstractNLSolverCache} <:
                OrdinaryDiffEq.AbstractNLSolver{algType, iip}
     alg::algType
     κ::uTolType
@@ -13,15 +13,15 @@ mutable struct FPSolver{algType, iip, uTolType, C <: DiffEqBase.AbstractNLSolver
 end
 
 # caches
-struct FPFunctionalCache{uType, uNoUnitsType} <: DiffEqBase.AbstractNLSolverCache
+struct FPFunctionalCache{uType, uNoUnitsType} <: AbstractNLSolverCache
     atmp::uNoUnitsType
     dz::uType
 end
 
-struct FPFunctionalConstantCache <: DiffEqBase.AbstractNLSolverCache end
+struct FPFunctionalConstantCache <: AbstractNLSolverCache end
 
 mutable struct FPAndersonCache{uType, uNoUnitsType, uEltypeNoUnits, D} <:
-               DiffEqBase.AbstractNLSolverCache
+               AbstractNLSolverCache
     atmp::uNoUnitsType
     dz::uType
     dzold::uType
@@ -36,7 +36,7 @@ mutable struct FPAndersonCache{uType, uNoUnitsType, uEltypeNoUnits, D} <:
 end
 
 mutable struct FPAndersonConstantCache{uType, uEltypeNoUnits, D} <:
-               DiffEqBase.AbstractNLSolverCache
+               AbstractNLSolverCache
     dz::uType
     dzold::uType
     z₊old::uType
