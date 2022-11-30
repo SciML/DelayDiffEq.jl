@@ -19,11 +19,12 @@ using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegr
 using DiffEqBase: @..
 
 if isdefined(OrdinaryDiffEq, :FastConvergence)
-    using OrdinaryDiffEq: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence,
-                    Divergence, AbstractNLSolverCache
+    using OrdinaryDiffEq: FastConvergence, Convergence, SlowConvergence,
+                          VerySlowConvergence,
+                          Divergence, AbstractNLSolverCache
 else
     using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence,
-        Divergence, AbstractNLSolverCache
+                      Divergence, AbstractNLSolverCache
 end
 using OrdinaryDiffEq: RosenbrockMutableCache
 
