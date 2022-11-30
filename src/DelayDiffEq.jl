@@ -18,9 +18,13 @@ using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegr
 
 using DiffEqBase: @..
 
-using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence,
-                  Divergence
-
+if isdefined(OrdinaryDiffEq, :FastConvergence)
+    using OrdinaryDiffEq: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence,
+                    Divergence, AbstractNLSolverCache
+else
+    using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence,
+        Divergence, AbstractNLSolverCache
+end
 using OrdinaryDiffEq: RosenbrockMutableCache
 
 import SciMLBase

@@ -374,6 +374,6 @@ function unwrap_alg(integrator::DDEIntegrator, is_stiff)
     end
 end
 
-function DiffEqBase.nlsolve_f(integrator::DDEIntegrator)
-    DiffEqBase.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
+function OrdinaryDiffEq.nlsolve_f(integrator::DDEIntegrator)
+    OrdinaryDiffEq.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
 end
