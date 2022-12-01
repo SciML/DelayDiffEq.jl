@@ -21,7 +21,8 @@ using DiffEqBase: @..
 if isdefined(OrdinaryDiffEq, :FastConvergence)
     using OrdinaryDiffEq: FastConvergence, Convergence, SlowConvergence,
                           VerySlowConvergence,
-                          Divergence, AbstractNLSolverCache
+                          Divergence, AbstractNLSolverCache, NLNewton,
+                          NLAnderson, NLFunctional
 else
     using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence,
                       Divergence, AbstractNLSolverCache
