@@ -4,7 +4,7 @@
 \setcounter{page}{1}
 
 % math support
-\usepackage{mathtools}
+\usepackage{amsmath}
 
 % links to orcid
 \usepackage{orcidlink}
@@ -201,8 +201,8 @@ $x_k \colon [t_{k-1}, t_{k-1} + \tau] \to \mathbb{R}^n$ of the IVP
         x_k(t_{k-1}) &= x_{k-1}(t_{k-1}),
     \end{aligned}
 \end{equation}
-where $t_k \coloneqq t_0 + k\tau$. Then the function $x$ defined by
-$x(t) \coloneqq x_k(t) \Longleftrightarrow t \in [t_{k-1}, t_k)$ is a solution
+where $t_k := t_0 + k\tau$. Then the function $x$ defined by
+$x(t) := x_k(t) \Longleftrightarrow t \in [t_{k-1}, t_k)$ is a solution
 to the original IVP in eq.~\eqref{eq:dde_ivp}.
 
 This algorithm for solving DDEs is called method of steps. It can be applied more
