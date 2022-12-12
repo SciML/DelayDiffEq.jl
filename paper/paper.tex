@@ -9,9 +9,6 @@
 % links to orcid
 \usepackage{orcidlink}
 
-% quotes
-\usepackage{csquotes}
-
 % plots
 \usepackage{pgfplots,pgfplotstable}
 \usepgfplotslibrary{groupplots,colorbrewer}
@@ -247,9 +244,8 @@ So far one of the core design principles of \pkg{DelayDiffEq} has been to exploi
 the large amount of numerical ODE algorithms readily available in the Julia
 package \pkg{OrdinaryDiffEq}. The ODE solvers in \pkg{OrdinaryDiffEq} support both stiff
 and non-stiff ODEs\footnote{Although it
-\textcquote{burrage95_parallel_sequential_methods}{is extremely difficult
-to classify stiffness in a completely rigorous manner}, it is commonly characterized
-by the existence of processes with significantly different time
+``is extremely difficult to classify stiffness in a completely rigorous manner''~\cite{burrage95_parallel_sequential_methods},
+it is commonly characterized by the existence of processes with significantly different time
 scales~\cite{burrage95_parallel_sequential_methods,dahlquist75_recent_work_stiff}.}.
 Moreover, the numerical methods are continuous and come with specialized interpolations.
 
