@@ -43,9 +43,6 @@ println("Check some other integrators")
 println("Rosenbrock23")
 @test_nowarn solve(prob, MethodOfSteps(Rosenbrock23(chunk_size = 1)); dt = 0.5)
 
-println("Rosenbrock32")
-@test_nowarn solve(prob, MethodOfSteps(Rosenbrock32(chunk_size = 1)); dt = 0.5)
-
 for alg in CACHE_TEST_ALGS
     println(nameof(typeof(alg)))
     @test_nowarn solve(prob, MethodOfSteps(alg); dt = 0.5)
