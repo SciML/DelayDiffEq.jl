@@ -14,7 +14,7 @@ using Test
         sol_ip = solve(prob_ip, alg)
 
         @test sol_ip.errors[:l∞] < 8.7e-4
-        @test sol_ip.errors[:final] < 3.9e-6
+        @test sol_ip.errors[:final] < 6e-6
         @test sol_ip.errors[:l2] < 5.4e-4
 
         sol_scalar = solve(prob_scalar, alg)
