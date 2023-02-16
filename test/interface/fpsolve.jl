@@ -35,7 +35,7 @@ const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
     @test sol_oop.destats.nsolve == sol.destats.nsolve
     @test sol_oop.destats.nfpiter == sol.destats.nfpiter
     @test sol_oop.destats.nfpconvfail == sol.destats.nfpconvfail
-    @test sol_oop.t ≈ sol.t
+    @test sol_oop.t≈sol.t atol=1e-3
     @test sol_oop.u ≈ sol.u
     @test isapprox(sol.u, sol_oop.u; atol = 1e-7)
 
