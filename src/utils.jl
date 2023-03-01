@@ -308,14 +308,14 @@ function build_history_function(prob, alg, rate_prototype, reltol;
                                             dense = true, k = ode_ks, interp = ode_id,
                                             alg_choice = ode_alg_choice,
                                             calculate_error = false,
-                                            destats = DiffEqBase.DEStats(0))
+                                            stats = DiffEqBase.DEStats(0))
     else
         ode_id = OrdinaryDiffEq.InterpolationData(ode_f, ode_timeseries, ode_ts, ode_ks,
                                                   true, ode_cache) # dense = true
         ode_sol = DiffEqBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
                                             dense = true, k = ode_ks, interp = ode_id,
                                             calculate_error = false,
-                                            destats = DiffEqBase.DEStats(0))
+                                            stats = DiffEqBase.DEStats(0))
     end
 
     # reserve capacity

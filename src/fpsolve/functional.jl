@@ -24,7 +24,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
     elseif previter > aa_start
         # actually perform Anderson acceleration
         integrator.u = OrdinaryDiffEq.anderson(integrator.u, cache)
-        integrator.destats.nsolve += 1
+        integrator.stats.nsolve += 1
     end
 
     # update ODE integrator to next time interval together with correct interpolation
@@ -53,7 +53,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
     elseif previter > aa_start
         # actually perform Anderson acceleration
         OrdinaryDiffEq.anderson!(integrator.u, cache)
-        integrator.destats.nsolve += 1
+        integrator.stats.nsolve += 1
     end
 
     # update ODE integrator to next time interval together with correct interpolation
