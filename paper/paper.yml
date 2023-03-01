@@ -4,10 +4,10 @@ keywords:
   - Delay Differential Equation
   - Scientific Computing
 authors:
-  - name: David Widmann\texorpdfstring{~\orcidlink{0000-0001-9282-053X}}{}
+  - name: David Widmann\texorpdfstring{~\mbox{\orcidlink{0000-0001-9282-053X}}}{}
     orcid: 0000-0001-9282-053X
     affiliation: 1
-  - name: Chris Rackauckas\texorpdfstring{~\orcidlink{0000-0001-5850-0663}}{}
+  - name: Chris Rackauckas\texorpdfstring{~\mbox{\orcidlink{0000-0001-9282-053X}}}{}
     orcid: 0000-0001-5850-0663
     affiliation: "2,3,4"
 affiliations:

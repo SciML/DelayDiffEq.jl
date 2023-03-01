@@ -2,18 +2,20 @@
 
 %% Inspired by the template from the International Journal of Computer Applications (IJCA)
 
-\usepackage[scaled=0.92]{helvet}
 \def\fileversion{v1.0}
 \def\filedate{2019 04 07}
 %
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{juliacon}
-\RequirePackage{latexsym}
-\RequirePackage{url}
-
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-
+% Fonts
+\RequirePackage[utf8]{inputenc}% UTF-8 input
+\RequirePackage[T1]{fontenc}% T1 fonts
+\renewcommand{\rmdefault}{ptm}% Roman font
+\renewcommand{\ttdefault}{cmtt}% Typewriter font
+\RequirePackage[scaled=0.92]{helvet}% Sans-serif font
+\RequirePackage{bm}
+%%\RequirePackage{microtype}
+%
 \newif\ifmanuscript
 \@twosidetrue\@mparswitchtrue
 %
@@ -132,11 +134,7 @@
 \columnseprule 0pt
 %
 \def\titlefont{\huge\selectfont\centering\mathversion{bold}}
-\def\authorfont{\fontfamily{phv}\fontsize{10}{12}\selectfont\rightskip0pt plus1fill} %\mathversion{sfnormal}
-\def\rhfont{\fontfamily{phv}\fontsize{9}{10}\selectfont\mathversion{sfnormal}}
 
-\def\sectionfont{\fontfamily{ptm}\fontsize{9}{12}\capsshape\selectfont\raggedright} %\mathversion{rmnormal}
-\def\subsectionfont{\fontfamily{ptm}\fontsize{9}{12}\selectfont} %\mathversion{rmnormal}
 \def\figcaptionfont{\fontsize{8}{10}\selectfont\mathversion{normal}}%
 \def\subcaptionfont{\fontsize{8}{10}\selectfont\mathversion{normal}}%
 \def\subcaption#1{{\centering\subcaptionfont#1\par}}
@@ -759,14 +757,9 @@ to\hsize{\if@nfeven\else\hfil\fi\box\@tempboxa\if@nfeven\hfil\fi}
 \def\@categories{}
 
 \newenvironment{ackslike}[1]
-  {\par \footnotesize
-   \@ucheadfalse
-   \@startsection{subsection}{2}{\z@}{-16pt plus -2pt minus -1pt}{2pt}{\sf}*
-   {\uppercase{#1}}\par\normalsize
-        }
-  {\par}
+ {\par\subsection*{\uppercase{#1}}\par\normalsize}
+ {\par}
 \newenvironment{acks}{\begin{ackslike}{ \normalsize\rm\bf Acknowledgments}}{\end{ackslike}}
-%
 
 \newcommand\headingtable{%
   \begin{tabular}[b]{l} {\@journalName}\end{tabular}}
@@ -843,19 +836,6 @@ to\hsize{\if@nfeven\else\hfil\fi\box\@tempboxa\if@nfeven\hfil\fi}
  {\@enumctr}\labelwidth\z@\leftmargin\z@
  \itemindent\parindent \advance\itemindent\labelsep}\fi}
 %
-\def\ack{ \par \footnotesize
-\@ucheadfalse
-\@startsection{subsection}{2}{\z@}{-16pt plus -2pt minus
- -1pt}{2pt}{\sf}*{ACKNOWLEDGMENT}\par\normalsize
-}
-\def\endack{\par}
-
-% provide both spellings of Acknowledgment(s)
-\let\acknowledgments\acks
-\let\endacknowledgments\endacks
-\let\acknowledgment\ack
-\let\endacknowledgment\endack
-%
 \newcommand{\bibemph}[1]{{\em#1}}
 \newcommand{\bibemphic}[1]{{\em#1\/}}
 \newcommand{\bibsc}[1]{{\sc#1}}
@@ -927,17 +907,11 @@ to\hsize{\if@nfeven\else\hfil\fi\box\@tempboxa\if@nfeven\hfil\fi}
 \voffset-5pc
 \hoffset-6.03pc
 
-\usepackage{times}
-%% \usepackage[mtbold]{mathtime}
-\usepackage{bm}
-\usepackage{graphicx}% Include figure files
-\usepackage{hyperref}
-%%\usepackage{microtype}
-\renewcommand{\ttdefault}{cmtt}
-
-\usepackage{jlcode}
-
-\usepackage{authblk}
+% Load additional packages
+\RequirePackage{graphicx}% Include figure files
+\RequirePackage{jlcode}% Julia code
+\RequirePackage{authblk}% Title, author etc. block
+\RequirePackage{hyperref}% Hyperlinks
 
 \endinput
 

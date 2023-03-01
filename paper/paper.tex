@@ -4,7 +4,10 @@
 \setcounter{page}{1}
 
 % math support
-\usepackage{amsmath}
+\usepackage{mathtools}
+
+% hyphenation
+\usepackage[english]{babel}
 
 % links to orcid
 \usepackage{orcidlink}
@@ -15,7 +18,7 @@
 
 % configuration
 \pgfplotsset{
-    compat=1.16,
+    compat=1.15,
     % CSV files use comma as delimiter
     table/col sep=comma,
     % folders with CSV files
@@ -23,8 +26,8 @@
     % all lines are thick
     every axis plot/.append style={thick},
     % small labels
-    legend style={font=\scriptsize},
-    ticklabel style={font=\scriptsize},
+    legend style={font=\footnotesize},
+    ticklabel style={font=\footnotesize},
     % initialize Set1-5:
     cycle list/Set1-5,
     % combine it with ’mark list*’ and 'linestyles*':
@@ -68,9 +71,10 @@
 \def\pkg#1{\texttt{#1}}
 \def\alg#1{\texttt{#1}}
 
-\begin{document}
-
+% Metadata
 \input{header}
+
+\begin{document}
 
 \maketitle
 
@@ -181,7 +185,7 @@ In Figure~\ref{fig:mackey_glass} the chaotic solution computed with \pkg{DelayDi
 \begin{figure}
     \centering
     \input{figures/mackey_glass.tex}
-    \caption{Solution of problem~\eqref{eq:mackey_glass} and its time delay embedding.}
+    \caption{Solution of problem~\eqref{eq:mackey_glass} and its time delay embedding.}%
     \label{fig:mackey_glass}
 \end{figure}
 
@@ -198,8 +202,8 @@ $x_k \colon [t_{k-1}, t_{k-1} + \tau] \to \mathbb{R}^n$ of the IVP
         x_k(t_{k-1}) &= x_{k-1}(t_{k-1}),
     \end{aligned}
 \end{equation}
-where $t_k := t_0 + k\tau$. Then the function $x$ defined by
-$x(t) := x_k(t) \Longleftrightarrow t \in [t_{k-1}, t_k)$ is a solution
+where $t_k \coloneqq t_0 + k\tau$. Then the function $x$ defined by
+$x(t) \coloneqq x_k(t) \Longleftrightarrow t \in [t_{k-1}, t_k)$ is a solution
 to the original IVP in eq.~\eqref{eq:dde_ivp}.
 
 This algorithm for solving DDEs is called method of steps. It can be applied more
@@ -297,7 +301,7 @@ Hereby we proceed in the following way:
     on time interval $[t_{k - 1}, t_k]$ by completing this discrete approximation
     using the specialized collocation polynomials in \pkg{OrdinaryDiffEq}.
     \item \label{enum:check} If in steps~\ref{enum:ode_step} and~\ref{enum:dense}
-    the "old" dense approximation was only evaluated at time points $\leq t_{k - 1}$,
+    the ``old'' dense approximation was only evaluated at time points $\leq t_{k - 1}$,
     we stop. Otherwise we repeat steps~\ref{enum:ode_step} and~\ref{enum:dense} iteratively based on the newly calculated approximations,
     until some stopping criterion is met.
 \end{enumerate}
@@ -362,7 +366,7 @@ We do not present all features and options of \pkg{DelayDiffEq} but only provide
 example for how DDEs can be declared and solved with \pkg{DelayDiffEq}. For a more
 thorough explanation we refer the reader to the extensive documentation of the
 \pkg{DifferentialEquations} framework.\footnote{The documentation is available
-online at \url{http://docs.sciml.ai/stable/}.}
+online at \url{https://docs.sciml.ai/DiffEqDocs/stable/}.}
 
 The interface of \pkg{DelayDiffEq} is similar to the one for ODEs in \pkg{OrdinaryDiffEq}
 or stochastic differential equations (SDEs) in \pkg{StochasticDiffEq}~\cite{rackauckas2017adaptive}.
@@ -485,7 +489,7 @@ in~\cite{guglielmi01_implementing_radau}.
 \begin{figure}
     \centering
     \input{figures/waltman.tex}
-    \caption{Solution of problem~\eqref{eq:waltman}.}
+    \caption{Solution of problem~\eqref{eq:waltman}.}%
     \label{fig:waltman}
 \end{figure}
 
@@ -521,7 +525,7 @@ optimize the implementations.
 \begin{figure}
     \centering
     \input{figures/benchmark.tex}
-    \caption{Benchmarks on a DDE model of quorum sensing~\cite{BuddrusSchiemann2014}.}
+    \caption{Benchmarks on a DDE model of quorum sensing~\cite{BuddrusSchiemann2014}.}%
     \label{fig:benchmark}
 \end{figure}
 
@@ -544,7 +548,7 @@ composable software designs can change the efficiency of scientific computing.
 Large parts of this work were completed for a Master thesis about delay differential equation models of quorum sensing at the department of Mathematics at TU Munich, Germany, under the supervision of Christina Kuttler.
 This work was financially supported by the Centre for Interdisciplinary Mathematics (CIM) at Uppsala University, Sweden, and by the Swedish Foundation for Strategic Research via the project \emph{ASSEMBLE} (contract number: RIT15-0012).
 
-This material is based upon work supported by the National Science Foundation under grant no. OAC-1835443, grant no. SII-2029670, grant no. ECCS-2029670, grant no. OAC-2103804, and grant no. PHY-2021825. We also gratefully acknowledge the U.S. Agency for International Development through Penn State for grant no. S002283-USAID. The information, data, or work presented herein was funded in part by the Advanced Research Projects Agency-Energy (ARPA-E), U.S. Department of Energy, under Award Number DE-AR0001211 and DE-AR0001222. We also gratefully acknowledge the U.S. Agency for International Development through Penn State for grant no. S002283-USAID. The views and opinions of authors expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof. This material was supported by The Research Council of Norway and Equinor ASA through Research Council project "308817 - Digital wells for optimal production and drainage". Research was sponsored by the United States Air Force Research Laboratory and the United States Air Force Artificial Intelligence Accelerator and was accomplished under Cooperative Agreement Number FA8750-19-2-1000. The views and conclusions contained in this document are those of the authors and should not be interpreted as representing the official policies, either expressed or implied, of the United States Air Force or the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for Government purposes notwithstanding any copyright notation herein.
+This material is based upon work supported by the National Science Foundation under grant no.\ OAC-1835443, grant no.\ SII-2029670, grant no.\ ECCS-2029670, grant no.\ OAC-2103804, and grant no.\ PHY-2021825. We also gratefully acknowledge the U.S.\ Agency for International Development through Penn State for grant no. S002283-USAID. The information, data, or work presented herein was funded in part by the Advanced Research Projects Agency-Energy (ARPA-E), U.S.\ Department of Energy, under Award Number DE-AR0001211 and DE-AR0001222. We also gratefully acknowledge the U.S.\ Agency for International Development through Penn State for grant no.\ S002283-USAID. The views and opinions of authors expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof. This material was supported by The Research Council of Norway and Equinor ASA through Research Council project ``308817 - Digital wells for optimal production and drainage''. Research was sponsored by the United States Air Force Research Laboratory and the United States Air Force Artificial Intelligence Accelerator and was accomplished under Cooperative Agreement Number FA8750-19-2-1000. The views and conclusions contained in this document are those of the authors and should not be interpreted as representing the official policies, either expressed or implied, of the United States Air Force or the U.S.\ Government. The U.S.\ Government is authorized to reproduce and distribute reprints for Government purposes notwithstanding any copyright notation herein.
 
 \end{acks}
 
