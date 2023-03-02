@@ -3,40 +3,38 @@
 \documentclass{juliacon}
 \setcounter{page}{1}
 
-% math support
+% Math support
 \usepackage{mathtools}
 
-% hyphenation
+% Hyphenation
 \usepackage[english]{babel}
 
-% links to orcid
+% Links to orcid
 \usepackage{orcidlink}
 
-% plots
+% Plots
 \usepackage{pgfplots,pgfplotstable}
 \usepgfplotslibrary{groupplots,colorbrewer}
-
-% configuration
 \pgfplotsset{
     compat=1.15,
     % CSV files use comma as delimiter
     table/col sep=comma,
-    % folders with CSV files
+    % Folders with CSV files
     table/search path={../data},
-    % all lines are thick
+    % All lines are thick
     every axis plot/.append style={thick},
-    % small labels
+    % Small labels
     legend style={font=\footnotesize},
     ticklabel style={font=\footnotesize},
-    % initialize Set1-5:
+    % Initialize Set1-5:
     cycle list/Set1-5,
-    % combine it with ’mark list*’ and 'linestyles*':
+    % Combine it with ’mark list*’ and 'linestyles*':
     cycle multiindex* list={
         mark list*\nextlist
         Set1-5\nextlist
         linestyles*\nextlist
     },
-    % filter groups of data
+    % Filter groups of data
     discard if not/.style 2 args={
         x filter/.code={
             \edef\tempa{\thisrow{#1}}
@@ -47,7 +45,7 @@
             \fi
         }
     },
-    % left-align labels in legend
+    % Left-align labels in legend
     legend cell align={left},
 }
 
