@@ -35,7 +35,7 @@ export Discontinuity, MethodOfSteps
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")
-include("dstats.jl")
+include("ddestats.jl")
 
 include("integrators/type.jl")
 include("integrators/utils.jl")

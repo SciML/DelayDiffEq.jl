@@ -1,4 +1,4 @@
-mutable struct DStats
+mutable struct DDEStats
     nf::Int
     nf2::Int
     nw::Int
@@ -14,14 +14,9 @@ mutable struct DStats
     maxeig::Float64
 end
 
-DStats(x::Int = -1) = DStats(x, x, x, x, x, x, x, x, x, x, x, x, 0.0)
+DDEStats(x::Int = -1) = DDEStats(x, x, x, x, x, x, x, x, x, x, x, x, 0.0)
 
-function DDEStats(x::Int = -1)
-    Base.depwarn(, "`DDEStats` has been deprecated. Use `DStats` instead.")
-    return DStats(x)
-end
-
-function Base.show(io::IO, s::DStats)
+function Base.show(io::IO, s::DDEStats)
     println(io, summary(s))
     @printf io "%-60s %-d\n" "Number of function 1 evaluations:" s.nf
     @printf io "%-60s %-d\n" "Number of function 2 evaluations:" s.nf2
