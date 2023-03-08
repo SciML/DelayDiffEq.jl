@@ -8,7 +8,7 @@ using LinearAlgebra
 using Logging
 using Printf
 using RecursiveArrayTools
-using UnPack
+using SimpleUnPack
 
 import ArrayInterface
 import SimpleNonlinearSolve
