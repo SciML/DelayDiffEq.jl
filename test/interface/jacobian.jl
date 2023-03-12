@@ -47,8 +47,8 @@ using Test
 
         # check number of function evaluations
         @test !iszero(njacs[])
-        @test njacs[] == sol_jac.destats.njacs
-        @test njacs[] <= sol_jac.destats.nw
+        @test njacs[] == sol_jac.stats.njacs
+        @test njacs[] <= sol_jac.stats.nw
 
         # check resulting solution
         @test sol.t ≈ sol_jac.t
@@ -62,13 +62,13 @@ using Test
         if alg isa Rosenbrock23
             @test !iszero(nWfacts[])
             @test nWfacts[] >= njacs[]
-            @test iszero(sol_Wfact.destats.njacs)
+            @test iszero(sol_Wfact.stats.njacs)
         else
             @test_broken !iszero(nWfacts[])
             @test_broken nWfacts[] >= njacs[]
-            @test_broken iszero(sol_Wfact.destats.njacs)
+            @test_broken iszero(sol_Wfact.stats.njacs)
         end
-        @test_broken nWfacts[] == sol_Wfact.destats.nw
+        @test_broken nWfacts[] == sol_Wfact.stats.nw
 
         # check resulting solution
         @test sol.t ≈ sol_Wfact.t
@@ -82,13 +82,13 @@ using Test
         if alg isa Rosenbrock23
             @test_broken !iszero(nWfact_ts[])
             @test_broken nWfact_ts[] == njacs[]
-            @test_broken iszero(sol_Wfact_t.destats.njacs)
+            @test_broken iszero(sol_Wfact_t.stats.njacs)
         else
             @test !iszero(nWfact_ts[])
             @test_broken nWfact_ts[] == njacs[]
-            @test iszero(sol_Wfact_t.destats.njacs)
+            @test iszero(sol_Wfact_t.stats.njacs)
         end
-        @test_broken nWfact_ts[] == sol_Wfact_t.destats.nw
+        @test_broken nWfact_ts[] == sol_Wfact_t.stats.nw
 
         # check resulting solution
         if alg isa Rosenbrock23
@@ -141,8 +141,8 @@ end
 
         # check number of function evaluations
         @test !iszero(njacs[])
-        @test_broken njacs[] == sol_jac.destats.njacs
-        @test_broken njacs[] == sol_jac.destats.nw
+        @test_broken njacs[] == sol_jac.stats.njacs
+        @test_broken njacs[] == sol_jac.stats.nw
 
         # check resulting solution
         @test sol.t ≈ sol_jac.t
@@ -155,8 +155,8 @@ end
         # check number of function evaluations
         @test_broken !iszero(nWfacts[])
         @test_broken nWfacts[] == njacs[]
-        @test_broken iszero(sol_Wfact.destats.njacs)
-        @test_broken nWfacts[] == sol_Wfact.destats.nw
+        @test_broken iszero(sol_Wfact.stats.njacs)
+        @test_broken nWfacts[] == sol_Wfact.stats.nw
 
         # check resulting solution
         @test sol.t ≈ sol_Wfact.t
@@ -169,8 +169,8 @@ end
         # check number of function evaluations
         @test_broken !iszero(nWfact_ts[])
         @test_broken nWfact_ts[] == njacs[]
-        @test_broken iszero(sol_Wfact_ts.destats.njacs)
-        @test_broken nWfact_ts[] == sol_Wfact_t.destats.nw
+        @test_broken iszero(sol_Wfact_ts.stats.njacs)
+        @test_broken nWfact_ts[] == sol_Wfact_t.stats.nw
 
         # check resulting solution
         @test sol.t ≈ sol_Wfact_t.t

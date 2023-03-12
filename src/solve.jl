@@ -160,7 +160,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                      Val(isinplace(prob)))
 
     # separate statistics of the integrator and the history
-    destats = DDEStats(0)
+    stats = DDEStats(0)
 
     # create solution
     if iscomposite(alg)
@@ -169,13 +169,13 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
                                         dense = dense, k = ks, interp = id,
                                         alg_choice = id.alg_choice, calculate_error = false,
-                                        destats = destats)
+                                        stats = stats)
     else
         id = OrdinaryDiffEq.InterpolationData(f_with_history, timeseries, ts, ks, dense,
                                               cache)
         sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
                                         dense = dense, k = ks, interp = id,
-                                        calculate_error = false, destats = destats)
+                                        calculate_error = false, stats = stats)
     end
 
     # retrieve time stops, time points at which solutions is saved, and discontinuities
@@ -393,7 +393,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                                                                  u_modified,
                                                                                  isdae,
                                                                                  opts,
-                                                                                 destats,
+                                                                                 stats,
                                                                                  history,
                                                                                  ode_integrator)
 

@@ -445,7 +445,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
 end
 
 function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
-    @unpack f, u, t, tdir, opts, sol, destats = integrator
+    @unpack f, u, t, tdir, opts, sol, stats = integrator
     @unpack prob = sol
     @unpack abstol, reltol, internalnorm = opts
 
@@ -463,7 +463,7 @@ function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
                                                         ode_prob, integrator)
 
     # update statistics
-    destats.nf += 2
+    stats.nf += 2
 
     nothing
 end
@@ -488,7 +488,7 @@ end
     out .= integrator.fsallast
 end
 
-DiffEqBase.has_destats(::DDEIntegrator) = true
+DiffEqBase.has_stats(::DDEIntegrator) = true
 
 # https://github.com/SciML/OrdinaryDiffEq.jl/pull/1753
 # Backwards compatability

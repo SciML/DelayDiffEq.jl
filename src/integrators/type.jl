@@ -87,7 +87,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
     u_modified::Bool
     isdae::Bool
     opts::O
-    destats::DDEStats
+    stats::DDEStats
     history::H
     integrator::IType
     fsalfirst::FSALType
@@ -131,7 +131,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
                                                                         accept_step, isout,
                                                                         reeval_fsal,
                                                                         u_modified, isdae,
-                                                                        opts, destats,
+                                                                        opts, stats,
                                                                         history,
                                                                         integrator) where
         {algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
@@ -159,7 +159,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
                                                vector_event_last_time,
                                                last_event_error, accept_step, isout,
                                                reeval_fsal, u_modified, isdae, opts,
-                                               destats, history, integrator)
+                                               stats, history, integrator)
     end
 end
 
