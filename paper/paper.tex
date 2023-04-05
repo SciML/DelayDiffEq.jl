@@ -405,7 +405,7 @@ problem with state-dependent delay can be formulated.
 \begin{lstlisting}[language = Julia]
 # Complete DDE problem formulation
 # with state-dependent delay
-lag(p, t) = 1.0
+lag(x, p, t) = 1.0
 prob = DDEProblem(f, h, tspan;
                   dependent_lags = (lag,))
 \end{lstlisting}
