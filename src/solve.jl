@@ -357,7 +357,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                                                                 force_dtmin,
                                                                                 advance_to_tstop,
                                                                                 stop_at_next_tstop)
-
+end
 
     # create fixed point solver
     fpsolver = build_fpsolver(alg, alg.fpsolve, u, uEltypeNoUnits, uBottomEltypeNoUnits,
