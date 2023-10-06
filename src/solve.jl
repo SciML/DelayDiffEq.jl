@@ -57,6 +57,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                            progress_steps = 1000,
                            progress_name = "DDE",
                            progress_message = DiffEqBase.ODE_DEFAULT_PROG_MESSAGE,
+                           progress_id = gensym("DelayDiffEq"),
                            userdata = nothing,
                            allow_extrapolation = OrdinaryDiffEq.alg_extrapolates(alg),
                            initialize_integrator = true,
@@ -97,7 +98,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         @warn("Dense output is incompatible with saveat. Please use the SavingCallback from the Callback Library to mix the two behaviors.")
     end
 
-    progress && @logmsg(-1, progress_name, _id=_id = :DelayDiffEq, progress=0)
+    progress && @logmsg(-1, progress_name, _id=progress_id, progress=0)
 
     isdae = prob.f.mass_matrix !== I && !(prob.f.mass_matrix isa Tuple) &&
             ArrayInterface.issingular(prob.f.mass_matrix)
@@ -281,6 +282,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                                                                progress_steps,
                                                                                progress_name,
                                                                                progress_message,
+                                                                               progress_id,
                                                                                timeseries_errors,
                                                                                dense_errors,
                                                                                dense,
