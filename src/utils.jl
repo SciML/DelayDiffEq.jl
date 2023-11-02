@@ -85,7 +85,7 @@ Return the absolute tolerance for solving the differential equation problem with
 variable `u` and time span `tspan` with algorithm `alg`.
 """
 function get_abstol(u, tspan, alg; abstol = nothing)
-    if typeof(alg) <: FunctionMap
+    if alg isa FunctionMap
         _abstol = real.(zero.(u))
     elseif abstol === nothing
         uBottomEltype = recursive_bottom_eltype(u)
@@ -110,7 +110,7 @@ Return the relative tolerance for solving the differential equation problem with
 variable `u` and time span `tspan` with algorithm `alg`.
 """
 function get_reltol(u, tspan, alg; reltol = nothing)
-    if typeof(alg) <: FunctionMap
+    if alg isa FunctionMap
         _reltol = real.(zero(first(u) / t))
     elseif reltol === nothing
         uBottomEltype = recursive_bottom_eltype(u)
@@ -363,10 +363,10 @@ end
 
 function unwrap_alg(integrator::DDEIntegrator, is_stiff)
     alg = integrator.alg
-    iscomp = typeof(alg) <: CompositeAlgorithm
+    iscomp = alg isa CompositeAlgorithm
     if !iscomp
         return alg
-    elseif typeof(alg.choice_function) <: AutoSwitch
+    elseif alg.choice_function isa AutoSwitch
         num = is_stiff ? 2 : 1
         return alg.algs[num]
     else

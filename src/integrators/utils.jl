@@ -171,7 +171,7 @@ function OrdinaryDiffEq.handle_discontinuities!(integrator::DDEIntegrator)
     # remove all discontinuities close to the current time point as well and
     # calculate minimal order of these discontinuities
     # integrator.EEst has unitless type of integrator.t
-    if typeof(integrator.EEst) <: AbstractFloat
+    if integrator.EEst isa AbstractFloat
         maxΔt = 10eps(integrator.t)
 
         while OrdinaryDiffEq.has_discontinuity(integrator) &&
