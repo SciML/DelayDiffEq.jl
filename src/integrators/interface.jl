@@ -41,7 +41,7 @@ function DiffEqBase.savevalues!(integrator::DDEIntegrator, force_save = false,
 
     # update time of ODE integrator (can be slightly modified (< 10ϵ) because of time stops)
     # integrator.EEst has unitless type of integrator.t
-    if typeof(integrator.EEst) <: AbstractFloat
+    if integrator.EEst isa AbstractFloat
         if ode_integrator.t != integrator.t
             abs(integrator.t - ode_integrator.t) < 100eps(integrator.t) ||
                 error("unexpected time discrepancy detected")
