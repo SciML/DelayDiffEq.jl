@@ -37,7 +37,7 @@ struct ODEFunctionWrapper{iip, F, H, TMM, Ta, Tt, TJ, JP, SP, TW, TWt, TPJ, S, T
     Wfact::TW
     Wfact_t::TWt
     paramjac::TPJ
-    syms::S
+    sys::S
     colorvec::TCV
 end
 
@@ -51,7 +51,7 @@ function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
                        typeof(f.analytic), typeof(f.tgrad), typeof(jac),
                        typeof(f.jac_prototype), typeof(f.sparsity),
                        typeof(Wfact), typeof(Wfact_t),
-                       typeof(f.paramjac), typeof(f.syms), typeof(f.colorvec)}(f.f, h,
+                       typeof(f.paramjac), typeof(f.sys), typeof(f.colorvec)}(f.f, h,
                                                                                f.mass_matrix,
                                                                                f.analytic,
                                                                                f.tgrad, jac,
@@ -60,7 +60,7 @@ function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
                                                                                Wfact,
                                                                                Wfact_t,
                                                                                f.paramjac,
-                                                                               f.syms,
+                                                                               f.sys,
                                                                                f.colorvec)
 end
 
