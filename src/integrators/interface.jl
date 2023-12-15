@@ -491,7 +491,7 @@ end
 DiffEqBase.has_stats(::DDEIntegrator) = true
 
 # https://github.com/SciML/OrdinaryDiffEq.jl/pull/1753
-# Backwards compatability
+# Backwards compatibility
 @static if isdefined(OrdinaryDiffEq, :DEPRECATED_ADDSTEPS)
     const _ode_addsteps! = OrdinaryDiffEq._ode_addsteps!
     const ode_addsteps! = OrdinaryDiffEq.ode_addsteps!
