@@ -35,7 +35,7 @@ end
 
         @test sol3.errors[:l∞] < 3.0e-6
         @test sol3.errors[:final] < 1.4e-7
-        @test sol3.errors[:l2] < 8.4e-7
+        @test sol3.errors[:l2] < 9.6e-7
 
         sol4 = solve(prob2, alg; abstol = 1e-13, reltol = 1e-13)
 

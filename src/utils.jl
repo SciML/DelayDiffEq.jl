@@ -256,7 +256,7 @@ function Base.sizehint!(sol::DESolution, alg, tspan, tstops, saveat;
     nothing
 end
 
-function build_history_function(prob, alg, rate_prototype, reltol;
+function build_history_function(prob, alg, rate_prototype, reltol, differential_vars;
                                 dt, dtmin, adaptive, calck, internalnorm)
     @unpack f, u0, tspan, p = prob
 
@@ -303,7 +303,8 @@ function build_history_function(prob, alg, rate_prototype, reltol;
         ode_alg_choice = Int[]
         ode_id = OrdinaryDiffEq.CompositeInterpolationData(ode_f, ode_timeseries, ode_ts,
                                                            ode_ks,
-                                                           ode_alg_choice, true, ode_cache) # dense = true
+                                                           ode_alg_choice, true, ode_cache,
+                                                           differential_vars) # dense = true
         ode_sol = DiffEqBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
                                             dense = true, k = ode_ks, interp = ode_id,
                                             alg_choice = ode_alg_choice,
@@ -311,7 +312,8 @@ function build_history_function(prob, alg, rate_prototype, reltol;
                                             stats = DiffEqBase.Stats(0))
     else
         ode_id = OrdinaryDiffEq.InterpolationData(ode_f, ode_timeseries, ode_ts, ode_ks,
-                                                  true, ode_cache) # dense = true
+                                                  true, ode_cache,
+                                                  differential_vars) # dense = true
         ode_sol = DiffEqBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
                                             dense = true, k = ode_ks, interp = ode_id,
                                             calculate_error = false,
@@ -327,7 +329,8 @@ function build_history_function(prob, alg, rate_prototype, reltol;
     tdirType = typeof(sign(zero(tType)))
     ode_integrator = HistoryODEIntegrator{typeof(alg.alg), isinplace(prob), typeof(prob.u0),
                                           tType, tdirType, typeof(ode_k),
-                                          typeof(ode_sol), typeof(ode_cache)}(ode_sol,
+                                          typeof(ode_sol), typeof(ode_cache),
+                                          typeof(differential_vars)}(ode_sol,
                                                                               ode_u, ode_k,
                                                                               t0,
                                                                               zero(tType),
@@ -335,7 +338,8 @@ function build_history_function(prob, alg, rate_prototype, reltol;
                                                                               t0, alg.alg,
                                                                               zero(tType),
                                                                               tdir, 1, 1,
-                                                                              ode_cache)
+                                                                              ode_cache,
+                                                                              differential_vars)
 
     # combine the user-provided history function and the ODE integrator with dense solution
     # to a joint dense history of the DDE

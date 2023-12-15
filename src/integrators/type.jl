@@ -1,5 +1,5 @@
 mutable struct HistoryODEIntegrator{algType, IIP, uType, tType, tdirType, ksEltype, SolType,
-                                    CacheType} <:
+                                    CacheType, DV} <:
                AbstractODEIntegrator{algType, IIP, uType, tType}
     sol::SolType
     u::uType
@@ -14,6 +14,7 @@ mutable struct HistoryODEIntegrator{algType, IIP, uType, tType, tdirType, ksElty
     saveiter::Int
     saveiter_dense::Int
     cache::CacheType
+    differential_vars::DV
 end
 
 function (integrator::HistoryODEIntegrator)(t, deriv::Type = Val{0}; idxs = nothing)
@@ -31,7 +32,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
                              ksEltype, SolType, F, CacheType, IType, FP, O, dAbsType,
                              dRelType, H,
                              tstopsType, discType, FSALType, EventErrorType,
-                             CallbackCacheType} <:
+                             CallbackCacheType, DV} <:
                AbstractDDEIntegrator{algType, IIP, uType, tType}
     sol::SolType
     u::uType
@@ -89,6 +90,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
     opts::O
     stats::DDEStats
     history::H
+    differential_vars::DV
     integrator::IType
     fsalfirst::FSALType
     fsallast::FSALType
@@ -97,7 +99,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
     function DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUnits,
                            tdirType, ksEltype, SolType, F, CacheType, IType, FP,
                            O, dAbsType, dRelType, H, tstopsType, discType,
-                           FSALType, EventErrorType, CallbackCacheType}(sol, u, k, t, dt, f,
+                           FSALType, EventErrorType, CallbackCacheType, DV}(sol, u, k, t, dt, f,
                                                                         p, uprev, uprev2,
                                                                         tprev, prev_idx,
                                                                         prev2_idx,
@@ -133,15 +135,16 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
                                                                         u_modified, isdae,
                                                                         opts, stats,
                                                                         history,
+                                                                        differential_vars,
                                                                         integrator) where
         {algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
          SolType, F,
          CacheType, IType, FP, O, dAbsType, dRelType, H, tstopsType, discType,
-         FSALType, EventErrorType, CallbackCacheType}
+         FSALType, EventErrorType, CallbackCacheType, DV}
         new{algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
             SolType, F,
             CacheType, IType, FP, O, dAbsType, dRelType, H, tstopsType, discType, FSALType,
-            EventErrorType, CallbackCacheType}(sol, u, k, t, dt, f, p, uprev, uprev2, tprev,
+            EventErrorType, CallbackCacheType, DV}(sol, u, k, t, dt, f, p, uprev, uprev2, tprev,
                                                prev_idx, prev2_idx, fpsolver,
                                                order_discontinuity_t0,
                                                tracked_discontinuities,
@@ -159,7 +162,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
                                                vector_event_last_time,
                                                last_event_error, accept_step, isout,
                                                reeval_fsal, u_modified, isdae, opts,
-                                               stats, history, integrator)
+                                               stats, history, differential_vars, integrator)
     end
 end
 
