@@ -3,6 +3,7 @@ using SafeTestsets
 const GROUP = get(ENV, "GROUP", "All")
 
 if GROUP == "All" || GROUP == "Interface"
+    @time @safetestset "Quality Assurance" begin include("qa.jl") end
     @time @safetestset "AD Tests" begin include("interface/ad.jl") end
     @time @safetestset "Backwards Tests" begin include("interface/backwards.jl") end
     @time @safetestset "Composite Solution Tests" begin include("interface/composite_solution.jl") end
