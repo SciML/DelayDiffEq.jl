@@ -128,12 +128,6 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     # get rate prototype
     rate_prototype = rate_prototype_of(u0, tspan)
 
-    # create a history function
-    history = build_history_function(prob, alg, rate_prototype, reltol_internal;
-                                     dt = dt, dtmin = dtmin, calck = false,
-                                     adaptive = adaptive, internalnorm = internalnorm)
-    f_with_history = ODEFunctionWrapper(f, history)
-
     # get states (possibly different from the ODE integrator!)
     u, uprev, uprev2 = u_uprev_uprev2(u0, alg;
                                       alias_u0 = alias_u0,
@@ -142,6 +136,16 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                                       calck = calck)
     uEltypeNoUnits = recursive_unitless_eltype(u)
     uBottomEltypeNoUnits = recursive_unitless_bottom_eltype(u)
+
+    # get the differential vs algebraic variables
+    differential_vars = prob isa DAEProblem ? prob.differential_vars : OrdinaryDiffEq.get_differential_vars(f, u)
+
+    # create a history function
+    history = build_history_function(prob, alg, rate_prototype, reltol_internal,
+                                        differential_vars;
+                                        dt = dt, dtmin = dtmin, calck = false,
+                                        adaptive = adaptive, internalnorm = internalnorm)
+    f_with_history = ODEFunctionWrapper(f, history)
 
     # initialize output arrays of the solution
     k = typeof(rate_prototype)[]
@@ -166,14 +170,14 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     # create solution
     if iscomposite(alg)
         id = OrdinaryDiffEq.CompositeInterpolationData(f_with_history, timeseries, ts, ks,
-                                                       Int[], dense, cache)
+                                                       Int[], dense, cache, differential_vars)
         sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
                                         dense = dense, k = ks, interp = id,
                                         alg_choice = id.alg_choice, calculate_error = false,
                                         stats = stats)
     else
         id = OrdinaryDiffEq.InterpolationData(f_with_history, timeseries, ts, ks, dense,
-                                              cache)
+                                              cache, differential_vars)
         sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
                                         dense = dense, k = ks, interp = id,
                                         calculate_error = false, stats = stats)
@@ -406,7 +410,8 @@ end
                                typeof(tstops_propagated),
                                typeof(d_discontinuities_propagated),
                                OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
-                               typeof(last_event_error), typeof(callback_cache)}(sol, u, k,
+                               typeof(last_event_error), typeof(callback_cache),
+                               typeof(differential_vars)}(sol, u, k,
                                                                                  t0,
                                                                                  tType(dt),
                                                                                  f_with_history,
@@ -457,6 +462,7 @@ end
                                                                                  opts,
                                                                                  stats,
                                                                                  history,
+                                                                                 differential_vars,
                                                                                  ode_integrator)
 
     # initialize DDE integrator
