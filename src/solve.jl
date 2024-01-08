@@ -169,8 +169,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
     # create solution
     alg_choice = iscomposite(alg) ? Int[] : nothing
-    id = OrdinaryDiffEq.CompositeInterpolationData(f_with_history, timeseries, ts, ks,
-                                                 alg_choice, dense, cache, differential_vars, false)
+    id = OrdinaryDiffEq.InterpolationData(f_with_history, timeseries, ts, ks,
+                                          alg_choice, dense, cache, differential_vars, false)
     sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
                                     dense = dense, k = ks, interp = id,
                                     alg_choice = id.alg_choice, calculate_error = false,
