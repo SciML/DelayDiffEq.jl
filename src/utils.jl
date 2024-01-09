@@ -299,26 +299,16 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
                                          Val(isinplace(prob)))
 
     # build dense interpolation of history
-    if iscomposite(alg)
-        ode_alg_choice = Int[]
-        ode_id = OrdinaryDiffEq.CompositeInterpolationData(ode_f, ode_timeseries, ode_ts,
-                                                           ode_ks,
-                                                           ode_alg_choice, true, ode_cache,
-                                                           differential_vars) # dense = true
-        ode_sol = DiffEqBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
-                                            dense = true, k = ode_ks, interp = ode_id,
-                                            alg_choice = ode_alg_choice,
-                                            calculate_error = false,
-                                            stats = DiffEqBase.Stats(0))
-    else
-        ode_id = OrdinaryDiffEq.InterpolationData(ode_f, ode_timeseries, ode_ts, ode_ks,
-                                                  true, ode_cache,
-                                                  differential_vars) # dense = true
-        ode_sol = DiffEqBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
-                                            dense = true, k = ode_ks, interp = ode_id,
-                                            calculate_error = false,
-                                            stats = DiffEqBase.Stats(0))
-    end
+    ode_alg_choice = iscomposite(alg) ? Int[] : nothing
+    ode_id = OrdinaryDiffEq.InterpolationData(ode_f, ode_timeseries, ode_ts,
+                                                       ode_ks,
+                                                       ode_alg_choice, true, ode_cache,
+                                                       differential_vars, false)
+    ode_sol = DiffEqBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
+                                        dense = true, k = ode_ks, interp = ode_id,
+                                        alg_choice = ode_alg_choice,
+                                        calculate_error = false,
+                                        stats = DiffEqBase.Stats(0))
 
     # reserve capacity
     sizehint!(ode_sol, alg.alg, tspan, (), ();
