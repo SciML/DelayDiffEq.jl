@@ -61,6 +61,8 @@ jobs:
         if: matrix.version == '1' && matrix.arch == 'x64'
         with:
           file: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }} # required
+          fail_ci_if_error: true
       - uses: coverallsapp/github-action@master
         if: matrix.version == '1' && matrix.arch == 'x64'
         with:
