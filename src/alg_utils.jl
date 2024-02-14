@@ -73,6 +73,6 @@ iscomposite(alg::AbstractMethodOfStepsAlgorithm) = iscomposite(alg.alg)
 
 function DiffEqBase.prepare_alg(alg::MethodOfSteps, u0, p, prob)
     MethodOfSteps(DiffEqBase.prepare_alg(alg.alg, u0, p, prob);
-                  constrained = isconstrained(alg),
-                  fpsolve = alg.fpsolve)
+        constrained = isconstrained(alg),
+        fpsolve = alg.fpsolve)
 end

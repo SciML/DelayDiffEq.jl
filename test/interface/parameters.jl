@@ -15,10 +15,10 @@ h(p, t; idxs = nothing) = 0.1
     # we specify order_discontinuity_t0 = 1 to indicate that the discontinuity at
     # t = 0 is of first order
     prob = DDEProblem(inplace ? f_inplace : f_scalar,
-                      inplace ? [0.1] : 0.1,
-                      h, (0.0, 50.0), [0.3];
-                      constant_lags = [1],
-                      order_discontinuity_t0 = 1)
+        inplace ? [0.1] : 0.1,
+        h, (0.0, 50.0), [0.3];
+        constant_lags = [1],
+        order_discontinuity_t0 = 1)
 
     # solve problem with initial parameter:
     sol1 = solve(prob, MethodOfSteps(Tsit5()))

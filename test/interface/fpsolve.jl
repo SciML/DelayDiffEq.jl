@@ -7,7 +7,7 @@ const prob_oop = prob_dde_constant_2delays_long_oop
 const prob_scalar = prob_dde_constant_2delays_long_scalar
 
 const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
-                                   abstol = 1 / 10^14, reltol = 1 / 10^14))
+    abstol = 1 / 10^14, reltol = 1 / 10^14))
 
 @testset "NLFunctional" begin
     alg = MethodOfSteps(Tsit5(); fpsolve = NLFunctional(; max_iter = 10))

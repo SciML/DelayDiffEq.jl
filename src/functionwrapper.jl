@@ -48,20 +48,20 @@ function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
     Wfact_t = @wrap_h Wfact_t(W, u, h, p, dtgamma, t)
 
     ODEFunctionWrapper{isinplace(f), typeof(f.f), typeof(h), typeof(f.mass_matrix),
-                       typeof(f.analytic), typeof(f.tgrad), typeof(jac),
-                       typeof(f.jac_prototype), typeof(f.sparsity),
-                       typeof(Wfact), typeof(Wfact_t),
-                       typeof(f.paramjac), typeof(f.sys), typeof(f.colorvec)}(f.f, h,
-                                                                               f.mass_matrix,
-                                                                               f.analytic,
-                                                                               f.tgrad, jac,
-                                                                               f.jac_prototype,
-                                                                               f.sparsity,
-                                                                               Wfact,
-                                                                               Wfact_t,
-                                                                               f.paramjac,
-                                                                               f.sys,
-                                                                               f.colorvec)
+        typeof(f.analytic), typeof(f.tgrad), typeof(jac),
+        typeof(f.jac_prototype), typeof(f.sparsity),
+        typeof(Wfact), typeof(Wfact_t),
+        typeof(f.paramjac), typeof(f.sys), typeof(f.colorvec)}(f.f, h,
+        f.mass_matrix,
+        f.analytic,
+        f.tgrad, jac,
+        f.jac_prototype,
+        f.sparsity,
+        Wfact,
+        Wfact_t,
+        f.paramjac,
+        f.sys,
+        f.colorvec)
 end
 
 (f::ODEFunctionWrapper{true})(du, u, p, t) = f.f(du, u, f.h, p, t)

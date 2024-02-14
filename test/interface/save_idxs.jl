@@ -6,7 +6,7 @@ function f_notinplace(u, h, p, t)
     [-h(p, t - 1 / 5)[1] + u[1]; -h(p, t - 1 / 3)[2] - h(p, t - 1 / 5)[2]]
 end
 const prob_notinplace = DDEProblem(f_notinplace, ones(2), (p, t) -> zeros(2), (0.0, 100.0),
-                                   constant_lags = [1 / 5, 1 / 3])
+    constant_lags = [1 / 5, 1 / 3])
 
 # in-place problem
 function f_inplace(du, u, h, p, t)
@@ -14,7 +14,7 @@ function f_inplace(du, u, h, p, t)
     du[2] = -h(p, t - 1 / 3)[2] - h(p, t - 1 / 5)[2]
 end
 const prob_inplace = DDEProblem(f_inplace, ones(2), (p, t) -> zeros(2), (0.0, 100.0),
-                                constant_lags = [1 / 5, 1 / 3])
+    constant_lags = [1 / 5, 1 / 3])
 
 const alg = MethodOfSteps(BS3())
 

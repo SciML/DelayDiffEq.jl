@@ -12,9 +12,9 @@ h(p, t) = p[4]
 @testset "Gradient" begin
     function test(p)
         prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
-                          constant_lags = (p[1],))
+            constant_lags = (p[1],))
         sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
-                    saveat = 1.0)
+            saveat = 1.0)
         sum(sol)
     end
 
@@ -46,9 +46,9 @@ end
 @testset "Jacobian" begin
     function test(p)
         prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
-                          constant_lags = (p[1],))
+            constant_lags = (p[1],))
         sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
-                    saveat = 1.0)
+            saveat = 1.0)
         sol.u
     end
 
@@ -80,9 +80,9 @@ end
 @testset "Hessian" begin
     function test(p)
         prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
-                          constant_lags = (p[1],))
+            constant_lags = (p[1],))
         sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
-                    saveat = 1.0)
+            saveat = 1.0)
         sum(sol)
     end
 

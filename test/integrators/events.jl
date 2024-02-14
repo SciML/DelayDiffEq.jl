@@ -7,14 +7,14 @@ const alg = MethodOfSteps(Tsit5(); constrained = false)
 # continuous callback
 @testset "continuous" begin
     cb = ContinuousCallback((u, t, integrator) -> t - 2.60, # Event when event_f(t,u,k) == 0
-                            integrator -> (integrator.u = -integrator.u))
+        integrator -> (integrator.u = -integrator.u))
 
     sol1 = solve(prob, alg, callback = cb)
     ts = findall(x -> x ≈ 2.6, sol1.t)
     @test length(ts) == 2
     @test sol1.u[ts[1]] == -sol1.u[ts[2]]
     @test sol1(prevfloat(2.6);
-               continuity = :right)≈-sol1(prevfloat(2.6); continuity = :left) atol=1e-5
+        continuity = :right)≈-sol1(prevfloat(2.6); continuity = :left) atol=1e-5
 
     # fails on 32bit?!
     # see https://github.com/SciML/DelayDiffEq.jl/pull/180

@@ -48,7 +48,7 @@ end
     @test sol.errors[:l2] > 4.5e-2
 
     sol = solve(prob_wo, MethodOfSteps(OwrenZen5(); constrained = false); abstol = 1e-13,
-                reltol = 1e-13)
+        reltol = 1e-13)
 
     @test sol.errors[:l∞] > 1.1e-1
     @test sol.errors[:final] > 1.2e-3
