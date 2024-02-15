@@ -26,9 +26,9 @@ end
 
     # combined history function
     history_notinplace = DelayDiffEq.HistoryFunction(h_notinplace,
-                                                     integrator)
+        integrator)
     history_inplace = DelayDiffEq.HistoryFunction(h_inplace,
-                                                  integrator)
+        integrator)
 
     # test evaluation of history function
     @testset "evaluation" for idxs in (nothing, [2])
@@ -83,7 +83,7 @@ end
 
     # test integrator interpolation
     @testset "integrator interpolation" for deriv in (Val{0}, Val{1}),
-                                            idxs in (nothing, [2])
+        idxs in (nothing, [2])
         # expected value
         trueval = OrdinaryDiffEq.current_interpolant(0.01, integrator, idxs, deriv)
 

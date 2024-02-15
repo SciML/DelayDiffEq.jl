@@ -25,7 +25,7 @@ end
     compositealg = MethodOfSteps(CompositeAlgorithm((Tsit5(), RK4()), integrator -> 1))
 
     prob = DDEProblem((du, u, h, p, t) -> (du[1] = -h(p, t - 1)[1]; nothing),
-                      [1.0], (p, t) -> [1.0], (0.0, 5.0))
+        [1.0], (p, t) -> [1.0], (0.0, 5.0))
     sol = solve(prob, alg)
     compositesol = solve(prob, compositealg)
     @test compositesol isa SciMLBase.ODESolution
@@ -33,7 +33,7 @@ end
     @test sol.u == compositesol.u
 
     prob_oop = DDEProblem((u, h, p, t) -> -h(p, t - 1), [1.0], (p, t) -> [1.0],
-                          (0.0, 5.0))
+        (0.0, 5.0))
     sol_oop = solve(prob_oop, alg)
     compositesol_oop = solve(prob_oop, compositealg)
     @test compositesol_oop isa SciMLBase.ODESolution

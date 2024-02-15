@@ -1,5 +1,5 @@
 function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLFunctional},
-                                      integrator::DDEIntegrator)
+        integrator::DDEIntegrator)
     # update ODE integrator to next time interval together with correct interpolation
     if fpsolver.iter == 1
         advance_ode_integrator!(integrator)
@@ -11,7 +11,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLFunctional},
 end
 
 function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
-                                      integrator::DDEIntegrator)
+        integrator::DDEIntegrator)
     @unpack cache, iter = fpsolver
     @unpack aa_start = cache
 
@@ -40,7 +40,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
 end
 
 function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
-                                      integrator::DDEIntegrator)
+        integrator::DDEIntegrator)
     @unpack cache, iter = fpsolver
     @unpack aa_start = cache
 
@@ -68,9 +68,10 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
     compute_step_fixedpoint!(fpsolver, integrator)
 end
 
-function compute_step_fixedpoint!(fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
-                                                     false},
-                                  integrator::DDEIntegrator)
+function compute_step_fixedpoint!(
+        fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
+            false},
+        integrator::DDEIntegrator)
     @unpack t, opts = integrator
     @unpack cache = fpsolver
     ode_integrator = integrator.integrator
@@ -81,8 +82,8 @@ function compute_step_fixedpoint!(fpsolver::FPSolver{<:Union{NLFunctional, NLAnd
     # compute residuals
     dz = integrator.u .- ode_integrator.u
     atmp = OrdinaryDiffEq.calculate_residuals(dz, ode_integrator.u, integrator.u,
-                                              opts.abstol, opts.reltol, opts.internalnorm,
-                                              t)
+        opts.abstol, opts.reltol, opts.internalnorm,
+        t)
 
     # cache results
     if isdefined(cache, :dz)
@@ -92,9 +93,10 @@ function compute_step_fixedpoint!(fpsolver::FPSolver{<:Union{NLFunctional, NLAnd
     opts.internalnorm(atmp, t)
 end
 
-function compute_step_fixedpoint!(fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
-                                                     true},
-                                  integrator::DDEIntegrator)
+function compute_step_fixedpoint!(
+        fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
+            true},
+        integrator::DDEIntegrator)
     @unpack t, opts = integrator
     @unpack cache = fpsolver
     @unpack dz, atmp = cache
@@ -106,7 +108,7 @@ function compute_step_fixedpoint!(fpsolver::FPSolver{<:Union{NLFunctional, NLAnd
     # compute residuals
     @.. dz = integrator.u - ode_integrator.u
     OrdinaryDiffEq.calculate_residuals!(atmp, dz, ode_integrator.u, integrator.u,
-                                        opts.abstol, opts.reltol, opts.internalnorm, t)
+        opts.abstol, opts.reltol, opts.internalnorm, t)
 
     opts.internalnorm(atmp, t)
 end
@@ -120,7 +122,7 @@ function Base.resize!(fpcache::FPFunctionalCache, i::Int)
 end
 
 function Base.resize!(fpcache::FPAndersonCache, fpsolver::FPSolver{<:NLAnderson},
-                      integrator::DDEIntegrator, i::Int)
+        integrator::DDEIntegrator, i::Int)
     resize!(fpcache, fpsolver.alg, i)
 end
 

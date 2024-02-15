@@ -28,7 +28,7 @@ function constant_extrapolant!(val, t, integrator::DEIntegrator, idxs, deriv)
 end
 
 function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs,
-                               T::Type{Val{0}})
+        T::Type{Val{0}})
     if val === nothing
         if idxs === nothing
             return integrator.u
@@ -43,7 +43,7 @@ function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs,
 end
 
 function constant_extrapolant!(val, t::Number, integrator::DEIntegrator, idxs,
-                               T::Type{Val{1}})
+        T::Type{Val{1}})
     if val === nothing
         if idxs === nothing
             return zero(integrator.u) ./ oneunit(t)

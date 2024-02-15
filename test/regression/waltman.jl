@@ -26,13 +26,14 @@ test_waltman_sol(sol1)
 
 # in-place LU factorization
 sol2 = solve(PROB_WALTMAN,
-             MethodOfSteps(Rosenbrock23(linsolve = GenericFactorization(lu!)));
-             PROB_KWARGS...)
+    MethodOfSteps(Rosenbrock23(linsolve = GenericFactorization(lu!)));
+    PROB_KWARGS...)
 test_waltman_sol(sol2)
 
 # out-of-place LU factorization
-sol3 = solve(PROB_WALTMAN, MethodOfSteps(Rosenbrock23(linsolve = GenericFactorization(lu)));
-             PROB_KWARGS...)
+sol3 = solve(
+    PROB_WALTMAN, MethodOfSteps(Rosenbrock23(linsolve = GenericFactorization(lu)));
+    PROB_KWARGS...)
 test_waltman_sol(sol3)
 
 # compare in-place and out-of-place LU factorization

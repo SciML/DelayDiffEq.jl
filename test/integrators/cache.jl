@@ -31,7 +31,7 @@ function affect!(integrator)
 end
 
 const prob = DDEProblem(f, [0.2], nothing, (0.0, 10.0);
-                        callback = ContinuousCallback(condition, affect!))
+    callback = ContinuousCallback(condition, affect!))
 
 println("Check for stochastic errors")
 for i in 1:10

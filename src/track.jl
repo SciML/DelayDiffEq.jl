@@ -77,8 +77,8 @@ function discontinuity_interval(integrator::DDEIntegrator, lag, T, Θs)
     # use start and end point of last time interval to check for discontinuities
     previous_condition = discontinuity_function(integrator, lag, T, integrator.t)
     if isapprox(previous_condition, 0;
-                rtol = integrator.discontinuity_reltol,
-                atol = integrator.discontinuity_abstol)
+        rtol = integrator.discontinuity_reltol,
+        atol = integrator.discontinuity_abstol)
         prev_sign = 0
     else
         prev_sign = cmp(previous_condition, zero(previous_condition))
@@ -135,10 +135,11 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
             (θ, p = nothing) -> discontinuity_function(integrator, lag, T, t + θ * dt)
         end
 
-        Θ = SimpleNonlinearSolve.solve(SimpleNonlinearSolve.IntervalNonlinearProblem{false}(zero_func,
-                                                                                            (bottom_Θ,
-                                                                                             top_Θ)),
-                                       SimpleNonlinearSolve.Falsi()).left
+        Θ = SimpleNonlinearSolve.solve(
+            SimpleNonlinearSolve.IntervalNonlinearProblem{false}(zero_func,
+                (bottom_Θ,
+                    top_Θ)),
+            SimpleNonlinearSolve.Falsi()).left
     end
 
     integrator.t + Θ * integrator.dt

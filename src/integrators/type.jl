@@ -1,5 +1,6 @@
-mutable struct HistoryODEIntegrator{algType, IIP, uType, tType, tdirType, ksEltype, SolType,
-                                    CacheType, DV} <:
+mutable struct HistoryODEIntegrator{
+    algType, IIP, uType, tType, tdirType, ksEltype, SolType,
+    CacheType, DV} <:
                AbstractODEIntegrator{algType, IIP, uType, tType}
     sol::SolType
     u::uType
@@ -22,17 +23,17 @@ function (integrator::HistoryODEIntegrator)(t, deriv::Type = Val{0}; idxs = noth
 end
 
 function (integrator::HistoryODEIntegrator)(val::AbstractArray,
-                                            t::Union{Number, AbstractArray},
-                                            deriv::Type = Val{0}; idxs = nothing)
+        t::Union{Number, AbstractArray},
+        deriv::Type = Val{0}; idxs = nothing)
     OrdinaryDiffEq.current_interpolant!(val, t, integrator, idxs, deriv)
 end
 
 mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUnits,
-                             tdirType,
-                             ksEltype, SolType, F, CacheType, IType, FP, O, dAbsType,
-                             dRelType, H,
-                             tstopsType, discType, FSALType, EventErrorType,
-                             CallbackCacheType, DV} <:
+    tdirType,
+    ksEltype, SolType, F, CacheType, IType, FP, O, dAbsType,
+    dRelType, H,
+    tstopsType, discType, FSALType, EventErrorType,
+    CallbackCacheType, DV} <:
                AbstractDDEIntegrator{algType, IIP, uType, tType}
     sol::SolType
     u::uType
@@ -97,72 +98,73 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
 
     # incomplete initialization without fsalfirst and fsallast
     function DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUnits,
-                           tdirType, ksEltype, SolType, F, CacheType, IType, FP,
-                           O, dAbsType, dRelType, H, tstopsType, discType,
-                           FSALType, EventErrorType, CallbackCacheType, DV}(sol, u, k, t, dt, f,
-                                                                        p, uprev, uprev2,
-                                                                        tprev, prev_idx,
-                                                                        prev2_idx,
-                                                                        fpsolver,
-                                                                        order_discontinuity_t0,
-                                                                        tracked_discontinuities,
-                                                                        discontinuity_interp_points,
-                                                                        discontinuity_abstol,
-                                                                        discontinuity_reltol,
-                                                                        tstops_propagated,
-                                                                        d_discontinuities_propagated,
-                                                                        alg, dtcache,
-                                                                        dtchangeable,
-                                                                        dtpropose, tdir,
-                                                                        eigen_est, EEst,
-                                                                        qold,
-                                                                        q11, erracc, dtacc,
-                                                                        success_iter, iter,
-                                                                        saveiter,
-                                                                        saveiter_dense,
-                                                                        cache,
-                                                                        callback_cache,
-                                                                        kshortsize,
-                                                                        force_stepfail,
-                                                                        last_stepfail,
-                                                                        just_hit_tstop,
-                                                                        do_error_check,
-                                                                        event_last_time,
-                                                                        vector_event_last_time,
-                                                                        last_event_error,
-                                                                        accept_step, isout,
-                                                                        reeval_fsal,
-                                                                        u_modified, isdae,
-                                                                        opts, stats,
-                                                                        history,
-                                                                        differential_vars,
-                                                                        integrator) where
-        {algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
-         SolType, F,
-         CacheType, IType, FP, O, dAbsType, dRelType, H, tstopsType, discType,
-         FSALType, EventErrorType, CallbackCacheType, DV}
+            tdirType, ksEltype, SolType, F, CacheType, IType, FP,
+            O, dAbsType, dRelType, H, tstopsType, discType,
+            FSALType, EventErrorType, CallbackCacheType, DV}(sol, u, k, t, dt, f,
+            p, uprev, uprev2,
+            tprev, prev_idx,
+            prev2_idx,
+            fpsolver,
+            order_discontinuity_t0,
+            tracked_discontinuities,
+            discontinuity_interp_points,
+            discontinuity_abstol,
+            discontinuity_reltol,
+            tstops_propagated,
+            d_discontinuities_propagated,
+            alg, dtcache,
+            dtchangeable,
+            dtpropose, tdir,
+            eigen_est, EEst,
+            qold,
+            q11, erracc, dtacc,
+            success_iter, iter,
+            saveiter,
+            saveiter_dense,
+            cache,
+            callback_cache,
+            kshortsize,
+            force_stepfail,
+            last_stepfail,
+            just_hit_tstop,
+            do_error_check,
+            event_last_time,
+            vector_event_last_time,
+            last_event_error,
+            accept_step, isout,
+            reeval_fsal,
+            u_modified, isdae,
+            opts, stats,
+            history,
+            differential_vars,
+            integrator) where
+            {algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
+            SolType, F,
+            CacheType, IType, FP, O, dAbsType, dRelType, H, tstopsType, discType,
+            FSALType, EventErrorType, CallbackCacheType, DV}
         new{algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
             SolType, F,
             CacheType, IType, FP, O, dAbsType, dRelType, H, tstopsType, discType, FSALType,
-            EventErrorType, CallbackCacheType, DV}(sol, u, k, t, dt, f, p, uprev, uprev2, tprev,
-                                               prev_idx, prev2_idx, fpsolver,
-                                               order_discontinuity_t0,
-                                               tracked_discontinuities,
-                                               discontinuity_interp_points,
-                                               discontinuity_abstol, discontinuity_reltol,
-                                               tstops_propagated,
-                                               d_discontinuities_propagated, alg, dtcache,
-                                               dtchangeable, dtpropose, tdir,
-                                               eigen_est, EEst, qold, q11, erracc, dtacc,
-                                               success_iter, iter, saveiter, saveiter_dense,
-                                               cache, callback_cache, kshortsize,
-                                               force_stepfail, last_stepfail,
-                                               just_hit_tstop,
-                                               do_error_check, event_last_time,
-                                               vector_event_last_time,
-                                               last_event_error, accept_step, isout,
-                                               reeval_fsal, u_modified, isdae, opts,
-                                               stats, history, differential_vars, integrator)
+            EventErrorType, CallbackCacheType, DV}(
+            sol, u, k, t, dt, f, p, uprev, uprev2, tprev,
+            prev_idx, prev2_idx, fpsolver,
+            order_discontinuity_t0,
+            tracked_discontinuities,
+            discontinuity_interp_points,
+            discontinuity_abstol, discontinuity_reltol,
+            tstops_propagated,
+            d_discontinuities_propagated, alg, dtcache,
+            dtchangeable, dtpropose, tdir,
+            eigen_est, EEst, qold, q11, erracc, dtacc,
+            success_iter, iter, saveiter, saveiter_dense,
+            cache, callback_cache, kshortsize,
+            force_stepfail, last_stepfail,
+            just_hit_tstop,
+            do_error_check, event_last_time,
+            vector_event_last_time,
+            last_event_error, accept_step, isout,
+            reeval_fsal, u_modified, isdae, opts,
+            stats, history, differential_vars, integrator)
     end
 end
 
@@ -171,6 +173,6 @@ function (integrator::DDEIntegrator)(t, deriv::Type = Val{0}; idxs = nothing)
 end
 
 function (integrator::DDEIntegrator)(val::AbstractArray, t::Union{Number, AbstractArray},
-                                     deriv::Type = Val{0}; idxs = nothing)
+        deriv::Type = Val{0}; idxs = nothing)
     OrdinaryDiffEq.current_interpolant!(val, t, integrator, idxs, deriv)
 end
