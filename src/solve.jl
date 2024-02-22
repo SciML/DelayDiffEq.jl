@@ -98,7 +98,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         @warn("Dense output is incompatible with saveat. Please use the SavingCallback from the Callback Library to mix the two behaviors.")
     end
 
-    progress && @logmsg(-1, progress_name, _id=progress_id,progress=0)
+    progress && @logmsg(-1, progress_name, _id=progress_id, progress=0)
 
     isdae = prob.f.mass_matrix !== I && !(prob.f.mass_matrix isa Tuple) &&
             ArrayInterface.issingular(prob.f.mass_matrix)
@@ -166,7 +166,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         Val(isinplace(prob)))
 
     # separate statistics of the integrator and the history
-    stats = SciMLBase.DEStats(0)   
+    stats = SciMLBase.DEStats(0)
 
     # create solution
     alg_choice = iscomposite(alg) ? Int[] : nothing
