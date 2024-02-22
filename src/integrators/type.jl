@@ -90,7 +90,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
     isdae::Bool
     opts::O
     #stats::DDEStats
-    stats::DEStats
+    stats::SciMLBase.DEStats
     history::H
     differential_vars::DV
     integrator::IType
