@@ -89,7 +89,8 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
     u_modified::Bool
     isdae::Bool
     opts::O
-    stats::DDEStats
+    #stats::DDEStats
+    stats::DEStats
     history::H
     differential_vars::DV
     integrator::IType
