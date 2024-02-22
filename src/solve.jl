@@ -166,7 +166,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         Val(isinplace(prob)))
 
     # separate statistics of the integrator and the history
-    stats = DDEStats(0)
+    stats = SciMLBase.DEStats(0)   
 
     # create solution
     alg_choice = iscomposite(alg) ? Int[] : nothing
