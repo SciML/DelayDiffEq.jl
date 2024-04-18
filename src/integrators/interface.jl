@@ -256,7 +256,7 @@ function DiffEqBase.last_step_failed(integrator::DDEIntegrator)
 end
 
 # terminate integration
-function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = :Terminated)
+function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = ReturnCode.Terminated)
     integrator.sol = DiffEqBase.solution_new_retcode(integrator.sol, retcode)
     integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
     nothing
