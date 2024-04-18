@@ -34,6 +34,7 @@ end
 
 # discrete callback
 @testset "discrete" begin
+    # Automatic absolute tolerances
     cb = AutoAbstol()
 
     sol1 = solve(prob, alg, callback = cb)
@@ -42,6 +43,11 @@ end
 
     @test sol3.errors[:L2] < 1.4e-3
     @test sol3.errors[:L∞] < 4.1e-3
+
+    # Terminate early
+    cb = DiscreteCallback((u, t, integrator) -> t == 4, terminate!)
+    sol = @test_logs solve(prob, alg; callback = cb, tstops = [4.0])
+    @test sol.t[end] == 4
 end
 
 @testset "save discontinuity" begin
