@@ -1,0 +1,42 @@
+name: "Run Tests"
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch || github.ref != 'refs/tags/v*' }}
+
+jobs:
+  tests:
+    name: "Tests"
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1'
+        arch:
+          - x64
+          - x86
+        group:
+          - Interface
+          - Integrators
+          - Regression
+        include:
+          - coverage: false
+          - version: '1'
+            arch: x64
+            coverage: true
+        exclude: # test 32bit only with Julia 1 but not LTS
+          - version: '1.6'
+            arch: x86
+    uses: "SciML/.github/.github/workflows/tests.yml@v1"
+    with:
+      group: ${{ matrix.group }}
+      julia-version: '1'
+      julia-arch: ${{ matrix.arch }}
+      coverage: ${{ matrix.coverage }}
+    secrets: "inherit"
