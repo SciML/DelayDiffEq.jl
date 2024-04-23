@@ -46,9 +46,9 @@ using Test
             sol4 = solve(prob, alg4; abstol = 1e-12, reltol = 1e-12)
 
             # relaxed tests to prevent floating point issues
-            @test abs(sol1[end] - sol2[end]) < 2.5e-8
-            @test abs(sol1[end] - sol3[end]) < 3.7e-8
-            @test abs(sol1[end] - sol4[end]) < 9.0e-11 # 9.0e-13
+            @test abs(sol1.u[end] - sol2.u[end]) < 2.5e-8
+            @test abs(sol1.u[end] - sol3.u[end]) < 3.7e-8
+            @test abs(sol1.u[end] - sol4.u[end]) < 9.0e-11 # 9.0e-13
         end
     end
 
@@ -82,8 +82,8 @@ using Test
             sol4 = solve(prob, alg4; abstol = 1e-12, reltol = 1e-12)
 
             # relaxed tests to prevent floating point issues
-            @test abs(sol1[end] - sol3[end]) < 1.2e-13 # 1.2e-15
-            @test abs(sol1[end] - sol4[end]) < 3.1e-13 # 3.1e-15
+            @test abs(sol1.u[end] - sol3.u[end]) < 1.2e-13 # 1.2e-15
+            @test abs(sol1.u[end] - sol4.u[end]) < 3.1e-13 # 3.1e-15
         end
     end
 end
