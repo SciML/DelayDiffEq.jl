@@ -30,9 +30,6 @@ jobs:
           - version: '1'
             arch: x64
             coverage: true
-        exclude: # test 32bit only with Julia 1 but not LTS
-          - version: '1.6'
-            arch: x86
     uses: "SciML/.github/.github/workflows/tests.yml@v1"
     with:
       group: ${{ matrix.group }}
