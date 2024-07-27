@@ -2,7 +2,7 @@ using DelayDiffEq, DDEProblemLibrary
 using LinearAlgebra, Test, LinearSolve
 
 const PROB_WALTMAN = DDEProblemLibrary.prob_dde_RADAR5_waltman_5
-const PROB_KWARGS = (reltol = 1e-6, abstol = [1e-21, 1e-21, 1e-21, 1e-21, 1e-9, 1e-9])
+const PROB_KWARGS = (reltol = 1e-7, abstol = [1e-21, 1e-21, 1e-21, 1e-21, 1e-9, 1e-9])
 
 # solution at final time point T = 300 obtained from RADAR5
 # with relative tolerance 1e-6 and componentwise absolute tolerances
