@@ -97,7 +97,7 @@ end
         fsalfirst::FSALType
         fsallast::FSALType
     end
-    
+
 else
     mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUnits,
         tdirType,
@@ -105,7 +105,7 @@ else
         dRelType, H,
         tstopsType, discType, FSALType, EventErrorType,
         CallbackCacheType, DV} <:
-                AbstractDDEIntegrator{algType, IIP, uType, tType}
+                   AbstractDDEIntegrator{algType, IIP, uType, tType}
         sol::SolType
         u::uType
         k::ksEltype
@@ -209,7 +209,8 @@ else
                 history,
                 differential_vars,
                 integrator) where
-                {algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
+                {
+                algType, IIP, uType, tType, P, eigenType, tTypeNoUnits, tdirType, ksEltype,
                 SolType, F,
                 CacheType, IType, FP, O, dAbsType, dRelType, H, tstopsType, discType,
                 FSALType, EventErrorType, CallbackCacheType, DV}
