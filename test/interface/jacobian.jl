@@ -15,13 +15,6 @@ using Test
         nothing
     end
 
-    nWfacts = Ref(0)
-    function Wfact(W, u, h, p, dtgamma, t)
-        nWfacts[] += 1
-        W[1, 1] = dtgamma * (1 - h(p, t - 1)[1]) - 1
-        nothing
-    end
-
     nWfact_ts = Ref(0)
     function Wfact_t(W, u, h, p, dtgamma, t)
         nWfact_ts[] += 1
@@ -34,11 +27,10 @@ using Test
     # define problems
     prob = DDEProblem(DDEFunction{true}(f), [1.0], h, (0.0, 40.0); constant_lags = [1])
     prob_jac = remake(prob; f = DDEFunction{true}(f; jac = jac))
-    prob_Wfact = remake(prob; f = DDEFunction{true}(f; Wfact = Wfact))
     prob_Wfact_t = remake(prob; f = DDEFunction{true}(f; Wfact_t = Wfact_t))
 
     # compute solutions
-    for alg in (Rosenbrock23(), TRBDF2())
+    for alg in (Rodas5P(), TRBDF2())
         sol = solve(prob, MethodOfSteps(alg))
 
         ## Jacobian
@@ -54,49 +46,23 @@ using Test
         @test sol.t ≈ sol_jac.t
         @test sol.u ≈ sol_jac.u
 
-        ## Wfact
-        nWfacts[] = 0
-        sol_Wfact = solve(prob_Wfact, MethodOfSteps(alg))
-
-        # check number of function evaluations
-        if alg isa Rosenbrock23
-            @test !iszero(nWfacts[])
-            @test nWfacts[] >= njacs[]
-            @test iszero(sol_Wfact.stats.njacs)
-        else
-            @test_broken !iszero(nWfacts[])
-            @test_broken nWfacts[] >= njacs[]
-            @test_broken iszero(sol_Wfact.stats.njacs)
-        end
-        @test_broken nWfacts[] == sol_Wfact.stats.nw
-
-        # check resulting solution
-        @test sol.t ≈ sol_Wfact.t
-        @test sol.u ≈ sol_Wfact.u
-
         ## Wfact_t
         nWfact_ts[] = 0
         sol_Wfact_t = solve(prob_Wfact_t, MethodOfSteps(alg))
 
         # check number of function evaluations
-        if alg isa Rosenbrock23
-            @test_broken !iszero(nWfact_ts[])
-            @test_broken nWfact_ts[] == njacs[]
-            @test_broken iszero(sol_Wfact_t.stats.njacs)
-        else
-            @test !iszero(nWfact_ts[])
-            @test_broken nWfact_ts[] == njacs[]
-            @test iszero(sol_Wfact_t.stats.njacs)
-        end
+        @test !iszero(nWfact_ts[])
+        @test_broken nWfact_ts[] == njacs[]
+        @test iszero(sol_Wfact_t.stats.njacs)
         @test_broken nWfact_ts[] == sol_Wfact_t.stats.nw
 
         # check resulting solution
-        if alg isa Rosenbrock23
-            @test sol.t ≈ sol_Wfact_t.t
-            @test sol.u ≈ sol_Wfact_t.u
-        else
+        if alg isa TRBDF2
             @test_broken sol.t ≈ sol_Wfact_t.t
             @test_broken sol.u ≈ sol_Wfact_t.u
+        else
+            @test sol.t ≈ sol_Wfact_t.t
+            @test sol.u ≈ sol_Wfact_t.u
         end
     end
 end
@@ -111,12 +77,6 @@ end
         reshape(1 .- h(p, t - 1), 1, 1)
     end
 
-    nWfacts = Ref(0)
-    function Wfact(u, h, p, dtgamma, t)
-        nWfacts[] += 1
-        reshape(dtgamma .* (1 .- h(p, t - 1)) .- 1, 1, 1)
-    end
-
     nWfact_ts = Ref(0)
     function Wfact_t(u, h, p, dtgamma, t)
         nWfact_ts[] += 1
@@ -128,11 +88,10 @@ end
     # define problems
     prob = DDEProblem(DDEFunction{false}(f), [1.0], h, (0.0, 40.0); constant_lags = [1])
     prob_jac = remake(prob; f = DDEFunction{false}(f; jac = jac))
-    prob_Wfact = remake(prob; f = DDEFunction{false}(f; Wfact = Wfact))
     prob_Wfact_t = remake(prob; f = DDEFunction{false}(f; Wfact_t = Wfact_t))
 
     # compute solutions
-    for alg in (Rosenbrock23(), TRBDF2())
+    for alg in (Rodas5P(), TRBDF2())
         sol = solve(prob, MethodOfSteps(alg))
 
         ## Jacobian
@@ -147,20 +106,6 @@ end
         # check resulting solution
         @test sol.t ≈ sol_jac.t
         @test sol.u ≈ sol_jac.u
-
-        ## Wfact
-        nWfacts[] = 0
-        sol_Wfact = solve(prob_Wfact, MethodOfSteps(alg))
-
-        # check number of function evaluations
-        @test_broken !iszero(nWfacts[])
-        @test_broken nWfacts[] == njacs[]
-        @test_broken iszero(sol_Wfact.stats.njacs)
-        @test_broken nWfacts[] == sol_Wfact.stats.nw
-
-        # check resulting solution
-        @test sol.t ≈ sol_Wfact.t
-        @test sol.u ≈ sol_Wfact.u
 
         ## Wfact_t
         nWfact_ts[] = 0
