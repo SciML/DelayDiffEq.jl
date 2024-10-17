@@ -17,7 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1'
+          - "1"
+          - "lts"
+          - "pre"
         arch:
           - x64
           - x86
@@ -27,13 +29,14 @@ jobs:
           - Regression
         include:
           - coverage: false
-          - version: '1'
+          - version:
+              - "1"
             arch: x64
             coverage: true
     uses: "SciML/.github/.github/workflows/tests.yml@v1"
     with:
       group: ${{ matrix.group }}
-      julia-version: '1'
+      julia-version: "${{ matrix.version }}"
       julia-arch: ${{ matrix.arch }}
       coverage: ${{ matrix.coverage }}
     secrets: "inherit"
