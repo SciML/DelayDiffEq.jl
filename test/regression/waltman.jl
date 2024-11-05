@@ -26,7 +26,7 @@ test_waltman_sol(sol1)
 
 # in-place LU factorization
 sol2 = solve(PROB_WALTMAN,
-    MethodOfSteps(Rosenbrock23(linsolve = GenericFactorization(lu!)));
+    MethodOfSteps(Rodas5P(linsolve = GenericFactorization(lu!)));
     PROB_KWARGS...)
 test_waltman_sol(sol2)
 
