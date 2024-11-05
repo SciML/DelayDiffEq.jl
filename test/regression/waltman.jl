@@ -21,7 +21,7 @@ function test_waltman_sol(sol)
 end
 
 # standard factorization
-sol1 = solve(PROB_WALTMAN, MethodOfSteps(Rosenbrock23()); PROB_KWARGS...)
+sol1 = solve(PROB_WALTMAN, MethodOfSteps(Rodas5P()); PROB_KWARGS...)
 test_waltman_sol(sol1)
 
 # in-place LU factorization
@@ -32,7 +32,7 @@ test_waltman_sol(sol2)
 
 # out-of-place LU factorization
 sol3 = solve(
-    PROB_WALTMAN, MethodOfSteps(Rosenbrock23(linsolve = GenericFactorization(lu)));
+    PROB_WALTMAN, MethodOfSteps(Rodas5P(linsolve = GenericFactorization(lu)));
     PROB_KWARGS...)
 test_waltman_sol(sol3)
 
