@@ -1,7 +1,7 @@
 # accept/reject computed integration step, propose next step, and apply callbacks
-function OrdinaryDiffEq.loopfooter!(integrator::DDEIntegrator)
-    # apply same logic as in OrdinaryDiffEq
-    OrdinaryDiffEq._loopfooter!(integrator)
+function OrdinaryDiffEqCore.loopfooter!(integrator::DDEIntegrator)
+    # apply same logic as in OrdinaryDiffEqCore
+    OrdinaryDiffEqCore._loopfooter!(integrator)
 
     if !integrator.accept_step
         # reset ODE integrator to the cached values if the last step failed
@@ -80,7 +80,7 @@ function DiffEqBase.savevalues!(integrator::DDEIntegrator, force_save = false,
     ode_integrator.dtcache = ode_integrator.dt
 
     # update solution
-    OrdinaryDiffEq._savevalues!(integrator, force_save, reduce_size)
+    OrdinaryDiffEqCore._savevalues!(integrator, force_save, reduce_size)
 end
 
 # clean up the solution of the integrator
@@ -111,11 +111,11 @@ function DiffEqBase.postamble!(integrator::DDEIntegrator)
     DiffEqBase.postamble!(integrator.integrator)
 
     # clean solution of the DDE integrator
-    OrdinaryDiffEq._postamble!(integrator)
+    OrdinaryDiffEqCore._postamble!(integrator)
 end
 
 # perform next integration step
-function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
+function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator)
     @unpack cache, history = integrator
 
     # reset boolean which indicates if the history function was evaluated at a time point
@@ -123,13 +123,13 @@ function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
     history.isout = false
 
     # perform always at least one calculation of the stages
-    OrdinaryDiffEq.perform_step!(integrator, cache)
+    OrdinaryDiffEqCore.perform_step!(integrator, cache)
 
     # if the history function was evaluated at time points past the final time point of the
     # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
     if history.isout
         # perform fixed-point iteration
-        OrdinaryDiffEq.nlsolve!(integrator.fpsolver, integrator)
+        OrdinaryDiffEqCore.nlsolve!(integrator.fpsolver, integrator)
     end
 
     # update ODE integrator to next time interval together with correct interpolation
@@ -139,11 +139,11 @@ function OrdinaryDiffEq.perform_step!(integrator::DDEIntegrator)
 end
 
 # initialize the integrator
-function OrdinaryDiffEq.initialize!(integrator::DDEIntegrator)
+function OrdinaryDiffEqCore.initialize!(integrator::DDEIntegrator)
     ode_integrator = integrator.integrator
 
     # initialize the cache
-    OrdinaryDiffEq.initialize!(integrator, integrator.cache)
+    OrdinaryDiffEqCore.initialize!(integrator, integrator.cache)
 
     # copy interpolation data to the ODE integrator
     @inbounds for i in 1:length(integrator.k)
@@ -190,8 +190,8 @@ function Base.resize!(integrator::DDEIntegrator, cache, i)
     for c in full_cache(cache)
         resize!(c, i)
     end
-    OrdinaryDiffEq.resize_nlsolver!(integrator, i)
-    OrdinaryDiffEq.resize_J_W!(cache, integrator, i)
+    OrdinaryDiffEqCore.resize_nlsolver!(integrator, i)
+    OrdinaryDiffEqCore.resize_J_W!(cache, integrator, i)
     resize_non_user_cache!(integrator, cache, i)
     resize_fpsolver!(integrator, i)
     nothing
@@ -203,8 +203,8 @@ function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
         cache::RosenbrockMutableCache, i)
     cache.J = similar(cache.J, i, i)
     cache.W = similar(cache.W, i, i)
-    OrdinaryDiffEq.resize_jac_config!(cache.jac_config, i)
-    OrdinaryDiffEq.resize_grad_config!(cache.grad_config, i)
+    OrdinaryDiffEqCore.resize_jac_config!(cache.jac_config, i)
+    OrdinaryDiffEqCore.resize_grad_config!(cache.grad_config, i)
     nothing
 end
 
@@ -339,7 +339,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
         integrator.uprev = integrator.u
     end
 
-    if OrdinaryDiffEq.alg_extrapolates(integrator.alg)
+    if OrdinaryDiffEqCore.alg_extrapolates(integrator.alg)
         if isinplace(integrator.sol.prob)
             recursivecopy!(integrator.uprev2, integrator.uprev)
         else
@@ -352,10 +352,10 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
     # reinit time stops, time points at which solution is saved, and discontinuities
     tType = typeof(integrator.t)
     tspan = (tType(t0), tType(tf))
-    integrator.opts.tstops = OrdinaryDiffEq.initialize_tstops(tType, tstops,
+    integrator.opts.tstops = OrdinaryDiffEqCore.initialize_tstops(tType, tstops,
         d_discontinuities, tspan)
-    integrator.opts.saveat = OrdinaryDiffEq.initialize_saveat(tType, saveat, tspan)
-    integrator.opts.d_discontinuities = OrdinaryDiffEq.initialize_d_discontinuities(
+    integrator.opts.saveat = OrdinaryDiffEqCore.initialize_saveat(tType, saveat, tspan)
+    integrator.opts.d_discontinuities = OrdinaryDiffEqCore.initialize_d_discontinuities(
         Discontinuity{
             tType,
             Int
@@ -365,7 +365,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
 
     # update order of initial discontinuity and propagated discontinuities
     integrator.order_discontinuity_t0 = order_discontinuity_t0
-    maximum_order = OrdinaryDiffEq.alg_maximum_order(integrator.alg)
+    maximum_order = OrdinaryDiffEqCore.alg_maximum_order(integrator.alg)
     tstops_propagated, d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
         tType,
         tstops,
@@ -406,7 +406,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
         end
 
         # erase array of tracked discontinuities
-        if order_discontinuity_t0 ≤ OrdinaryDiffEq.alg_maximum_order(integrator.alg)
+        if order_discontinuity_t0 ≤ OrdinaryDiffEqCore.alg_maximum_order(integrator.alg)
             resize!(integrator.tracked_discontinuities, 1)
             integrator.tracked_discontinuities[1] = Discontinuity(
                 integrator.tdir *
@@ -437,11 +437,11 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
     end
 
     if reinit_callbacks
-        OrdinaryDiffEq.initialize_callbacks!(integrator, initialize_save)
+        OrdinaryDiffEqCore.initialize_callbacks!(integrator, initialize_save)
     end
 
     if reinit_cache
-        OrdinaryDiffEq.initialize!(integrator)
+        OrdinaryDiffEqCore.initialize!(integrator)
     end
 
     nothing
@@ -461,7 +461,7 @@ function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
 
     # determine initial time step
     ode_prob = ODEProblem(f, prob.u0, prob.tspan, prob.p)
-    integrator.dt = OrdinaryDiffEq.ode_determine_initdt(u, t, tdir, dtmax, opts.abstol,
+    integrator.dt = OrdinaryDiffEqCore.ode_determine_initdt(u, t, tdir, dtmax, opts.abstol,
         opts.reltol, opts.internalnorm,
         ode_prob, integrator)
 
@@ -493,14 +493,14 @@ end
 
 DiffEqBase.has_stats(::DDEIntegrator) = true
 
-# https://github.com/SciML/OrdinaryDiffEq.jl/pull/1753
+# https://github.com/SciML/OrdinaryDiffEqCore.jl/pull/1753
 # Backwards compatability
-@static if isdefined(OrdinaryDiffEq, :DEPRECATED_ADDSTEPS)
-    const _ode_addsteps! = OrdinaryDiffEq._ode_addsteps!
-    const ode_addsteps! = OrdinaryDiffEq.ode_addsteps!
+@static if isdefined(OrdinaryDiffEqCore, :DEPRECATED_ADDSTEPS)
+    const _ode_addsteps! = OrdinaryDiffEqCore._ode_addsteps!
+    const ode_addsteps! = OrdinaryDiffEqCore.ode_addsteps!
 else
     const _ode_addsteps! = DiffEqBase.addsteps!
-    const ode_addsteps! = OrdinaryDiffEq._ode_addsteps!
+    const ode_addsteps! = OrdinaryDiffEqCore._ode_addsteps!
 end
 
 function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
@@ -514,11 +514,11 @@ function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
         }) where {
         T
 }
-    OrdinaryDiffEq._change_t_via_interpolation!(integrator, t, modify_save_endpoint)
+    OrdinaryDiffEqCore._change_t_via_interpolation!(integrator, t, modify_save_endpoint)
 end
 
 # update integrator when u is modified by callbacks
-function OrdinaryDiffEq.handle_callback_modifiers!(integrator::DDEIntegrator)
+function OrdinaryDiffEqCore.handle_callback_modifiers!(integrator::DDEIntegrator)
     integrator.reeval_fsal = true # recalculate fsalfirst after applying step
 
     # update heap of discontinuities
@@ -563,23 +563,23 @@ function DiffEqBase.step!(integrator::DDEIntegrator)
     @inbounds begin
         if integrator.opts.advance_to_tstop
             while integrator.tdir * integrator.t < first(integrator.opts.tstops)
-                OrdinaryDiffEq.loopheader!(integrator)
+                OrdinaryDiffEqCore.loopheader!(integrator)
                 DiffEqBase.check_error!(integrator) == ReturnCode.Success || return
-                OrdinaryDiffEq.perform_step!(integrator)
-                OrdinaryDiffEq.loopfooter!(integrator)
+                OrdinaryDiffEqCore.perform_step!(integrator)
+                OrdinaryDiffEqCore.loopfooter!(integrator)
             end
         else
-            OrdinaryDiffEq.loopheader!(integrator)
+            OrdinaryDiffEqCore.loopheader!(integrator)
             DiffEqBase.check_error!(integrator) == ReturnCode.Success || return
-            OrdinaryDiffEq.perform_step!(integrator)
-            OrdinaryDiffEq.loopfooter!(integrator)
+            OrdinaryDiffEqCore.perform_step!(integrator)
+            OrdinaryDiffEqCore.loopfooter!(integrator)
 
             while !integrator.accept_step
-                OrdinaryDiffEq.loopheader!(integrator)
-                OrdinaryDiffEq.perform_step!(integrator)
-                OrdinaryDiffEq.loopfooter!(integrator)
+                OrdinaryDiffEqCore.loopheader!(integrator)
+                OrdinaryDiffEqCore.perform_step!(integrator)
+                OrdinaryDiffEqCore.loopfooter!(integrator)
             end
         end
-        OrdinaryDiffEq.handle_tstop!(integrator)
+        OrdinaryDiffEqCore.handle_tstop!(integrator)
     end
 end

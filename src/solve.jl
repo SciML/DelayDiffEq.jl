@@ -29,13 +29,13 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         dtmax = eltype(prob.tspan)(prob.tspan[end] - prob.tspan[1]),
         force_dtmin = false,
         adaptive = DiffEqBase.isadaptive(alg),
-        gamma = OrdinaryDiffEq.gamma_default(alg.alg),
+        gamma = OrdinaryDiffEqCore.gamma_default(alg.alg),
         abstol = nothing,
         reltol = nothing,
-        qmin = OrdinaryDiffEq.qmin_default(alg.alg),
-        qmax = OrdinaryDiffEq.qmax_default(alg.alg),
-        qsteady_min = OrdinaryDiffEq.qsteady_min_default(alg.alg),
-        qsteady_max = OrdinaryDiffEq.qsteady_max_default(alg.alg),
+        qmin = OrdinaryDiffEqCore.qmin_default(alg.alg),
+        qmax = OrdinaryDiffEqCore.qmax_default(alg.alg),
+        qsteady_min = OrdinaryDiffEqCore.qsteady_min_default(alg.alg),
+        qsteady_max = OrdinaryDiffEqCore.qsteady_max_default(alg.alg),
         qoldinit = DiffEqBase.isadaptive(alg) ? 1 // 10^4 : 0,
         controller = nothing,
         fullnormalize = true,
@@ -59,7 +59,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         progress_message = DiffEqBase.ODE_DEFAULT_PROG_MESSAGE,
         progress_id = :DelayDiffEq,
         userdata = nothing,
-        allow_extrapolation = OrdinaryDiffEq.alg_extrapolates(alg),
+        allow_extrapolation = OrdinaryDiffEqCore.alg_extrapolates(alg),
         initialize_integrator = true,
         alias_u0 = false,
         # keyword arguments for DDEs
@@ -77,7 +77,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     if alg.alg isa CompositeAlgorithm && alg.alg.choice_function isa AutoSwitch
         auto = alg.alg.choice_function
         alg = MethodOfSteps(CompositeAlgorithm(alg.alg.algs,
-            OrdinaryDiffEq.AutoSwitchCache(0, 0,
+            OrdinaryDiffEqCore.AutoSwitchCache(0, 0,
                 auto.nonstiffalg,
                 auto.stiffalg,
                 auto.stiffalgfirst,
@@ -139,7 +139,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
     # get the differential vs algebraic variables
     differential_vars = prob isa DAEProblem ? prob.differential_vars :
-                        OrdinaryDiffEq.get_differential_vars(f, u)
+                        OrdinaryDiffEqCore.get_differential_vars(f, u)
 
     # create a history function
     history = build_history_function(prob, alg, rate_prototype, reltol_internal,
@@ -159,7 +159,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
     # build cache
     ode_integrator = history.integrator
-    cache = OrdinaryDiffEq.alg_cache(alg.alg, u, rate_prototype, uEltypeNoUnits,
+    cache = OrdinaryDiffEqCore.alg_cache(alg.alg, u, rate_prototype, uEltypeNoUnits,
         uBottomEltypeNoUnits, tTypeNoUnits, uprev, uprev2,
         f_with_history, t0, zero(tType), reltol_internal, p,
         calck,
@@ -170,7 +170,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
     # create solution
     alg_choice = iscomposite(alg) ? Int[] : nothing
-    id = OrdinaryDiffEq.InterpolationData(f_with_history, timeseries, ts, ks,
+    id = OrdinaryDiffEqCore.InterpolationData(f_with_history, timeseries, ts, ks,
         alg_choice, dense, cache, differential_vars, false)
     sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
         dense = dense, k = ks, interp = id,
@@ -178,10 +178,10 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         stats = stats)
 
     # retrieve time stops, time points at which solutions is saved, and discontinuities
-    tstops_internal = OrdinaryDiffEq.initialize_tstops(tType, tstops, d_discontinuities,
+    tstops_internal = OrdinaryDiffEqCore.initialize_tstops(tType, tstops, d_discontinuities,
         tspan)
-    saveat_internal = OrdinaryDiffEq.initialize_saveat(tType, saveat, tspan)
-    d_discontinuities_internal = OrdinaryDiffEq.initialize_d_discontinuities(
+    saveat_internal = OrdinaryDiffEqCore.initialize_saveat(tType, saveat, tspan)
+    d_discontinuities_internal = OrdinaryDiffEqCore.initialize_d_discontinuities(
         Discontinuity{
             tType,
             Int
@@ -189,7 +189,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         d_discontinuities,
         tspan)
 
-    maximum_order = OrdinaryDiffEq.alg_maximum_order(alg)
+    maximum_order = OrdinaryDiffEqCore.alg_maximum_order(alg)
     tstops_propagated, d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
         tType,
         tstops,
@@ -232,7 +232,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     end
 
     if controller === nothing
-        controller = OrdinaryDiffEq.default_controller(alg.alg, cache,
+        controller = OrdinaryDiffEqCore.default_controller(alg.alg, cache,
             convert(QT, qoldinit)::QT, beta1,
             beta2)
     end
@@ -242,9 +242,9 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
                save_everystep || isempty(saveat) || saveat isa Number ||
                prob.tspan[2] in saveat : save_end
 
-    # added in OrdinaryDiffEq.jl#2032
-    if hasfield(OrdinaryDiffEq.DEOptions, :progress_id)
-        opts = OrdinaryDiffEq.DEOptions{typeof(abstol_internal), typeof(reltol_internal),
+    # added in OrdinaryDiffEqCore.jl#2032
+    if hasfield(OrdinaryDiffEqCore.DEOptions, :progress_id)
+        opts = OrdinaryDiffEqCore.DEOptions{typeof(abstol_internal), typeof(reltol_internal),
             QT, tType, typeof(controller),
             typeof(internalnorm), typeof(internalopnorm),
             typeof(save_end_user),
@@ -301,7 +301,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
             advance_to_tstop,
             stop_at_next_tstop)
     else
-        opts = OrdinaryDiffEq.DEOptions{typeof(abstol_internal), typeof(reltol_internal),
+        opts = OrdinaryDiffEqCore.DEOptions{typeof(abstol_internal), typeof(reltol_internal),
             QT, tType, typeof(controller),
             typeof(internalnorm), typeof(internalopnorm),
             typeof(save_end_user),
@@ -390,14 +390,14 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     event_last_time = 0
     vector_event_last_time = 1
     last_event_error = zero(uBottomEltypeNoUnits)
-    dtchangeable = OrdinaryDiffEq.isdtchangeable(alg.alg)
+    dtchangeable = OrdinaryDiffEqCore.isdtchangeable(alg.alg)
     q11 = QT(1)
     success_iter = 0
     erracc = QT(1)
     dtacc = tType(1)
 
-    if isdefined(OrdinaryDiffEq, :get_fsalfirstlast)
-        fsalfirst, fsallast = OrdinaryDiffEq.get_fsalfirstlast(cache, rate_prototype)
+    if isdefined(OrdinaryDiffEqCore, :get_fsalfirstlast)
+        fsalfirst, fsallast = OrdinaryDiffEqCore.get_fsalfirstlast(cache, rate_prototype)
         integrator = DDEIntegrator{typeof(alg.alg), isinplace(prob), typeof(u0), tType,
             typeof(p),
             typeof(eigen_est), QT, typeof(tdir), typeof(k), typeof(sol),
@@ -472,7 +472,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
             typeof(discontinuity_reltol), typeof(history),
             typeof(tstops_propagated),
             typeof(d_discontinuities_propagated),
-            OrdinaryDiffEq.fsal_typeof(alg.alg, rate_prototype),
+            OrdinaryDiffEqCore.fsal_typeof(alg.alg, rate_prototype),
             typeof(last_event_error), typeof(callback_cache),
             typeof(differential_vars)}(sol, u, k,
             t0,
@@ -532,12 +532,12 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     # initialize DDE integrator
     if initialize_integrator
         initialize_solution!(integrator)
-        OrdinaryDiffEq.initialize_callbacks!(integrator, initialize_save)
-        OrdinaryDiffEq.initialize!(integrator)
+        OrdinaryDiffEqCore.initialize_callbacks!(integrator, initialize_save)
+        OrdinaryDiffEqCore.initialize!(integrator)
     end
 
     # take care of time step dt = 0 and dt with incorrect sign
-    OrdinaryDiffEq.handle_dt!(integrator)
+    OrdinaryDiffEqCore.handle_dt!(integrator)
 
     integrator
 end
@@ -550,23 +550,23 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
     @inbounds while !isempty(tstops)
         while tdir * integrator.t < first(tstops)
             # apply step or adapt step size
-            OrdinaryDiffEq.loopheader!(integrator)
+            OrdinaryDiffEqCore.loopheader!(integrator)
 
             # abort integration following same criteria as for ODEs:
             # maxiters exceeded, dt <= dtmin, integration unstable
             DiffEqBase.check_error!(integrator) == ReturnCode.Success || return sol
 
             # calculate next step
-            OrdinaryDiffEq.perform_step!(integrator)
+            OrdinaryDiffEqCore.perform_step!(integrator)
 
             # calculate proposed next step size, handle callbacks, and update solution
-            OrdinaryDiffEq.loopfooter!(integrator)
+            OrdinaryDiffEqCore.loopfooter!(integrator)
 
             isempty(tstops) && break
         end
 
         # remove hit or passed stopping time points
-        OrdinaryDiffEq.handle_tstop!(integrator)
+        OrdinaryDiffEqCore.handle_tstop!(integrator)
     end
 
     # clean up solution
@@ -584,7 +584,7 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
     integrator.sol = DiffEqBase.solution_new_retcode(sol, ReturnCode.Success)
 end
 
-function OrdinaryDiffEq.initialize_callbacks!(integrator::DDEIntegrator,
+function OrdinaryDiffEqCore.initialize_callbacks!(integrator::DDEIntegrator,
         initialize_save = true)
     callbacks = integrator.opts.callback
     prob = integrator.sol.prob
@@ -605,7 +605,7 @@ function OrdinaryDiffEq.initialize_callbacks!(integrator::DDEIntegrator,
             integrator.uprev = integrator.u
         end
 
-        if OrdinaryDiffEq.alg_extrapolates(integrator.alg)
+        if OrdinaryDiffEqCore.alg_extrapolates(integrator.alg)
             if isinplace(prob)
                 recursivecopy!(integrator.uprev2, integrator.uprev)
             else

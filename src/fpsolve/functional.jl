@@ -1,4 +1,4 @@
-function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLFunctional},
+function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLFunctional},
         integrator::DDEIntegrator)
     # update ODE integrator to next time interval together with correct interpolation
     if fpsolver.iter == 1
@@ -10,7 +10,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLFunctional},
     compute_step_fixedpoint!(fpsolver, integrator)
 end
 
-function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
+function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
         integrator::DDEIntegrator)
     @unpack cache, iter = fpsolver
     @unpack aa_start = cache
@@ -23,7 +23,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
         cache.z₊old = integrator.u
     elseif previter > aa_start
         # actually perform Anderson acceleration
-        integrator.u = OrdinaryDiffEq.anderson(integrator.u, cache)
+        integrator.u = OrdinaryDiffEqNonlinearSolve.anderson(integrator.u, cache)
         integrator.stats.nsolve += 1
     end
 
@@ -39,7 +39,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
     compute_step_fixedpoint!(fpsolver, integrator)
 end
 
-function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
+function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
         integrator::DDEIntegrator)
     @unpack cache, iter = fpsolver
     @unpack aa_start = cache
@@ -52,7 +52,7 @@ function OrdinaryDiffEq.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
         @.. cache.z₊old = integrator.u
     elseif previter > aa_start
         # actually perform Anderson acceleration
-        OrdinaryDiffEq.anderson!(integrator.u, cache)
+        OrdinaryDiffEqNonlinearSolve.anderson!(integrator.u, cache)
         integrator.stats.nsolve += 1
     end
 
@@ -77,11 +77,11 @@ function compute_step_fixedpoint!(
     ode_integrator = integrator.integrator
 
     # recompute next integration step
-    OrdinaryDiffEq.perform_step!(integrator, integrator.cache, true)
+    OrdinaryDiffEqCore.perform_step!(integrator, integrator.cache, true)
 
     # compute residuals
     dz = integrator.u .- ode_integrator.u
-    atmp = OrdinaryDiffEq.calculate_residuals(dz, ode_integrator.u, integrator.u,
+    atmp = OrdinaryDiffEqNonlinearSolve.calculate_residuals(dz, ode_integrator.u, integrator.u,
         opts.abstol, opts.reltol, opts.internalnorm,
         t)
 
@@ -103,11 +103,11 @@ function compute_step_fixedpoint!(
     ode_integrator = integrator.integrator
 
     # recompute next integration step
-    OrdinaryDiffEq.perform_step!(integrator, integrator.cache, true)
+    OrdinaryDiffEqCore.perform_step!(integrator, integrator.cache, true)
 
     # compute residuals
     @.. dz = integrator.u - ode_integrator.u
-    OrdinaryDiffEq.calculate_residuals!(atmp, dz, ode_integrator.u, integrator.u,
+    OrdinaryDiffEqNonlinearSolve.calculate_residuals!(atmp, dz, ode_integrator.u, integrator.u,
         opts.abstol, opts.reltol, opts.internalnorm, t)
 
     opts.internalnorm(atmp, t)
