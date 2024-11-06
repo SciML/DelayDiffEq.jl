@@ -149,6 +149,8 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     f_with_history = ODEFunctionWrapper(f, history)
 
     # initialize output arrays of the solution
+    save_idxs, saved_subsystem = SciMLBase.get_save_idxs_and_saved_subsystem(prob, save_idxs)
+
     k = typeof(rate_prototype)[]
     ts, timeseries, ks = solution_arrays(u, tspan, rate_prototype;
         timeseries_init = timeseries_init,
@@ -173,7 +175,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     id = OrdinaryDiffEqCore.InterpolationData(f_with_history, timeseries, ts, ks,
         alg_choice, dense, cache, differential_vars, false)
     sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
-        dense = dense, k = ks, interp = id,
+        dense = dense, k = ks, interp = id, saved_subsytem = saved_subsystem,
         alg_choice = id.alg_choice, calculate_error = false,
         stats = stats)
 
