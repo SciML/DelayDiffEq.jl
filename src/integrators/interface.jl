@@ -129,7 +129,7 @@ function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator)
     # solution, i.e. returned extrapolated values, continue with a fixed-point iteration
     if history.isout
         # perform fixed-point iteration
-        OrdinaryDiffEqCore.nlsolve!(integrator.fpsolver, integrator)
+        OrdinaryDiffEqNonlinearSolve.nlsolve!(integrator.fpsolver, integrator)
     end
 
     # update ODE integrator to next time interval together with correct interpolation
@@ -190,8 +190,8 @@ function Base.resize!(integrator::DDEIntegrator, cache, i)
     for c in full_cache(cache)
         resize!(c, i)
     end
-    OrdinaryDiffEqCore.resize_nlsolver!(integrator, i)
-    OrdinaryDiffEqCore.resize_J_W!(cache, integrator, i)
+    OrdinaryDiffEqNonlinearSolve.resize_nlsolver!(integrator, i)
+    OrdinaryDiffEqDifferentiation.resize_J_W!(cache, integrator, i)
     resize_non_user_cache!(integrator, cache, i)
     resize_fpsolver!(integrator, i)
     nothing
@@ -203,8 +203,8 @@ function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
         cache::RosenbrockMutableCache, i)
     cache.J = similar(cache.J, i, i)
     cache.W = similar(cache.W, i, i)
-    OrdinaryDiffEqCore.resize_jac_config!(cache.jac_config, i)
-    OrdinaryDiffEqCore.resize_grad_config!(cache.grad_config, i)
+    OrdinaryDiffEqDifferentiation.resize_jac_config!(cache.jac_config, i)
+    OrdinaryDiffEqDifferentiation.resize_grad_config!(cache.grad_config, i)
     nothing
 end
 
@@ -493,18 +493,8 @@ end
 
 DiffEqBase.has_stats(::DDEIntegrator) = true
 
-# https://github.com/SciML/OrdinaryDiffEqCore.jl/pull/1753
-# Backwards compatability
-@static if isdefined(OrdinaryDiffEqCore, :DEPRECATED_ADDSTEPS)
-    const _ode_addsteps! = OrdinaryDiffEqCore._ode_addsteps!
-    const ode_addsteps! = OrdinaryDiffEqCore.ode_addsteps!
-else
-    const _ode_addsteps! = DiffEqBase.addsteps!
-    const ode_addsteps! = OrdinaryDiffEqCore._ode_addsteps!
-end
-
 function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
-    ode_addsteps!(integrator, args...)
+    OrdinaryDiffEqCore.ode_addsteps!(integrator, args...)
 end
 
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
@@ -540,7 +530,7 @@ function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegra
         # update interpolation data of the integrator using the old dense history
         # of the ODE integrator
         resize!(integrator.k, integrator.kshortsize)
-        ode_addsteps!(integrator, integrator.f, true, true, true)
+        OrdinaryDiffEqCore.ode_addsteps!(integrator, integrator.f, true, true, true)
 
         # copy interpolation data to the ODE integrator
         recursivecopy!(ode_integrator.k, integrator.k)

@@ -1,7 +1,7 @@
 module DelayDiffEq
 
 using Reexport
-import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqRosenbrock
+import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqDifferentiation, OrdinaryDiffEqRosenbrock
 @reexport using OrdinaryDiffEq
 
 using DataStructures
