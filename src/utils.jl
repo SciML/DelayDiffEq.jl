@@ -48,7 +48,7 @@ function u_uprev(u0, alg;
 
     # Some algorithms do not use `uprev` explicitly. In that case, we can save
     # some memory by aliasing `uprev = u`, e.g. for "2N" low storage methods.
-    if OrdinaryDiffEq.uses_uprev(alg, adaptive) || calck
+    if OrdinaryDiffEqCore.uses_uprev(alg, adaptive) || calck
         uprev = recursivecopy(u)
     else
         uprev = u
@@ -292,7 +292,7 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
         save_start = true)
 
     # obtain cache (we alias uprev2 and uprev)
-    ode_cache = OrdinaryDiffEq.alg_cache(alg.alg, ode_u, rate_prototype, uEltypeNoUnits,
+    ode_cache = OrdinaryDiffEqCore.alg_cache(alg.alg, ode_u, rate_prototype, uEltypeNoUnits,
         uBottomEltypeNoUnits, tTypeNoUnits, ode_uprev,
         ode_uprev, ode_f, t0, zero(tType), reltol, p,
         calck,
@@ -300,7 +300,7 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
 
     # build dense interpolation of history
     ode_alg_choice = iscomposite(alg) ? Int[] : nothing
-    ode_id = OrdinaryDiffEq.InterpolationData(ode_f, ode_timeseries, ode_ts,
+    ode_id = OrdinaryDiffEqCore.InterpolationData(ode_f, ode_timeseries, ode_ts,
         ode_ks,
         ode_alg_choice, true, ode_cache,
         differential_vars, false)
@@ -369,6 +369,6 @@ function unwrap_alg(integrator::DDEIntegrator, is_stiff)
     end
 end
 
-function OrdinaryDiffEq.nlsolve_f(integrator::DDEIntegrator)
-    OrdinaryDiffEq.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
+function OrdinaryDiffEqNonlinearSolve.nlsolve_f(integrator::DDEIntegrator)
+    OrdinaryDiffEqNonlinearSolve.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
 end
