@@ -17,49 +17,49 @@ SciMLBase.isadaptive(alg::AbstractMethodOfStepsAlgorithm) = SciMLBase.isadaptive
 function isconstrained(alg::AbstractMethodOfStepsAlgorithm{constrained}) where {constrained}
     constrained
 end
-OrdinaryDiffEq.uses_uprev(alg::AbstractMethodOfStepsAlgorithm, adaptive) = true
+OrdinaryDiffEqCore.uses_uprev(alg::AbstractMethodOfStepsAlgorithm, adaptive) = true
 
-function OrdinaryDiffEq.isimplicit(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.isimplicit(alg.alg)
+function OrdinaryDiffEqCore.isimplicit(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.isimplicit(alg.alg)
 end
-function OrdinaryDiffEq.isdtchangeable(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.isdtchangeable(alg.alg)
+function OrdinaryDiffEqCore.isdtchangeable(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.isdtchangeable(alg.alg)
 end
-function OrdinaryDiffEq.ismultistep(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.ismultistep(alg.alg)
+function OrdinaryDiffEqCore.ismultistep(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.ismultistep(alg.alg)
 end
-function OrdinaryDiffEq.isautoswitch(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.isautoswitch(alg.alg)
+function OrdinaryDiffEqCore.isautoswitch(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.isautoswitch(alg.alg)
 end
-function OrdinaryDiffEq.get_chunksize(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.get_chunksize(alg.alg)
+function OrdinaryDiffEqCore.get_chunksize(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.get_chunksize(alg.alg)
 end
-function OrdinaryDiffEq.get_chunksize_int(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.get_chunksize_int(alg.alg)
+function OrdinaryDiffEqCore.get_chunksize_int(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.get_chunksize_int(alg.alg)
 end
-function OrdinaryDiffEq.alg_autodiff(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.alg_autodiff(alg.alg)
+function OrdinaryDiffEqCore.alg_autodiff(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.alg_autodiff(alg.alg)
 end
-function OrdinaryDiffEq.alg_difftype(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.alg_difftype(alg.alg)
+function OrdinaryDiffEqCore.alg_difftype(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.alg_difftype(alg.alg)
 end
-function OrdinaryDiffEq.standardtag(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.standardtag(alg.alg)
+function OrdinaryDiffEqCore.standardtag(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.standardtag(alg.alg)
 end
-function OrdinaryDiffEq.concrete_jac(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.concrete_jac(alg.alg)
+function OrdinaryDiffEqCore.concrete_jac(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.concrete_jac(alg.alg)
 end
-function OrdinaryDiffEq.alg_extrapolates(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.alg_extrapolates(alg.alg)
+function OrdinaryDiffEqCore.alg_extrapolates(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.alg_extrapolates(alg.alg)
 end
-function OrdinaryDiffEq.alg_order(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.alg_order(alg.alg)
+function OrdinaryDiffEqCore.alg_order(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.alg_order(alg.alg)
 end
-function OrdinaryDiffEq.alg_maximum_order(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.alg_maximum_order(alg.alg)
+function OrdinaryDiffEqCore.alg_maximum_order(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.alg_maximum_order(alg.alg)
 end
-function OrdinaryDiffEq.alg_adaptive_order(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEq.alg_adaptive_order(alg.alg)
+function OrdinaryDiffEqCore.alg_adaptive_order(alg::AbstractMethodOfStepsAlgorithm)
+    OrdinaryDiffEqCore.alg_adaptive_order(alg.alg)
 end
 
 """
@@ -68,7 +68,7 @@ end
 Return if algorithm `alg` is a composite algorithm.
 """
 iscomposite(alg) = false
-iscomposite(::OrdinaryDiffEq.OrdinaryDiffEqCompositeAlgorithm) = true
+iscomposite(::OrdinaryDiffEqCore.OrdinaryDiffEqCompositeAlgorithm) = true
 iscomposite(alg::AbstractMethodOfStepsAlgorithm) = iscomposite(alg.alg)
 
 function DiffEqBase.prepare_alg(alg::MethodOfSteps, u0, p, prob)

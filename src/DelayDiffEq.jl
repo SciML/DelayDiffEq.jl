@@ -1,6 +1,7 @@
 module DelayDiffEq
 
 using Reexport
+import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqRosenbrock
 @reexport using OrdinaryDiffEq
 
 using DataStructures
@@ -18,16 +19,9 @@ using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegr
 
 using DiffEqBase: @..
 
-if isdefined(OrdinaryDiffEq, :FastConvergence)
-    using OrdinaryDiffEq: FastConvergence, Convergence, SlowConvergence,
-                          VerySlowConvergence,
-                          Divergence, AbstractNLSolverCache, NLNewton,
-                          NLAnderson, NLFunctional
-else
-    using DiffEqBase: FastConvergence, Convergence, SlowConvergence, VerySlowConvergence,
-                      Divergence, AbstractNLSolverCache
-end
-using OrdinaryDiffEq: RosenbrockMutableCache
+using OrdinaryDiffEqNonlinearSolve: NLNewton, NLAnderson, NLFunctional, AbstractNLSolverCache,
+    FastConvergence, Convergence, SlowConvergence, VerySlowConvergence, Divergence
+using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
 
 import SciMLBase
 
