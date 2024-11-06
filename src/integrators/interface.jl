@@ -498,12 +498,7 @@ function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
 end
 
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
-        t,
-        modify_save_endpoint::Type{Val{T}} = Val{
-            false
-        }) where {
-        T
-}
+        t, modify_save_endpoint::Type{Val{T}} = Val{false}) where T
     OrdinaryDiffEqCore._change_t_via_interpolation!(integrator, t, modify_save_endpoint)
 end
 
@@ -519,13 +514,16 @@ end
 
 # recalculate interpolation data and update the ODE integrator
 function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegrator,
-        x::Type{Val{not_initialization}} = Val{
-            true
-        }) where {
-        not_initialization
-}
+        ::Type{Val{not_initialization}} = Val{true};
+        callback_initializealg = nothing) where {not_initialization}
     ode_integrator = integrator.integrator
 
+    if integrator.isdae
+        DiffEqBase.initialize_dae!(integrator,
+            isnothing(callback_initializealg) ? integrator.initializealg :
+            callback_initializealg)
+        update_uprev!(integrator)
+    end
     if not_initialization
         # update interpolation data of the integrator using the old dense history
         # of the ODE integrator
