@@ -33,7 +33,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
     ksEltype, SolType, F, CacheType, IType, FP, O, dAbsType,
     dRelType, H,
     tstopsType, discType, FSALType, EventErrorType,
-    CallbackCacheType, DV} <:
+    CallbackCacheType, DV, IA} <:
                AbstractDDEIntegrator{algType, IIP, uType, tType}
     sol::SolType
     u::uType
@@ -95,6 +95,7 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
     integrator::IType
     fsalfirst::FSALType
     fsallast::FSALType
+    initializealg::IA
 end
 
 function (integrator::DDEIntegrator)(t, deriv::Type = Val{0}; idxs = nothing)
