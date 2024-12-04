@@ -84,6 +84,9 @@ if GROUP == "All" || GROUP == "Integrators"
     @time @safetestset "Verner Tests" begin
         include("integrators/verner.jl")
     end
+    @time @safetestset "Initialization" begin
+        include("integrators/initialization.jl")
+    end
 end
 
 if GROUP == "All" || GROUP == "Regression"
