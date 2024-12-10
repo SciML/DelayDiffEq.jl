@@ -106,3 +106,7 @@ function (integrator::DDEIntegrator)(val::AbstractArray, t::Union{Number, Abstra
         deriv::Type = Val{0}; idxs = nothing)
     OrdinaryDiffEq.current_interpolant!(val, t, integrator, idxs, deriv)
 end
+
+function SII.get_history_function(integrator::DDEIntegrator)
+    return integrator.history
+end
