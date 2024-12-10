@@ -13,6 +13,7 @@ using SimpleUnPack
 
 import ArrayInterface
 import SimpleNonlinearSolve
+import SymbolicIndexingInterface as SII
 
 using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
                   DEIntegrator, AbstractDDEProblem
