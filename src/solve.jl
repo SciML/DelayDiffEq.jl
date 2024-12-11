@@ -66,6 +66,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         discontinuity_interp_points::Int = 10,
         discontinuity_abstol = eltype(prob.tspan)(1 // Int64(10)^12),
         discontinuity_reltol = 0,
+        initializealg = DDEDefaultInit(),
         kwargs...)
     if haskey(kwargs, :initial_order)
         @warn "initial_order has been deprecated. Please specify order_discontinuity_t0 in the DDEProblem instead."
@@ -350,7 +351,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         typeof(d_discontinuities_propagated),
         typeof(fsalfirst),
         typeof(last_event_error), typeof(callback_cache),
-        typeof(differential_vars)}(sol, u, k,
+        typeof(differential_vars), typeof(initializealg)}(sol, u, k,
         t0,
         tType(dt),
         f_with_history,
@@ -402,10 +403,11 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         stats,
         history,
         differential_vars,
-        ode_integrator, fsalfirst, fsallast)
+        ode_integrator, fsalfirst, fsallast, initializealg)
 
     # initialize DDE integrator
     if initialize_integrator
+        DiffEqBase.initialize_dae!(integrator)
         initialize_solution!(integrator)
         OrdinaryDiffEqCore.initialize_callbacks!(integrator, initialize_save)
         OrdinaryDiffEqCore.initialize!(integrator)
@@ -537,4 +539,19 @@ function initialize_tstops_d_discontinuities_propagated(::Type{T}, tstops,
     end
 
     return tstops_propagated, d_discontinuities_propagated
+end
+
+struct DDEDefaultInit <: DiffEqBase.DAEInitializationAlgorithm end
+
+function DiffEqBase.initialize_dae!(integrator::DDEIntegrator, initializealg = integrator.initializealg)
+    OrdinaryDiffEqCore._initialize_dae!(integrator, integrator.sol.prob, initializealg,
+        Val(DiffEqBase.isinplace(integrator.sol.prob)))
+end
+
+function OrdinaryDiffEqCore._initialize_dae!(integrator::DDEIntegrator, prob, ::DDEDefaultInit, isinplace)
+    if SciMLBase.has_initializeprob(prob.f)
+        OrdinaryDiffEqCore._initialize_dae!(integrator, prob, SciMLBase.OverrideInit(), isinplace)
+    else
+        OrdinaryDiffEqCore._initialize_dae!(integrator, prob, SciMLBase.CheckInit(), isinplace)
+    end
 end

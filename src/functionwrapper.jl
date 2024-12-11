@@ -24,7 +24,7 @@ macro wrap_h(signature)
     end |> esc
 end
 
-struct ODEFunctionWrapper{iip, F, H, TMM, Ta, Tt, TJ, JP, SP, TW, TWt, TPJ, S, TCV} <:
+struct ODEFunctionWrapper{iip, F, H, TMM, Ta, Tt, TJ, JP, SP, TW, TWt, TPJ, S, TCV, ID} <:
        DiffEqBase.AbstractODEFunction{iip}
     f::F
     h::H
@@ -39,6 +39,7 @@ struct ODEFunctionWrapper{iip, F, H, TMM, Ta, Tt, TJ, JP, SP, TW, TWt, TPJ, S, T
     paramjac::TPJ
     sys::S
     colorvec::TCV
+    initialization_data::ID
 end
 
 function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
@@ -51,7 +52,8 @@ function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
         typeof(f.analytic), typeof(f.tgrad), typeof(jac),
         typeof(f.jac_prototype), typeof(f.sparsity),
         typeof(Wfact), typeof(Wfact_t),
-        typeof(f.paramjac), typeof(f.sys), typeof(f.colorvec)}(f.f, h,
+        typeof(f.paramjac), typeof(f.sys), typeof(f.colorvec),
+        typeof(f.initialization_data)}(f.f, h,
         f.mass_matrix,
         f.analytic,
         f.tgrad, jac,
@@ -61,7 +63,8 @@ function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
         Wfact_t,
         f.paramjac,
         f.sys,
-        f.colorvec)
+        f.colorvec,
+        f.initialization_data)
 end
 
 (f::ODEFunctionWrapper{true})(du, u, p, t) = f.f(du, u, f.h, p, t)
