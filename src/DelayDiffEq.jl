@@ -25,6 +25,7 @@ using OrdinaryDiffEqNonlinearSolve: NLNewton, NLAnderson, NLFunctional, Abstract
 using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
 
 import SciMLBase
+using SciMLBase: DDEAliasSpecifier
 
 export Discontinuity, MethodOfSteps
 
