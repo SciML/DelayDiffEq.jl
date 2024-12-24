@@ -499,7 +499,7 @@ end
 
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
         t, modify_save_endpoint::Type{Val{T}} = Val{false}, reinitialize_alg = nothing) where T
-    OrdinaryDiffEqCore._change_t_via_interpolation!(integrator, t, modify_save_endpoint)
+    OrdinaryDiffEqCore._change_t_via_interpolation!(integrator, t, modify_save_endpoint, reinitialize_alg)
 end
 
 
