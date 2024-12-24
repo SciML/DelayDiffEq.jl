@@ -144,6 +144,12 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         u = recursivecopy(prob.u0)
     end
 
+    if isnothing(aliases.alias_u0)
+        alias_u0 = false
+    else
+        alias_u0 = aliases.alias_u0
+    end
+
     # determine type and direction of time
     tType = eltype(tspan)
     t0 = first(tspan)
