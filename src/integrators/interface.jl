@@ -498,9 +498,10 @@ function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
 end
 
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
-        t, modify_save_endpoint::Type{Val{T}} = Val{false}) where T
+        t, modify_save_endpoint::Type{Val{T}} = Val{false}, reinitialize_alg = nothing) where T
     OrdinaryDiffEqCore._change_t_via_interpolation!(integrator, t, modify_save_endpoint)
 end
+
 
 # update integrator when u is modified by callbacks
 function OrdinaryDiffEqCore.handle_callback_modifiers!(integrator::DDEIntegrator)
