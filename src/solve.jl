@@ -174,7 +174,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
     # get states (possibly different from the ODE integrator!)
     u, uprev, uprev2 = u_uprev_uprev2(u0, alg;
-        alias_u0 = aliases.alias_u0,
+        alias_u0 = alias_u0,
         adaptive = adaptive,
         allow_extrapolation = allow_extrapolation,
         calck = calck)
