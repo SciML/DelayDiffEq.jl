@@ -48,7 +48,7 @@ println("Rosenbrock23")
 end
 
 println("Rodas4")
-@test_nowarn solve(prob, MethodOfSteps(Rodas4(chunk_size = 1)); dt = 0.5)
+@test_nowarn solve(prob, MethodOfSteps(Rodas4()); dt = 0.5)
 
 println("Rodas5")
-@test_nowarn solve(prob, MethodOfSteps(Rodas5(chunk_size = 1)); dt = 0.5)
+@test_nowarn solve(prob, MethodOfSteps(Rodas5()); dt = 0.5)
