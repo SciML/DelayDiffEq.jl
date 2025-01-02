@@ -1,6 +1,5 @@
 using DelayDiffEq
 using SciMLBase
-using SciMLBase
 using LinearAlgebra
 using Test
 
