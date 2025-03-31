@@ -203,7 +203,9 @@ function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
         cache::RosenbrockMutableCache, i)
     cache.J = similar(cache.J, i, i)
     cache.W = similar(cache.W, i, i)
-    
+
+    # jac and grad configs after DI integration are Tuples, and resizing needs cache
+    # before DI integration, these just need the config and the integrator
     if cache.jac_config isa Tuple
         OrdinaryDiffEqDifferentiation.resize_jac_config!(cache, integrator)
         OrdinaryDiffEqDifferentiation.resize_grad_config!(cache, integrator)
