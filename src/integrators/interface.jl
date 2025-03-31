@@ -203,8 +203,14 @@ function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
         cache::RosenbrockMutableCache, i)
     cache.J = similar(cache.J, i, i)
     cache.W = similar(cache.W, i, i)
-    OrdinaryDiffEqDifferentiation.resize_jac_config!(cache, integrator)
-    OrdinaryDiffEqDifferentiation.resize_grad_config!(cache, integrator)
+    if cache.jac_config isa Tuple
+        OrdinaryDiffEqDifferentiation.resize_jac_config!(cache, integrator)
+        OrdinaryDiffEqDifferentiation.resize_grad_config!(cache, integrator)
+    else
+        OrdinaryDiffEqDifferentiation.resize_jac_config!(cache.jac_config, integrator)
+        OrdinaryDiffEqDifferentiation.resize_grad_config!(cache.grad_config, integrator)
+    end
+
     nothing
 end
 
