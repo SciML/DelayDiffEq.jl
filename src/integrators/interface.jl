@@ -210,8 +210,8 @@ function DiffEqBase.resize_non_user_cache!(integrator::DDEIntegrator,
         OrdinaryDiffEqDifferentiation.resize_jac_config!(cache, integrator)
         OrdinaryDiffEqDifferentiation.resize_grad_config!(cache, integrator)
     else
-        OrdinaryDiffEqDifferentiation.resize_jac_config!(cache.jac_config, integrator)
-        OrdinaryDiffEqDifferentiation.resize_grad_config!(cache.grad_config, integrator)
+        OrdinaryDiffEqDifferentiation.resize_jac_config!(cache.jac_config, i)
+        OrdinaryDiffEqDifferentiation.resize_grad_config!(cache.grad_config, i)
     end
 
     nothing
