@@ -1,7 +1,7 @@
 name = "DelayDiffEq"
 uuid = "bcd4f6db-9728-5f36-b5f7-82caef46ccdb"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
-version = "5.52.0"
+version = "5.52.1"
 
 [deps]
 ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
@@ -30,8 +30,8 @@ DiffEqBase = "6.122"
 OrdinaryDiffEq = "6.69"
 OrdinaryDiffEqCore = "1.9.0"
 OrdinaryDiffEqDefault = "1.1.0"
-OrdinaryDiffEqDifferentiation = "1.1.0"
-OrdinaryDiffEqNonlinearSolve = "1.2.2"
+OrdinaryDiffEqDifferentiation = "1.6.0"
+OrdinaryDiffEqNonlinearSolve = "1.6.0"
 OrdinaryDiffEqRosenbrock = "1.2.0"
 RecursiveArrayTools = "2, 3"
 Reexport = "0.2, 1.0"
