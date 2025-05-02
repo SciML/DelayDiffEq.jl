@@ -99,12 +99,12 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
 end
 
 function (integrator::DDEIntegrator)(t, deriv::Type = Val{0}; idxs = nothing)
-    OrdinaryDiffEq.current_interpolant(t, integrator, idxs, deriv)
+    OrdinaryDiffEqCore.current_interpolant(t, integrator, idxs, deriv)
 end
 
 function (integrator::DDEIntegrator)(val::AbstractArray, t::Union{Number, AbstractArray},
         deriv::Type = Val{0}; idxs = nothing)
-    OrdinaryDiffEq.current_interpolant!(val, t, integrator, idxs, deriv)
+    OrdinaryDiffEqCore.current_interpolant!(val, t, integrator, idxs, deriv)
 end
 
 function SII.get_history_function(integrator::DDEIntegrator)

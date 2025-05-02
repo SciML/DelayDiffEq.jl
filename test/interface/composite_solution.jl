@@ -1,4 +1,6 @@
 using DelayDiffEq, DDEProblemLibrary
+using OrdinaryDiffEqCore, OrdinaryDiffEqTsit5, OrdinaryDiffEqRosenbrock
+using OrdinaryDiffEqCore: CompositeAlgorithm
 using Test
 
 @testset "integrator" begin
@@ -22,7 +24,7 @@ end
 
 @testset "issue #148" begin
     alg = MethodOfSteps(Tsit5())
-    compositealg = MethodOfSteps(CompositeAlgorithm((Tsit5(), RK4()), integrator -> 1))
+    compositealg = MethodOfSteps(CompositeAlgorithm((Tsit5(), Tsit5()), integrator -> 1))
 
     prob = DDEProblem((du, u, h, p, t) -> (du[1] = -h(p, t - 1)[1]; nothing),
         [1.0], (p, t) -> [1.0], (0.0, 5.0))

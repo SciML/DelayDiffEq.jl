@@ -1,9 +1,5 @@
 module DelayDiffEq
 
-using Reexport
-import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqDifferentiation, OrdinaryDiffEqRosenbrock
-@reexport using OrdinaryDiffEq
-
 using DataStructures
 using LinearAlgebra
 using Logging
@@ -15,16 +11,23 @@ import ArrayInterface
 import SimpleNonlinearSolve
 import SymbolicIndexingInterface as SII
 
-using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
+using DiffEqBase: DiffEqBase, AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
                   DEIntegrator, AbstractDDEProblem
 
-using DiffEqBase: @..
+using FastBroadcast
+using Reexport
+@reexport using DiffEqBase
 
+import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqDifferentiation, OrdinaryDiffEqRosenbrock
+using OrdinaryDiffEqCore: CompositeAlgorithm, AutoSwitch
+using OrdinaryDiffEqFunctionMap: FunctionMap
+using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
 using OrdinaryDiffEqNonlinearSolve: NLNewton, NLAnderson, NLFunctional, AbstractNLSolverCache,
     FastConvergence, Convergence, SlowConvergence, VerySlowConvergence, Divergence
-using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
 
 import SciMLBase
+
+export DDEProblem
 
 export Discontinuity, MethodOfSteps
 

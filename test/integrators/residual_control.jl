@@ -1,7 +1,7 @@
 using DelayDiffEq, DDEProblemLibrary
-using Test
+using Test, OrdinaryDiffEq
 
-const alg = MethodOfSteps(RK4(); constrained = false)
+const alg = MethodOfSteps(Tsit5(); constrained = false)
 const prob = prob_dde_constant_1delay_scalar
 
 # reference solution with delays specified

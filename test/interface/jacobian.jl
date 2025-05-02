@@ -1,4 +1,4 @@
-using DelayDiffEq
+using DelayDiffEq, OrdinaryDiffEq
 using Test
 
 @testset "in-place" begin

@@ -1,6 +1,6 @@
 using DelayDiffEq
 using LinearAlgebra
-using Test
+using Test, OrdinaryDiffEq
 
 @testset "CheckInit" begin
     u0_good = [0.99, 0.01, 0.0]

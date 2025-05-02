@@ -1,4 +1,4 @@
-using DelayDiffEq
+using DelayDiffEq, OrdinaryDiffEq
 using Test
 
 # check constant extrapolation with problem with vanishing delays at t = 0

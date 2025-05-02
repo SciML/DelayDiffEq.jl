@@ -1,4 +1,4 @@
-using DelayDiffEq, DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary, OrdinaryDiffEq
 using Test
 
 const alg = MethodOfSteps(BS3())

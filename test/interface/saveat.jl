@@ -1,4 +1,4 @@
-using DelayDiffEq, DDEProblemLibrary
+using DelayDiffEq, DDEProblemLibrary, OrdinaryDiffEqTsit5
 using Test
 
 const prob = prob_dde_constant_1delay_long_ip
