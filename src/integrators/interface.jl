@@ -532,7 +532,7 @@ function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegra
         DiffEqBase.initialize_dae!(integrator,
             isnothing(callback_initializealg) ? integrator.initializealg :
             callback_initializealg)
-        update_uprev!(integrator)
+        OrdinaryDiffEqCore.update_uprev!(integrator)
     end
     if not_initialization
         # update interpolation data of the integrator using the old dense history
