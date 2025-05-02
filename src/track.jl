@@ -163,7 +163,7 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
                     top_Θ,
                 )
             ),
-            SimpleNonlinearSolve.Falsi()
+            SimpleNonlinearSolve.ITP()
         ).left
     end
 
