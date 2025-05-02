@@ -1,5 +1,5 @@
 using DelayDiffEq, DDEProblemLibrary
-using Test
+using Test, OrdinaryDiffEq
 
 const prob = prob_dde_constant_1delay_ip
 

@@ -1,5 +1,5 @@
 using DelayDiffEq, DDEProblemLibrary, RecursiveArrayTools
-using Test
+using Test, OrdinaryDiffEq
 
 const prob_ip = prob_dde_constant_1delay_ip
 const prob_scalar = prob_dde_constant_1delay_scalar

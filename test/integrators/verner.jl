@@ -1,5 +1,5 @@
 using DelayDiffEq, DDEProblemLibrary
-using Test
+using Test, OrdinaryDiffEq
 
 # simple problems
 @testset "simple problems" begin

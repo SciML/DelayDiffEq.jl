@@ -1,5 +1,5 @@
 using DelayDiffEq, DDEProblemLibrary, DiffEqDevTools, DiffEqCallbacks
-using Test
+using Test, OrdinaryDiffEqTsit5
 
 const prob = prob_dde_constant_1delay_scalar
 const alg = MethodOfSteps(Tsit5(); constrained = false)

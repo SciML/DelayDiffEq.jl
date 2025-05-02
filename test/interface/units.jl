@@ -1,4 +1,4 @@
-using DelayDiffEq, DDEProblemLibrary, Unitful
+using DelayDiffEq, DDEProblemLibrary, Unitful, OrdinaryDiffEq
 using Test
 
 using DDEProblemLibrary: remake_dde_constant_u0_tType

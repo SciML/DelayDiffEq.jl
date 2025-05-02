@@ -1,4 +1,5 @@
 using DelayDiffEq
+using OrdinaryDiffEq
 using Test
 
 # out-of-place problem

@@ -1,4 +1,4 @@
-using DelayDiffEq, DDEProblemLibrary, DiffEqDevTools
+using DelayDiffEq, DDEProblemLibrary, DiffEqDevTools, OrdinaryDiffEq
 using LinearAlgebra
 using Test
 
