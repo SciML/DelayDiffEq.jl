@@ -1,28 +1,40 @@
 module DelayDiffEq
 
-using Reexport
+using Reexport: @reexport
 import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqDifferentiation, OrdinaryDiffEqRosenbrock
 @reexport using OrdinaryDiffEq
 
-using DataStructures
-using LinearAlgebra
-using Logging
-using Printf
-using RecursiveArrayTools
-using SimpleUnPack
+using DataStructures: BinaryMinHeap
+using LinearAlgebra: opnorm, I
+using Logging: @logmsg
+using RecursiveArrayTools: copyat_or_push!, recursivecopy, recursivecopy!, recursive_bottom_eltype, recursive_unitless_bottom_eltype, recursive_unitless_eltype
+using SimpleUnPack: @unpack
 
 import ArrayInterface
 import SimpleNonlinearSolve
 import SymbolicIndexingInterface as SII
 
-using DiffEqBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
-                  DEIntegrator, AbstractDDEProblem
+using SciMLBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
+                  DEIntegrator
 
 using DiffEqBase: @..
 
-using OrdinaryDiffEqNonlinearSolve: NLNewton, NLAnderson, NLFunctional, AbstractNLSolverCache,
-    FastConvergence, Convergence, SlowConvergence, VerySlowConvergence, Divergence
+using OrdinaryDiffEqNonlinearSolve: NLAnderson, NLFunctional
+using OrdinaryDiffEqCore: AbstractNLSolverCache, SlowConvergence
 using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
+# using OrdinaryDiffEqDifferentiation: resize_grad_config!, resize_jac_config!
+
+# Explicit imports for functions currently coming through @reexport using OrdinaryDiffEq
+using OrdinaryDiffEqCore: AutoSwitch, CompositeAlgorithm
+using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, ReturnCode,
+                 VectorContinuousCallback, addat!, addat_non_user_cache!, deleteat_non_user_cache!,
+                 du_cache, full_cache, get_tmp_cache, isinplace, reeval_internals_due_to_modification!,
+                 reinit!, resize_non_user_cache!, savevalues!, u_cache, user_cache,
+                 step!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!, auto_dt_reset!,
+                 add_tstop!, add_saveat!, get_du, get_du!, addsteps!,
+                 change_t_via_interpolation!
+using DiffEqBase: initialize!
+import DiffEqBase
 
 import SciMLBase
 

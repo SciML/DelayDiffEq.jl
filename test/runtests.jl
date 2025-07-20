@@ -97,3 +97,9 @@ if GROUP == "All" || GROUP == "Regression"
         include("regression/waltman.jl")
     end
 end
+
+if GROUP == "All" || GROUP == "QA"
+    @time @safetestset "QA Tests" begin
+        include("qa/qa_tests.jl")
+    end
+end
