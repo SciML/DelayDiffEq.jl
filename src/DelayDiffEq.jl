@@ -13,7 +13,6 @@ using SimpleUnPack: @unpack
 import ArrayInterface
 import SimpleNonlinearSolve
 import SymbolicIndexingInterface as SII
-import ForwardDiff
 
 using SciMLBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
                   DEIntegrator
