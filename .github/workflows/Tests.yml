@@ -27,6 +27,7 @@ jobs:
           - Interface
           - Integrators
           - Regression
+          - QA
         include:
           - coverage: false
           - version:
