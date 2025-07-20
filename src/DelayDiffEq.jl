@@ -13,26 +13,30 @@ using SimpleUnPack: @unpack
 import ArrayInterface
 import SimpleNonlinearSolve
 import SymbolicIndexingInterface as SII
+import ForwardDiff
 
 using SciMLBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
                   DEIntegrator
 
-using DiffEqBase: @..
+using Base: deleteat!
+import FastBroadcast: @..
 
 using OrdinaryDiffEqNonlinearSolve: NLAnderson, NLFunctional
 using OrdinaryDiffEqCore: AbstractNLSolverCache, SlowConvergence
 using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
+using OrdinaryDiffEqFunctionMap: FunctionMap
 # using OrdinaryDiffEqDifferentiation: resize_grad_config!, resize_jac_config!
 
 # Explicit imports for functions currently coming through @reexport using OrdinaryDiffEq
 using OrdinaryDiffEqCore: AutoSwitch, CompositeAlgorithm
+using OrdinaryDiffEq: OrdinaryDiffEq
 using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, ReturnCode,
                  VectorContinuousCallback, addat!, addat_non_user_cache!, deleteat_non_user_cache!,
                  du_cache, full_cache, get_tmp_cache, isinplace, reeval_internals_due_to_modification!,
                  reinit!, resize_non_user_cache!, savevalues!, u_cache, user_cache,
                  step!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!, auto_dt_reset!,
                  add_tstop!, add_saveat!, get_du, get_du!, addsteps!,
-                 change_t_via_interpolation!
+                 change_t_via_interpolation!, isadaptive
 using DiffEqBase: initialize!
 import DiffEqBase
 

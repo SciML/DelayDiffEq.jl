@@ -38,7 +38,7 @@ differential equation problem for initial state `u0` with algorithm `alg`.
 """
 function u_uprev(u0, alg;
         alias_u0 = false,
-        adaptive = DiffEqBase.isadaptive(alg),
+        adaptive = isadaptive(alg),
         calck = false)
     if alias_u0
         u = u0
@@ -155,7 +155,7 @@ end
 Return prototype of rates for a given differential equation problem with state `u` and
 time span `tspan`.
 """
-rate_prototype_of(u0, tspan) = DiffEqBase.@.. u0 * $(inv(oneunit(eltype(tspan))))
+rate_prototype_of(u0, tspan) = @.. u0 * $(inv(oneunit(eltype(tspan))))
 
 """
     solution_arrays(u, tspan, rate_prototype; kwargs...)
@@ -212,11 +212,11 @@ function solution_arrays(u, tspan, rate_prototype;
 end
 
 """
-    sizehint!(sol::DESolution, n)
+    _sizehint_solution!(sol::DESolution, n)
 
 Suggest that solution `sol` reserves capacity for at least `n` elements.
 """
-function Base.sizehint!(sol::DESolution, n)
+function _sizehint_solution!(sol::DESolution, n)
     sizehint!(sol.u, n)
     sizehint!(sol.t, n)
     sizehint!(sol.k, n)
@@ -225,12 +225,12 @@ function Base.sizehint!(sol::DESolution, n)
 end
 
 """
-    sizehint!(sol::DESolution, alg, tspan, tstops, saveat; kwargs...)
+    _sizehint_solution!(sol::DESolution, alg, tspan, tstops, saveat; kwargs...)
 
 Suggest that solution `sol` reserves capacity for a number of elements that
 depends on the parameter settings of the numerical solver.
 """
-function Base.sizehint!(sol::DESolution, alg, tspan, tstops, saveat;
+function _sizehint_solution!(sol::DESolution, alg, tspan, tstops, saveat;
         save_everystep, adaptive, internalnorm, dt, dtmin)
     # obtain integration time
     t0 = first(tspan)
@@ -244,13 +244,13 @@ function Base.sizehint!(sol::DESolution, alg, tspan, tstops, saveat;
             abs(dt) < dtmin && throw(ArgumentError("Supplied dt is smaller than dtmin"))
             steps = ceil(Int, internalnorm(integrationtime / dt, t0))
         end
-        sizehint!(sol, steps + 1)
+        _sizehint_solution!(sol, steps + 1)
     elseif save_everystep
-        sizehint!(sol, 50)
+        _sizehint_solution!(sol, 50)
     elseif !isempty(saveat)
-        sizehint!(sol, length(saveat) + 1)
+        _sizehint_solution!(sol, length(saveat) + 1)
     else
-        sizehint!(sol, 2)
+        _sizehint_solution!(sol, 2)
     end
 
     nothing
@@ -311,7 +311,7 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
         stats = DiffEqBase.Stats(0))
 
     # reserve capacity
-    sizehint!(ode_sol, alg.alg, tspan, (), ();
+    _sizehint_solution!(ode_sol, alg.alg, tspan, (), ();
         save_everystep = true, adaptive = adaptive, internalnorm = internalnorm,
         dt = dt, dtmin = dtmin)
 
