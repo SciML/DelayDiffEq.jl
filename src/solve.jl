@@ -28,7 +28,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         dtmin = DiffEqBase.prob2dtmin(prob; use_end_time = false),
         dtmax = eltype(prob.tspan)(prob.tspan[end] - prob.tspan[1]),
         force_dtmin = false,
-        adaptive = DiffEqBase.isadaptive(alg),
+        adaptive = isadaptive(alg),
         gamma = OrdinaryDiffEqCore.gamma_default(alg.alg),
         abstol = nothing,
         reltol = nothing,
@@ -36,7 +36,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         qmax = OrdinaryDiffEqCore.qmax_default(alg.alg),
         qsteady_min = OrdinaryDiffEqCore.qsteady_min_default(alg.alg),
         qsteady_max = OrdinaryDiffEqCore.qsteady_max_default(alg.alg),
-        qoldinit = DiffEqBase.isadaptive(alg) ? 1 // 10^4 : 0,
+        qoldinit = isadaptive(alg) ? 1 // 10^4 : 0,
         controller = nothing,
         fullnormalize = true,
         failfactor = 2,
@@ -204,7 +204,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
         neutral)
 
     # reserve capacity for the solution
-    sizehint!(sol, alg, tspan, tstops_internal, saveat_internal;
+    _sizehint_solution!(sol, alg, tspan, tstops_internal, saveat_internal;
         save_everystep = save_everystep, adaptive = adaptive, dt = tType(dt),
         dtmin = dtmin, internalnorm = internalnorm)
 
