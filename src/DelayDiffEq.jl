@@ -9,6 +9,7 @@ using LinearAlgebra: opnorm, I
 using Logging: @logmsg
 using RecursiveArrayTools: copyat_or_push!, recursivecopy, recursivecopy!, recursive_bottom_eltype, recursive_unitless_bottom_eltype, recursive_unitless_eltype
 using SimpleUnPack: @unpack
+using ForwardDiff: ForwardDiff
 
 import ArrayInterface
 import SimpleNonlinearSolve
