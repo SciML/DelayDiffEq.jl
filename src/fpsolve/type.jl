@@ -1,13 +1,13 @@
 # solver
 mutable struct FPSolver{algType, iip, uTolType, C <: AbstractNLSolverCache} <:
-               OrdinaryDiffEqNonlinearSolve.AbstractNLSolver{algType, iip}
+               OrdinaryDiffEqCore.AbstractNLSolver{algType, iip}
     alg::algType
     κ::uTolType
     fast_convergence_cutoff::uTolType
     ηold::uTolType
     iter::Int
     maxiters::Int
-    status::OrdinaryDiffEqNonlinearSolve.NLStatus
+    status::OrdinaryDiffEqCore.NLStatus
     cache::C
     nfails::Int
 end

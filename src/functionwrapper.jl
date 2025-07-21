@@ -25,7 +25,7 @@ macro wrap_h(signature)
 end
 
 struct ODEFunctionWrapper{iip, F, H, TMM, Ta, Tt, TJ, JP, SP, TW, TWt, TPJ, S, TCV, ID} <:
-       DiffEqBase.AbstractODEFunction{iip}
+       SciMLBase.AbstractODEFunction{iip}
     f::F
     h::H
     mass_matrix::TMM
@@ -42,7 +42,7 @@ struct ODEFunctionWrapper{iip, F, H, TMM, Ta, Tt, TJ, JP, SP, TW, TWt, TPJ, S, T
     initialization_data::ID
 end
 
-function ODEFunctionWrapper(f::DiffEqBase.AbstractDDEFunction, h)
+function ODEFunctionWrapper(f::SciMLBase.AbstractDDEFunction, h)
     # wrap functions
     jac = @wrap_h jac(J, u, h, p, t)
     Wfact = @wrap_h Wfact(W, u, h, p, dtgamma, t)

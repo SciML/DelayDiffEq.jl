@@ -1,8 +1,8 @@
 OrdinaryDiffEqNonlinearSolve.initial_η(fpsolver::FPSolver, integrator::DDEIntegrator) = fpsolver.ηold
 
-OrdinaryDiffEqNonlinearSolve.apply_step!(fpsolver::FPSolver, integrator::DDEIntegrator) = nothing
+OrdinaryDiffEqCore.apply_step!(fpsolver::FPSolver, integrator::DDEIntegrator) = nothing
 
-function DiffEqBase.postamble!(fpsolver::FPSolver, integrator::DDEIntegrator)
+function SciMLBase.postamble!(fpsolver::FPSolver, integrator::DDEIntegrator)
     integrator.stats.nfpiter += fpsolver.iter
 
     if OrdinaryDiffEqNonlinearSolve.nlsolvefail(fpsolver)

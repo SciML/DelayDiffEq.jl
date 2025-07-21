@@ -304,7 +304,7 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
         ode_ks,
         ode_alg_choice, true, ode_cache,
         differential_vars, false)
-    ode_sol = DiffEqBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
+    ode_sol = SciMLBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
         dense = true, k = ode_ks, interp = ode_id,
         alg_choice = ode_alg_choice,
         calculate_error = false,
@@ -369,6 +369,6 @@ function unwrap_alg(integrator::DDEIntegrator, is_stiff)
     end
 end
 
-function OrdinaryDiffEqNonlinearSolve.nlsolve_f(integrator::DDEIntegrator)
-    OrdinaryDiffEqNonlinearSolve.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
+function OrdinaryDiffEqCore.nlsolve_f(integrator::DDEIntegrator)
+    OrdinaryDiffEqCore.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
 end

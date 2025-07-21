@@ -52,8 +52,8 @@ end
 function OrdinaryDiffEqCore.alg_extrapolates(alg::AbstractMethodOfStepsAlgorithm)
     OrdinaryDiffEqCore.alg_extrapolates(alg.alg)
 end
-function OrdinaryDiffEqCore.alg_order(alg::AbstractMethodOfStepsAlgorithm)
-    OrdinaryDiffEqCore.alg_order(alg.alg)
+function SciMLBase.alg_order(alg::AbstractMethodOfStepsAlgorithm)
+    SciMLBase.alg_order(alg.alg)
 end
 function OrdinaryDiffEqCore.alg_maximum_order(alg::AbstractMethodOfStepsAlgorithm)
     OrdinaryDiffEqCore.alg_maximum_order(alg.alg)

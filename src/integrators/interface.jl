@@ -84,7 +84,7 @@ function DiffEqBase.savevalues!(integrator::DDEIntegrator, force_save = false,
 end
 
 # clean up the solution of the integrator
-function DiffEqBase.postamble!(integrator::HistoryODEIntegrator)
+function SciMLBase.postamble!(integrator::HistoryODEIntegrator)
     if integrator.saveiter == 0 || integrator.sol.t[integrator.saveiter] != integrator.t
         integrator.saveiter += 1
         copyat_or_push!(integrator.sol.t, integrator.saveiter, integrator.t)
@@ -106,9 +106,9 @@ function DiffEqBase.postamble!(integrator::HistoryODEIntegrator)
     nothing
 end
 
-function DiffEqBase.postamble!(integrator::DDEIntegrator)
+function SciMLBase.postamble!(integrator::DDEIntegrator)
     # clean up solution of the ODE integrator
-    DiffEqBase.postamble!(integrator.integrator)
+    SciMLBase.postamble!(integrator.integrator)
 
     # clean solution of the DDE integrator
     OrdinaryDiffEqCore._postamble!(integrator)
@@ -190,8 +190,8 @@ function Base.resize!(integrator::DDEIntegrator, cache, i)
     for c in full_cache(cache)
         resize!(c, i)
     end
-    OrdinaryDiffEqNonlinearSolve.resize_nlsolver!(integrator, i)
-    OrdinaryDiffEqDifferentiation.resize_J_W!(cache, integrator, i)
+    OrdinaryDiffEqCore.resize_nlsolver!(integrator, i)
+    OrdinaryDiffEqCore.resize_J_W!(cache, integrator, i)
     resize_non_user_cache!(integrator, cache, i)
     resize_fpsolver!(integrator, i)
     nothing
@@ -260,20 +260,20 @@ function DiffEqBase.addat_non_user_cache!(integrator::DDEIntegrator, cache, idxs
 end
 
 # error check
-function DiffEqBase.last_step_failed(integrator::DDEIntegrator)
+function SciMLBase.last_step_failed(integrator::DDEIntegrator)
     integrator.last_stepfail && !integrator.opts.adaptive
 end
 
 # terminate integration
 function DiffEqBase.terminate!(integrator::DDEIntegrator, retcode = ReturnCode.Terminated)
-    integrator.sol = DiffEqBase.solution_new_retcode(integrator.sol, retcode)
+    integrator.sol = SciMLBase.solution_new_retcode(integrator.sol, retcode)
     integrator.opts.tstops.valtree = typeof(integrator.opts.tstops.valtree)()
     nothing
 end
 
 # integrator can be reinitialized
-DiffEqBase.has_reinit(::HistoryODEIntegrator) = true
-DiffEqBase.has_reinit(integrator::DDEIntegrator) = true
+SciMLBase.has_reinit(::HistoryODEIntegrator) = true
+SciMLBase.has_reinit(integrator::DDEIntegrator) = true
 
 function DiffEqBase.reinit!(integrator::HistoryODEIntegrator, u0 = integrator.sol.prob.u0;
         t0 = integrator.sol.prob.tspan[1],
@@ -500,7 +500,7 @@ end
     out .= integrator.fsallast
 end
 
-DiffEqBase.has_stats(::DDEIntegrator) = true
+SciMLBase.has_stats(::DDEIntegrator) = true
 
 function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
     OrdinaryDiffEqCore.ode_addsteps!(integrator, args...)
@@ -529,7 +529,7 @@ function DiffEqBase.reeval_internals_due_to_modification!(integrator::DDEIntegra
     ode_integrator = integrator.integrator
 
     if integrator.isdae
-        DiffEqBase.initialize_dae!(integrator,
+        SciMLBase.initialize_dae!(integrator,
             isnothing(callback_initializealg) ? integrator.initializealg :
             callback_initializealg)
         OrdinaryDiffEqCore.update_uprev!(integrator)
@@ -562,13 +562,13 @@ function DiffEqBase.step!(integrator::DDEIntegrator)
         if integrator.opts.advance_to_tstop
             while integrator.tdir * integrator.t < first(integrator.opts.tstops)
                 OrdinaryDiffEqCore.loopheader!(integrator)
-                DiffEqBase.check_error!(integrator) == ReturnCode.Success || return
+                SciMLBase.check_error!(integrator) == ReturnCode.Success || return
                 OrdinaryDiffEqCore.perform_step!(integrator)
                 OrdinaryDiffEqCore.loopfooter!(integrator)
             end
         else
             OrdinaryDiffEqCore.loopheader!(integrator)
-            DiffEqBase.check_error!(integrator) == ReturnCode.Success || return
+            SciMLBase.check_error!(integrator) == ReturnCode.Success || return
             OrdinaryDiffEqCore.perform_step!(integrator)
             OrdinaryDiffEqCore.loopfooter!(integrator)
 

@@ -9,7 +9,7 @@ history function `h`, for time points up to the final time point of the solution
 interpolated values of the solution are returned, and after the final time point an inter-
 or extrapolation of the current state of the `integrator` is retrieved.
 """
-mutable struct HistoryFunction{H, I <: DEIntegrator} <: DiffEqBase.AbstractHistoryFunction
+mutable struct HistoryFunction{H, I <: DEIntegrator} <: SciMLBase.AbstractHistoryFunction
     h::H
     integrator::I
     isout::Bool

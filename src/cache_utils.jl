@@ -1,4 +1,4 @@
-function DiffEqBase.unwrap_cache(integrator::DDEIntegrator, is_stiff)
+function SciMLBase.unwrap_cache(integrator::DDEIntegrator, is_stiff)
     alg = integrator.alg
     cache = integrator.cache
     iscomp = alg isa CompositeAlgorithm
