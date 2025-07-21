@@ -1,12 +1,12 @@
-function DiffEqBase.__solve(prob::DiffEqBase.AbstractDDEProblem,
+function SciMLBase.__solve(prob::SciMLBase.AbstractDDEProblem,
         alg::AbstractMethodOfStepsAlgorithm, args...;
         kwargs...)
-    integrator = DiffEqBase.__init(prob, alg, args...; kwargs...)
+    integrator = SciMLBase.__init(prob, alg, args...; kwargs...)
     DiffEqBase.solve!(integrator)
     integrator.sol
 end
 
-function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
+function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         alg::AbstractMethodOfStepsAlgorithm,
         timeseries_init = (),
         ts_init = (),
@@ -175,7 +175,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
     alg_choice = iscomposite(alg) ? Int[] : nothing
     id = OrdinaryDiffEqCore.InterpolationData(f_with_history, timeseries, ts, ks,
         alg_choice, dense, cache, differential_vars, false)
-    sol = DiffEqBase.build_solution(prob, alg.alg, ts, timeseries;
+    sol = SciMLBase.build_solution(prob, alg.alg, ts, timeseries;
         dense = dense, k = ks, interp = id, saved_subsytem = saved_subsystem,
         alg_choice = id.alg_choice, calculate_error = false,
         stats = stats)
@@ -407,7 +407,7 @@ function DiffEqBase.__init(prob::DiffEqBase.AbstractDDEProblem,
 
     # initialize DDE integrator
     if initialize_integrator
-        DiffEqBase.initialize_dae!(integrator)
+        SciMLBase.initialize_dae!(integrator)
         initialize_solution!(integrator)
         OrdinaryDiffEqCore.initialize_callbacks!(integrator, initialize_save)
         OrdinaryDiffEqCore.initialize!(integrator)
@@ -431,7 +431,7 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
 
             # abort integration following same criteria as for ODEs:
             # maxiters exceeded, dt <= dtmin, integration unstable
-            DiffEqBase.check_error!(integrator) == ReturnCode.Success || return sol
+            SciMLBase.check_error!(integrator) == ReturnCode.Success || return sol
 
             # calculate next step
             OrdinaryDiffEqCore.perform_step!(integrator)
@@ -447,18 +447,18 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
     end
 
     # clean up solution
-    DiffEqBase.postamble!(integrator)
+    SciMLBase.postamble!(integrator)
 
     f = sol.prob.f
 
-    if DiffEqBase.has_analytic(f)
-        DiffEqBase.calculate_solution_errors!(sol;
+    if SciMLBase.has_analytic(f)
+        SciMLBase.calculate_solution_errors!(sol;
             timeseries_errors = opts.timeseries_errors,
             dense_errors = opts.dense_errors)
     end
     sol.retcode == ReturnCode.Default || return sol
 
-    integrator.sol = DiffEqBase.solution_new_retcode(sol, ReturnCode.Success)
+    integrator.sol = SciMLBase.solution_new_retcode(sol, ReturnCode.Success)
 end
 
 function OrdinaryDiffEqCore.initialize_callbacks!(integrator::DDEIntegrator,
@@ -541,9 +541,9 @@ function initialize_tstops_d_discontinuities_propagated(::Type{T}, tstops,
     return tstops_propagated, d_discontinuities_propagated
 end
 
-struct DDEDefaultInit <: DiffEqBase.DAEInitializationAlgorithm end
+struct DDEDefaultInit <: SciMLBase.DAEInitializationAlgorithm end
 
-function DiffEqBase.initialize_dae!(integrator::DDEIntegrator, initializealg = integrator.initializealg)
+function SciMLBase.initialize_dae!(integrator::DDEIntegrator, initializealg = integrator.initializealg)
     OrdinaryDiffEqCore._initialize_dae!(integrator, integrator.sol.prob, initializealg,
         Val(DiffEqBase.isinplace(integrator.sol.prob)))
 end

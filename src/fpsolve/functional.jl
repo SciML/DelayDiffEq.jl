@@ -81,7 +81,7 @@ function compute_step_fixedpoint!(
 
     # compute residuals
     dz = integrator.u .- ode_integrator.u
-    atmp = OrdinaryDiffEqNonlinearSolve.calculate_residuals(dz, ode_integrator.u, integrator.u,
+    atmp = DiffEqBase.calculate_residuals(dz, ode_integrator.u, integrator.u,
         opts.abstol, opts.reltol, opts.internalnorm,
         t)
 
@@ -107,7 +107,7 @@ function compute_step_fixedpoint!(
 
     # compute residuals
     @.. dz = integrator.u - ode_integrator.u
-    OrdinaryDiffEqNonlinearSolve.calculate_residuals!(atmp, dz, ode_integrator.u, integrator.u,
+    DiffEqBase.calculate_residuals!(atmp, dz, ode_integrator.u, integrator.u,
         opts.abstol, opts.reltol, opts.internalnorm, t)
 
     opts.internalnorm(atmp, t)
