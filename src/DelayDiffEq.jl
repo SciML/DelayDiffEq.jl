@@ -21,14 +21,9 @@ using SciMLBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegra
 using Base: deleteat!
 import FastBroadcast: @..
 
-using OrdinaryDiffEqNonlinearSolve: NLAnderson, NLFunctional, NLStatus, nlsolvefail, initial_η, apply_step!
-using OrdinaryDiffEqCore: AbstractNLSolverCache, SlowConvergence, OrdinaryDiffEqCompositeAlgorithm, InterpolationData, 
-                          DEOptions, AutoSwitchCache, alg_cache, get_fsalfirstlast, ode_determine_initdt,
-                          _ode_addsteps!, default_controller, gamma_default, qmin_default, qmax_default,
-                          qsteady_min_default, qsteady_max_default, initialize_tstops, initialize_saveat,
-                          initialize_d_discontinuities, alg_extrapolates, alg_maximum_order, get_differential_vars,
-                          _initialize_dae!, loopheader!, loopfooter!, perform_step!, initialize!, handle_dt!,
-                          handle_tstop!, initialize_callbacks!, nlsolve_f, current_interpolant, current_interpolant!
+using OrdinaryDiffEqNonlinearSolve: NLAnderson, NLFunctional
+using OrdinaryDiffEqCore: AbstractNLSolverCache, SlowConvergence,
+                          alg_extrapolates, alg_maximum_order, initialize!
 using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
 using OrdinaryDiffEqFunctionMap: FunctionMap
 # using OrdinaryDiffEqDifferentiation: resize_grad_config!, resize_jac_config!
