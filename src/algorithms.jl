@@ -22,12 +22,12 @@ Citations:
 
 General Approach
 
-ZivariPiran, Hossein, and Wayne H. Enright. "An efficient unified approach for the numerical 
+Zivari-Piran, Hossein, and Wayne H. Enright. "An efficient unified approach for the numerical 
 solution of delay differential equations." Numerical Algorithms 53.2-3 (2010): 397-417.
 
 State-Dependent Delays
 
-S. P. Corwin, D. Sarafyan and S. Thompson in "DKLAG6: a code based on continuously imbedded
+S. P. Corwin, D. Sarafyan and S. Thompson in "DKLAG6: a code based on continuously embedded
 sixth-order Runge-Kutta methods for the solution of state-dependent functional differential
 equations", Applied Numerical Mathematics, 1997.
 """
