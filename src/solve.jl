@@ -62,6 +62,7 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         allow_extrapolation = OrdinaryDiffEqCore.alg_extrapolates(alg),
         initialize_integrator = true,
         alias_u0 = false,
+        alias = DDEAliasSpecifier(),
         # keyword arguments for DDEs
         discontinuity_interp_points::Int = 10,
         discontinuity_abstol = eltype(prob.tspan)(1 // Int64(10)^12),
@@ -106,6 +107,48 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
 
     # unpack problem
     @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
+
+    use_old_kwargs = haskey(kwargs, :alias_u0)
+
+    if haskey(kwargs, :alias_u0)
+        aliases = DDEAliasSpecifier()
+        message = "`alias_u0` keyword argument is deprecated, to set `alias_u0`,
+        please use an ODEAliasSpecifier, e.g. `solve(prob, alias = ODEAliasSpecifier(alias_u0 = true))"
+        Base.depwarn(message, :init)
+        Base.depwarn(message, :solve)
+        aliases = DDEAliasSpecifier(alias_u0 = values(kwargs).alias_u0)
+    else
+        # If alias isa Bool, all fields of ODEAliases set to alias
+        if alias isa Bool
+            aliases = DDEAliasSpecifier(alias = alias)
+        elseif alias isa DDEAliasSpecifier
+            aliases = alias
+        end
+    end
+
+    if isnothing(aliases.alias_f) || aliases.alias_f
+        f = f
+    else
+        f = deepcopy(f)
+    end
+
+    if isnothing(aliases.alias_p) || aliases.alias_p
+        p = p
+    else
+        p = recursivecopy(p)
+    end
+
+    if !isnothing(aliases.alias_u0) && aliases.alias_u0
+        u = prob.u0
+    else
+        u = recursivecopy(prob.u0)
+    end
+
+    if isnothing(aliases.alias_u0)
+        alias_u0 = false
+    else
+        alias_u0 = aliases.alias_u0
+    end
 
     # determine type and direction of time
     tType = eltype(tspan)

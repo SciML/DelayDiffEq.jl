@@ -42,6 +42,7 @@ using DiffEqBase: initialize!
 import DiffEqBase
 
 import SciMLBase
+using SciMLBase: DDEAliasSpecifier
 
 export Discontinuity, MethodOfSteps
 
