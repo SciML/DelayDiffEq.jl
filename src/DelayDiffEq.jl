@@ -43,7 +43,7 @@ import DiffEqBase
 
 import SciMLBase
 
-export Discontinuity, MethodOfSteps
+export Discontinuity, MethodOfSteps, has_constant_lags, has_dependent_lags
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")
