@@ -1,4 +1,7 @@
-OrdinaryDiffEqNonlinearSolve.initial_η(fpsolver::FPSolver, integrator::DDEIntegrator) = fpsolver.ηold
+function OrdinaryDiffEqNonlinearSolve.initial_η(
+        fpsolver::FPSolver, integrator::DDEIntegrator)
+    fpsolver.ηold
+end
 
 OrdinaryDiffEqCore.apply_step!(fpsolver::FPSolver, integrator::DDEIntegrator) = nothing
 

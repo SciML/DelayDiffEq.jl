@@ -1,13 +1,16 @@
 module DelayDiffEq
 
 using Reexport: @reexport
-import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqDifferentiation, OrdinaryDiffEqRosenbrock
+import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqDifferentiation,
+       OrdinaryDiffEqRosenbrock
 @reexport using OrdinaryDiffEq
 
 using DataStructures: BinaryMinHeap
 using LinearAlgebra: opnorm, I
 using Logging: @logmsg
-using RecursiveArrayTools: copyat_or_push!, recursivecopy, recursivecopy!, recursive_bottom_eltype, recursive_unitless_bottom_eltype, recursive_unitless_eltype
+using RecursiveArrayTools: copyat_or_push!, recursivecopy, recursivecopy!,
+                           recursive_bottom_eltype, recursive_unitless_bottom_eltype,
+                           recursive_unitless_eltype
 using SimpleUnPack: @unpack
 using ForwardDiff: ForwardDiff
 
@@ -16,7 +19,7 @@ import SimpleNonlinearSolve
 import SymbolicIndexingInterface as SII
 
 using SciMLBase: AbstractDDEAlgorithm, AbstractDDEIntegrator, AbstractODEIntegrator,
-                  DEIntegrator
+                 DEIntegrator
 
 using Base: deleteat!
 import FastBroadcast: @..
@@ -32,10 +35,13 @@ using OrdinaryDiffEqFunctionMap: FunctionMap
 using OrdinaryDiffEqCore: AutoSwitch, CompositeAlgorithm
 using OrdinaryDiffEq: OrdinaryDiffEq
 using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, ReturnCode,
-                 VectorContinuousCallback, addat!, addat_non_user_cache!, deleteat_non_user_cache!,
-                 du_cache, full_cache, get_tmp_cache, isinplace, reeval_internals_due_to_modification!,
+                 VectorContinuousCallback, addat!, addat_non_user_cache!,
+                 deleteat_non_user_cache!,
+                 du_cache, full_cache, get_tmp_cache, isinplace,
+                 reeval_internals_due_to_modification!,
                  reinit!, resize_non_user_cache!, savevalues!, u_cache, user_cache,
-                 step!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!, auto_dt_reset!,
+                 step!, terminate!, u_modified!, get_proposed_dt, set_proposed_dt!,
+                 auto_dt_reset!,
                  add_tstop!, add_saveat!, get_du, get_du!, addsteps!,
                  change_t_via_interpolation!, isadaptive
 using DiffEqBase: initialize!

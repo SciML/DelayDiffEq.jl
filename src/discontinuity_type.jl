@@ -38,8 +38,10 @@ Base.convert(::Type{T}, d::Discontinuity) where {T <: Number} = convert(T, d.t)
 Base.convert(::Type{T}, d::Discontinuity{T}) where {T <: Number} = d.t
 
 # Fix ForwardDiff ambiguities
-function Base.convert(::Type{ForwardDiff.Dual{T, V, N}}, ::Discontinuity{ForwardDiff.Dual{T, V, N}}) where {N, V, T}
-    throw(MethodError(convert, (ForwardDiff.Dual{T, V, N}, Discontinuity{ForwardDiff.Dual{T, V, N}})))
+function Base.convert(::Type{ForwardDiff.Dual{T, V, N}},
+        ::Discontinuity{ForwardDiff.Dual{T, V, N}}) where {N, V, T}
+    throw(MethodError(
+        convert, (ForwardDiff.Dual{T, V, N}, Discontinuity{ForwardDiff.Dual{T, V, N}})))
 end
 function Base.convert(::Type{ForwardDiff.Dual{T, V, N}}, ::Discontinuity) where {N, V, T}
     throw(MethodError(convert, (ForwardDiff.Dual{T, V, N}, Discontinuity)))
