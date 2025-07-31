@@ -18,12 +18,12 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         save_everystep = isempty(saveat),
         save_on = true,
         save_start = save_everystep || isempty(saveat) ||
-                         saveat isa Number || prob.tspan[1] in saveat,
+                     saveat isa Number || prob.tspan[1] in saveat,
         save_end = nothing,
         callback = nothing,
         dense = save_everystep && isempty(saveat),
         calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
-            dense, # and no dense output
+                dense, # and no dense output
         dt = zero(eltype(prob.tspan)),
         dtmin = DiffEqBase.prob2dtmin(prob; use_end_time = false),
         dtmax = eltype(prob.tspan)(prob.tspan[end] - prob.tspan[1]),
@@ -130,7 +130,8 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
     rate_prototype = rate_prototype_of(u0, tspan)
 
     # get states (possibly different from the ODE integrator!)
-    u, uprev, uprev2 = u_uprev_uprev2(u0, alg;
+    u, uprev,
+    uprev2 = u_uprev_uprev2(u0, alg;
         alias_u0 = alias_u0,
         adaptive = adaptive,
         allow_extrapolation = allow_extrapolation,
@@ -150,10 +151,12 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
     f_with_history = ODEFunctionWrapper(f, history)
 
     # initialize output arrays of the solution
-    save_idxs, saved_subsystem = SciMLBase.get_save_idxs_and_saved_subsystem(prob, save_idxs)
+    save_idxs,
+    saved_subsystem = SciMLBase.get_save_idxs_and_saved_subsystem(prob, save_idxs)
 
     k = typeof(rate_prototype)[]
-    ts, timeseries, ks = solution_arrays(u, tspan, rate_prototype;
+    ts, timeseries,
+    ks = solution_arrays(u, tspan, rate_prototype;
         timeseries_init = timeseries_init,
         ts_init = ts_init,
         ks_init = ks_init,
@@ -181,7 +184,8 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         stats = stats)
 
     # retrieve time stops, time points at which solutions is saved, and discontinuities
-    tstops_internal = OrdinaryDiffEqCore.initialize_tstops(tType, tstops, d_discontinuities,
+    tstops_internal = OrdinaryDiffEqCore.initialize_tstops(
+        tType, tstops, d_discontinuities,
         tspan)
     saveat_internal = OrdinaryDiffEqCore.initialize_saveat(tType, saveat, tspan)
     d_discontinuities_internal = OrdinaryDiffEqCore.initialize_d_discontinuities(
@@ -193,7 +197,8 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         tspan)
 
     maximum_order = OrdinaryDiffEqCore.alg_maximum_order(alg)
-    tstops_propagated, d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
+    tstops_propagated,
+    d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
         tType,
         tstops,
         d_discontinuities,

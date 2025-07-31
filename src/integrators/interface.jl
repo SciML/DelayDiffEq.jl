@@ -375,7 +375,8 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
     # update order of initial discontinuity and propagated discontinuities
     integrator.order_discontinuity_t0 = order_discontinuity_t0
     maximum_order = OrdinaryDiffEqCore.alg_maximum_order(integrator.alg)
-    tstops_propagated, d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
+    tstops_propagated,
+    d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
         tType,
         tstops,
         d_discontinuities,
@@ -507,10 +508,10 @@ function DiffEqBase.addsteps!(integrator::DDEIntegrator, args...)
 end
 
 function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
-        t, modify_save_endpoint::Type{Val{T}} = Val{false}, reinitialize_alg = nothing) where T
+        t, modify_save_endpoint::Type{Val{T}} = Val{false},
+        reinitialize_alg = nothing) where {T}
     OrdinaryDiffEqCore._change_t_via_interpolation!(integrator, t, modify_save_endpoint, reinitialize_alg)
 end
-
 
 # update integrator when u is modified by callbacks
 function OrdinaryDiffEqCore.handle_callback_modifiers!(integrator::DDEIntegrator)
