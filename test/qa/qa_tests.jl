@@ -4,7 +4,7 @@ using DelayDiffEq, Test
     using Aqua
 
     Aqua.test_all(DelayDiffEq; ambiguities = false, piracies = false,
-                  stale_deps = false, deps_compat = false)
+        stale_deps = false, deps_compat = false)
     Aqua.test_ambiguities(DelayDiffEq; recursive = false)
     Aqua.test_stale_deps(DelayDiffEq)
     Aqua.test_deps_compat(DelayDiffEq)

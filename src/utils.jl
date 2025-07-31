@@ -284,7 +284,8 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
 
     # initialize output arrays
     ode_k = typeof(rate_prototype)[]
-    ode_ts, ode_timeseries, ode_ks = solution_arrays(ode_u, tspan, rate_prototype;
+    ode_ts, ode_timeseries,
+    ode_ks = solution_arrays(ode_u, tspan, rate_prototype;
         timeseries_init = (),
         ts_init = (),
         ks_init = (),
@@ -292,7 +293,8 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
         save_start = true)
 
     # obtain cache (we alias uprev2 and uprev)
-    ode_cache = OrdinaryDiffEqCore.alg_cache(alg.alg, ode_u, rate_prototype, uEltypeNoUnits,
+    ode_cache = OrdinaryDiffEqCore.alg_cache(
+        alg.alg, ode_u, rate_prototype, uEltypeNoUnits,
         uBottomEltypeNoUnits, tTypeNoUnits, ode_uprev,
         ode_uprev, ode_f, t0, zero(tType), reltol, p,
         calck,

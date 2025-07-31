@@ -10,7 +10,8 @@ function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLFunct
     compute_step_fixedpoint!(fpsolver, integrator)
 end
 
-function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLAnderson, false},
+function OrdinaryDiffEqNonlinearSolve.compute_step!(
+        fpsolver::FPSolver{<:NLAnderson, false},
         integrator::DDEIntegrator)
     @unpack cache, iter = fpsolver
     @unpack aa_start = cache

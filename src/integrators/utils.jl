@@ -35,10 +35,12 @@ function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = 
     # has to be done before updates to ODE integrator, otherwise history function
     # is incorrect
     if iscomposite(alg)
-        OrdinaryDiffEqCore._ode_addsteps!(k, t, uprev, u, dt, f, p, cache.caches[cache.current],
+        OrdinaryDiffEqCore._ode_addsteps!(
+            k, t, uprev, u, dt, f, p, cache.caches[cache.current],
             always_calc_begin, true, true)
     else
-        OrdinaryDiffEqCore._ode_addsteps!(k, t, uprev, u, dt, f, p, cache, always_calc_begin,
+        OrdinaryDiffEqCore._ode_addsteps!(
+            k, t, uprev, u, dt, f, p, cache, always_calc_begin,
             true, true)
     end
     @inbounds for i in 1:length(k)
@@ -82,7 +84,8 @@ function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = f
     ode_integrator.t != t + dt && error("cannot update ODE integrator")
 
     if iscomposite(alg)
-        OrdinaryDiffEqCore._ode_addsteps!(k, t, uprev, u, dt, f, p, cache.caches[cache.current],
+        OrdinaryDiffEqCore._ode_addsteps!(
+            k, t, uprev, u, dt, f, p, cache.caches[cache.current],
             always_calc_begin, true, true)
     else
         OrdinaryDiffEqCore._ode_addsteps!(k, t, uprev, u, dt, f, p, cache,
