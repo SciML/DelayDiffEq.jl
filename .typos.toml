@@ -71,3 +71,5 @@ MTK = "MTK"
 ODE = "ODE"
 PDE = "PDE"
 SDE = "SDE"
+
+extrapolant = "extrapolant"
