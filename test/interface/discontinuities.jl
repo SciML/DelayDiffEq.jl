@@ -65,8 +65,7 @@ end
     @test length(integrator.opts.d_discontinuities) == 2 &&
           issubset([Discontinuity(0.3, 4), Discontinuity(0.6, 5)],
         integrator.opts.d_discontinuities.valtree)
-    @test integrator.opts.d_discontinuities_cache ==
-          [Discontinuity(0.3, 4), Discontinuity(0.6, 5)]
+    @test integrator.opts.d_discontinuities_cache == [Discontinuity(0.3, 4), Discontinuity(0.6, 5)]
 end
 
 # discontinuities induced by callbacks

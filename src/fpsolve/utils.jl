@@ -24,19 +24,13 @@ function build_fpsolver(alg, fpalg::Union{NLFunctional, NLAnderson}, u, uEltypeN
         dzold = zero(u)
         z₊old = zero(u)
 
-        fpcache = FPAndersonCache(
-            atmp, dz, dzold, z₊old, Δz₊s, Q, R, γs, 0, fpalg.aa_start,
-            fpalg.droptol)
+        fpcache = FPAndersonCache(atmp, dz, dzold, z₊old, Δz₊s, Q, R, γs, 0, fpalg.aa_start, fpalg.droptol)
     end
 
     # build solver
     ηold = one(uTolType)
 
-    FPSolver{typeof(fpalg), true, uTolType, typeof(fpcache)}(fpalg, uTolType(fpalg.κ),
-        uTolType(fpalg.fast_convergence_cutoff),
-        ηold, 10000,
-        fpalg.max_iter,
-        SlowConvergence, fpcache, 0)
+    FPSolver{typeof(fpalg), true, uTolType, typeof(fpcache)}(fpalg, uTolType(fpalg.κ), uTolType(fpalg.fast_convergence_cutoff), ηold, 10000, fpalg.max_iter, SlowConvergence, fpcache, 0)
 end
 
 function build_fpsolver(alg, fpalg::Union{NLFunctional, NLAnderson}, u, uEltypeNoUnits,

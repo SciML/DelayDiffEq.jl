@@ -35,8 +35,7 @@ end
 
         # time point of solution
         if saveat isa Number
-            @test sol2.t ==
-                  (save_start ? [0.0, 25.0, 50.0, 75.0, 100.0] : [25.0, 50.0, 75.0, 100.0])
+            @test sol2.t == (save_start ? [0.0, 25.0, 50.0, 75.0, 100.0] : [25.0, 50.0, 75.0, 100.0])
         else
             @test sol2.t == (save_start ? [0.0, 25.0, 50.0, 75.0] : [25.0, 50.0, 75.0])
         end
@@ -64,8 +63,7 @@ end
 
         # time point of solution
         if saveat isa Number
-            @test sol2.t ==
-                  (save_end ? [0.0, 25.0, 50.0, 75.0, 100.0] : [0.0, 25.0, 50.0, 75.0])
+            @test sol2.t == (save_end ? [0.0, 25.0, 50.0, 75.0, 100.0] : [0.0, 25.0, 50.0, 75.0])
         else
             @test sol2.t == (save_end ? [25.0, 50.0, 75.0, 100.0] : [25.0, 50.0, 75.0])
         end
@@ -92,8 +90,7 @@ end
         @test sol2.u == dde_int2.sol.u
 
         # time points of solution
-        @test symdiff(sol.t, sol2.t) ==
-              (save_start ? [25.0, 50.0, 75.0] : [0.0, 25.0, 50.0, 75.0])
+        @test symdiff(sol.t, sol2.t) == (save_start ? [25.0, 50.0, 75.0] : [0.0, 25.0, 50.0, 75.0])
 
         # history is equal to solution above
         @test sol.t == dde_int2.integrator.sol.t
@@ -117,8 +114,7 @@ end
         @test sol2.u == dde_int2.sol.u
 
         # time points of solution
-        @test symdiff(sol.t, sol2.t) ==
-              (save_end ? [25.0, 50.0, 75.0] : [100.0, 25.0, 50.0, 75.0])
+        @test symdiff(sol.t, sol2.t) == (save_end ? [25.0, 50.0, 75.0] : [100.0, 25.0, 50.0, 75.0])
 
         # history is equal to solution above
         @test sol.t == dde_int2.integrator.sol.t
