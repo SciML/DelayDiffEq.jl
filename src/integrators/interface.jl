@@ -418,10 +418,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
         # erase array of tracked discontinuities
         if order_discontinuity_t0 ≤ OrdinaryDiffEqCore.alg_maximum_order(integrator.alg)
             resize!(integrator.tracked_discontinuities, 1)
-            integrator.tracked_discontinuities[1] = Discontinuity(
-                integrator.tdir *
-                integrator.t,
-                order_discontinuity_t0)
+            integrator.tracked_discontinuities[1] = Discontinuity(integrator.tdir * integrator.t, order_discontinuity_t0)
         else
             resize!(integrator.tracked_discontinuities, 0)
         end
