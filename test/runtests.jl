@@ -15,6 +15,9 @@ if GROUP == "All" || GROUP == "Interface"
     @time @safetestset "Constrained Time Steps Tests" begin
         include("interface/constrained.jl")
     end
+    @time @safetestset "Default Solver Tests" begin
+        include("interface/default_solver.jl")
+    end
     @time @safetestset "Dependent Delay Tests" begin
         include("interface/dependent_delays.jl")
     end

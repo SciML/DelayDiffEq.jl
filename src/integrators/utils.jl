@@ -15,6 +15,30 @@ function advance_or_update_ode_integrator!(integrator, always_calc_begin = false
     end
 end
 
+# Helper function to get the current cache from composite algorithm caches
+# Handles both regular cache.caches arrays and DefaultCache with individual fields
+function get_current_cache(cache, current)
+    if cache isa OrdinaryDiffEqCore.DefaultCache
+        # DefaultCache stores caches as individual fields (cache1, cache2, etc.)
+        # Use getfield to safely access the cache fields
+        if current == 1
+            return cache.cache1
+        elseif current == 2
+            return cache.cache2
+        elseif current == 3
+            return isdefined(cache, :cache3) ? cache.cache3 : cache.cache1
+        elseif current == 4
+            return isdefined(cache, :cache4) ? cache.cache4 : cache.cache1
+        elseif current == 5
+            return isdefined(cache, :cache5) ? cache.cache5 : cache.cache1
+        else
+            return isdefined(cache, :cache6) ? cache.cache6 : cache.cache1
+        end
+    else
+        return cache.caches[current]
+    end
+end
+
 """
     advance_ode_integrator!(integrator::DDEIntegrator[, always_calc_begin = false])
 
@@ -36,7 +60,7 @@ function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = 
     # is incorrect
     if iscomposite(alg)
         OrdinaryDiffEqCore._ode_addsteps!(
-            k, t, uprev, u, dt, f, p, cache.caches[cache.current],
+            k, t, uprev, u, dt, f, p, get_current_cache(cache, cache.current),
             always_calc_begin, true, true)
     else
         OrdinaryDiffEqCore._ode_addsteps!(
@@ -85,7 +109,7 @@ function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = f
 
     if iscomposite(alg)
         OrdinaryDiffEqCore._ode_addsteps!(
-            k, t, uprev, u, dt, f, p, cache.caches[cache.current],
+            k, t, uprev, u, dt, f, p, get_current_cache(cache, cache.current),
             always_calc_begin, true, true)
     else
         OrdinaryDiffEqCore._ode_addsteps!(k, t, uprev, u, dt, f, p, cache,
