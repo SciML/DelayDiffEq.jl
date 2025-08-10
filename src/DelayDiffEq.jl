@@ -74,10 +74,10 @@ include("utils.jl")
 
 # Default solver for DDEProblems
 function SciMLBase.__solve(prob::DDEProblem; kwargs...)
-    solve(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
+    SciMLBase.solve(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
 end
 function SciMLBase.__init(prob::DDEProblem; kwargs...)
-    init(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
+    DiffEqBase.init(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
 end
 
 end # module

@@ -415,7 +415,7 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         SciMLBase.initialize_dae!(integrator)
         initialize_solution!(integrator)
         OrdinaryDiffEqCore.initialize_callbacks!(integrator, initialize_save)
-        OrdinaryDiffEqCore.initialize!(integrator)
+        DiffEqBase.initialize!(integrator)
     end
 
     # take care of time step dt = 0 and dt with incorrect sign
