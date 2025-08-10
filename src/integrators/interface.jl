@@ -139,11 +139,11 @@ function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator)
 end
 
 # initialize the integrator
-function OrdinaryDiffEqCore.initialize!(integrator::DDEIntegrator)
+function DiffEqBase.initialize!(integrator::DDEIntegrator)
     ode_integrator = integrator.integrator
 
     # initialize the cache
-    OrdinaryDiffEqCore.initialize!(integrator, integrator.cache)
+    DiffEqBase.initialize!(integrator, integrator.cache)
 
     # copy interpolation data to the ODE integrator
     @inbounds for i in 1:length(integrator.k)
@@ -448,7 +448,7 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
     end
 
     if reinit_cache
-        OrdinaryDiffEqCore.initialize!(integrator)
+        DiffEqBase.initialize!(integrator)
     end
 
     nothing
