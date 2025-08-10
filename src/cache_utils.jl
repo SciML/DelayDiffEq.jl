@@ -6,8 +6,8 @@ function SciMLBase.unwrap_cache(integrator::DDEIntegrator, is_stiff)
         return cache
     elseif alg.choice_function isa AutoSwitch
         num = is_stiff ? 2 : 1
-        return cache.caches[num]
+        return get_current_cache(cache, num)
     else
-        return cache.caches[integrator.cache.current]
+        return get_current_cache(cache, integrator.cache.current)
     end
 end

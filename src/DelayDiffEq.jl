@@ -34,6 +34,7 @@ using OrdinaryDiffEqFunctionMap: FunctionMap
 # Explicit imports for functions currently coming through @reexport using OrdinaryDiffEq
 using OrdinaryDiffEqCore: AutoSwitch, CompositeAlgorithm
 using OrdinaryDiffEq: OrdinaryDiffEq
+using OrdinaryDiffEqDefault: DefaultODEAlgorithm
 using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, ReturnCode,
                  VectorContinuousCallback, addat!, addat_non_user_cache!,
                  deleteat_non_user_cache!,
@@ -70,5 +71,13 @@ include("track.jl")
 include("alg_utils.jl")
 include("solve.jl")
 include("utils.jl")
+
+# Default solver for DDEProblems
+function SciMLBase.__solve(prob::DDEProblem; kwargs...)
+    solve(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
+end
+function SciMLBase.__init(prob::DDEProblem; kwargs...)
+    init(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
+end
 
 end # module
