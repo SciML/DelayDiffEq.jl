@@ -1,6 +1,6 @@
 # DelayDiffEq.jl
 
-[![Build Status](https://github.com/SciML/DelayDiffEq.jl/workflows/CI/badge.svg?branch=master)](https://github.com/SciML/DelayDiffEq.jl/actions?query=workflow%3ACI%20branch%3Amaster)
+[![Build Status](https://github.com/SciML/DelayDiffEq.jl/actions/workflows/Tests.yml/badge.svg?branch=master)](https://github.com/SciML/DelayDiffEq.jl/actions/workflows/Tests.yml?query=branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/SciML/DelayDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/SciML/DelayDiffEq.jl?branch=master)
 [![codecov](https://codecov.io/gh/SciML/DelayDiffEq.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SciML/DelayDiffEq.jl)
 
