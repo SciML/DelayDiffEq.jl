@@ -73,11 +73,15 @@ include("solve.jl")
 include("utils.jl")
 
 # Default solver for DDEProblems
+# Note: Using Tsit5() instead of DefaultODEAlgorithm() as a workaround
+# for incompatibility between DefaultCache and OrdinaryDiffEqCore's interpolation.
+# TODO: Revert to DefaultODEAlgorithm() when OrdinaryDiffEqCore adds support
+# for DefaultCache in interpolation routines (see issue #329).
 function SciMLBase.__solve(prob::DDEProblem; kwargs...)
-    SciMLBase.solve(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
+    SciMLBase.solve(prob, MethodOfSteps(Tsit5()); kwargs...)
 end
 function SciMLBase.__init(prob::DDEProblem; kwargs...)
-    DiffEqBase.init(prob, MethodOfSteps(DefaultODEAlgorithm()); kwargs...)
+    DiffEqBase.init(prob, MethodOfSteps(Tsit5()); kwargs...)
 end
 
 end # module
