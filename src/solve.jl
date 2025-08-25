@@ -415,6 +415,9 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         SciMLBase.initialize_dae!(integrator)
         initialize_solution!(integrator)
         OrdinaryDiffEqCore.initialize_callbacks!(integrator, initialize_save)
+        if save_on && save_start
+            SciMLBase.save_discretes_if_enabled!(integrator, opts.callback; skip_duplicates = true)
+        end
         DiffEqBase.initialize!(integrator)
     end
 
