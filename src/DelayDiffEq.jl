@@ -1,8 +1,10 @@
 module DelayDiffEq
 
-using Reexport: @reexport
+import Reexport: @reexport, Reexport
 import OrdinaryDiffEqCore, OrdinaryDiffEqNonlinearSolve, OrdinaryDiffEqDifferentiation,
        OrdinaryDiffEqRosenbrock
+import OrdinaryDiffEqDefault: OrdinaryDiffEqDefault
+import OrdinaryDiffEqFunctionMap: OrdinaryDiffEqFunctionMap
 @reexport using OrdinaryDiffEq
 
 using DataStructures: BinaryMinHeap
