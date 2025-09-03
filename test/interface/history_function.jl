@@ -1,4 +1,5 @@
 using DelayDiffEq
+using OrdinaryDiffEqCore
 using Test
 
 # check constant extrapolation with problem with vanishing delays at t = 0
@@ -74,8 +75,8 @@ end
 
     # add step to integrator
     @testset "update integrator" begin
-        OrdinaryDiffEq.loopheader!(integrator)
-        OrdinaryDiffEq.perform_step!(integrator, integrator.cache)
+        OrdinaryDiffEqCore.loopheader!(integrator)
+        OrdinaryDiffEqCore.perform_step!(integrator, integrator.cache)
         integrator.t = integrator.dt
         @test 0.01 < integrator.t < 1
         @test integrator.sol.t[end] == 0
@@ -85,7 +86,7 @@ end
     @testset "integrator interpolation" for deriv in (Val{0}, Val{1}),
         idxs in (nothing, [2])
         # expected value
-        trueval = OrdinaryDiffEq.current_interpolant(0.01, integrator, idxs, deriv)
+        trueval = OrdinaryDiffEqCore.current_interpolant(0.01, integrator, idxs, deriv)
 
         # out-of-place
         history_notinplace.isout = false
@@ -103,7 +104,7 @@ end
     # add step to solution
     @testset "update solution" begin
         integrator.t = 0
-        OrdinaryDiffEq.loopfooter!(integrator)
+        OrdinaryDiffEqCore.loopfooter!(integrator)
         @test integrator.t == integrator.sol.t[end]
     end
 
@@ -130,7 +131,7 @@ end
 
         idxs == 0 && (idxs = nothing)
         # expected value
-        trueval = OrdinaryDiffEq.current_interpolant(1, integrator, idxs, deriv)
+        trueval = OrdinaryDiffEqCore.current_interpolant(1, integrator, idxs, deriv)
 
         # out-of-place
         history_notinplace.isout = false
