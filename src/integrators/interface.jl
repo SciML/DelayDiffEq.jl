@@ -138,6 +138,33 @@ function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator)
     nothing
 end
 
+# DefaultCache sumtype does lazy initializations of sub-caches
+# Need to overload this function so that the history function has initialized caches
+# https://github.com/SciML/DelayDiffEq.jl/issues/329
+function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator, cache::OrdinaryDiffEqCore.DefaultCache, repeat_step = false)
+    algs = integrator.alg.algs
+    OrdinaryDiffEqCore.init_ith_default_cache(cache, algs, cache.current)
+    if cache.current == 1
+        integrator.history.integrator.cache.cache1 = cache.cache1
+        OrdinaryDiffEqCore.perform_step!(integrator, @inbounds(cache.cache1), repeat_step)
+    elseif cache.current == 2
+        integrator.history.integrator.cache.cache2 = cache.cache2
+        OrdinaryDiffEqCore.perform_step!(integrator, @inbounds(cache.cache2), repeat_step)
+    elseif cache.current == 3
+        integrator.history.integrator.cache.cache3 = cache.cache3
+        OrdinaryDiffEqCore.perform_step!(integrator, @inbounds(cache.cache3), repeat_step)
+    elseif cache.current == 4
+        integrator.history.integrator.cache.cache4 = cache.cache4
+        OrdinaryDiffEqCore.perform_step!(integrator, @inbounds(cache.cache4), repeat_step)
+    elseif cache.current == 5
+        integrator.history.integrator.cache.cache5 = cache.cache5
+        OrdinaryDiffEqCore.perform_step!(integrator, @inbounds(cache.cache5), repeat_step)
+    elseif cache.current == 6
+        integrator.history.integrator.cache.cache6 = cache.cache6
+        OrdinaryDiffEqCore.perform_step!(integrator, @inbounds(cache.cache6), repeat_step)
+    end
+end
+
 # initialize the integrator
 function DiffEqBase.initialize!(integrator::DDEIntegrator)
     ode_integrator = integrator.integrator
