@@ -39,6 +39,9 @@ if GROUP == "All" || GROUP == "Interface"
     @time @safetestset "Mass matrix Tests" begin
         include("interface/mass_matrix.jl")
     end
+    @time @safetestset "Default Solver Tests" begin
+        include("interface/default.jl")
+    end
     @time @safetestset "Parameterized Function Tests" begin
         include("interface/parameters.jl")
     end
