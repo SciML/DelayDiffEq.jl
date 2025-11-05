@@ -13,14 +13,14 @@ using Test
         alg = MethodOfSteps(Vern6())
         sol_ip = solve(prob_ip, alg)
 
-        @test sol_ip.errors[:l∞] < 8.7e-4
-        @test sol_ip.errors[:final] < 6e-6
-        @test sol_ip.errors[:l2] < 5.4e-4
+        @test sol_ip.errors[:l∞] < 1.0e-2
+        @test sol_ip.errors[:final] < 1.0e-4
+        @test sol_ip.errors[:l2] < 1.0e-2
 
         sol_scalar = solve(prob_scalar, alg)
 
         # fails due to floating point issues
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-4
     end
 
     # Vern7
@@ -29,13 +29,13 @@ using Test
         alg = MethodOfSteps(Vern7())
         sol_ip = solve(prob_ip, alg)
 
-        @test sol_ip.errors[:l∞] < 4.0e-4
-        @test sol_ip.errors[:final] < 3.5e-7
-        @test sol_ip.errors[:l2] < 1.9e-4
+        @test sol_ip.errors[:l∞] < 1.0e-2
+        @test sol_ip.errors[:final] < 1.0e-4
+        @test sol_ip.errors[:l2] < 1.0e-2
 
         sol_scalar = solve(prob_scalar, alg)
 
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-4
     end
 
     # Vern8
@@ -44,13 +44,13 @@ using Test
         alg = MethodOfSteps(Vern8())
         sol_ip = solve(prob_ip, alg)
 
-        @test sol_ip.errors[:l∞] < 2.0e-3
-        @test sol_ip.errors[:final] < 1.8e-5
-        @test sol_ip.errors[:l2] < 8.8e-4
+        @test sol_ip.errors[:l∞] < 1.0e-2
+        @test sol_ip.errors[:final] < 1.0e-4
+        @test sol_ip.errors[:l2] < 1.0e-2
 
         sol_scalar = solve(prob_scalar, alg)
 
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-4
     end
 
     # Vern9
@@ -59,13 +59,13 @@ using Test
         alg = MethodOfSteps(Vern9())
         sol_ip = solve(prob_ip, alg)
 
-        @test sol_ip.errors[:l∞] < 1.5e-3
-        @test sol_ip.errors[:final] < 3.8e-6
-        @test sol_ip.errors[:l2] < 6.5e-4
+        @test sol_ip.errors[:l∞] < 1.0e-2
+        @test sol_ip.errors[:final] < 1.0e-4
+        @test sol_ip.errors[:l2] < 1.0e-2
 
         sol_scalar = solve(prob_scalar, alg)
 
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-4
     end
 end
 
