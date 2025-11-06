@@ -214,7 +214,7 @@ function SciMLBase.__init(
         uBottomEltypeNoUnits, tTypeNoUnits, uprev, uprev2,
         f_with_history, t0, zero(tType), reltol_internal, p,
         calck,
-        Val(isinplace(prob))
+        Val(isinplace(prob)), OrdinaryDiffEqCore.ODEVerbosity()
     )
 
     # separate statistics of the integrator and the history
