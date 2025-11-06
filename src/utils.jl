@@ -312,7 +312,7 @@ function build_history_function(
         uBottomEltypeNoUnits, tTypeNoUnits, ode_uprev,
         ode_uprev, ode_f, t0, zero(tType), reltol, p,
         calck,
-        Val(isinplace(prob))
+        Val(isinplace(prob)), OrdinaryDiffEqCore.ODEVerbosity()
     )
 
     # build dense interpolation of history
