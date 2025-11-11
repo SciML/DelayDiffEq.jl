@@ -51,7 +51,7 @@ using DiffEqBase: initialize!
 import DiffEqBase
 using ConcreteStructs: @concrete
 using SciMLLogging: AbstractVerbositySpecifier, AbstractVerbosityPreset, None, Minimal, Standard, Detailed, All,
-                    Silent, DebugLevel, InfoLevel, WarnLevel, ErrorLevel
+                    Silent, DebugLevel, InfoLevel, WarnLevel, ErrorLevel, @SciMLMessage
 
 import SciMLBase
 
@@ -59,6 +59,7 @@ export Discontinuity, MethodOfSteps
 
 include("discontinuity_type.jl")
 include("functionwrapper.jl")
+include("verbosity.jl")
 
 include("integrators/type.jl")
 include("integrators/utils.jl")
@@ -68,7 +69,6 @@ include("fpsolve/type.jl")
 include("fpsolve/fpsolve.jl")
 include("fpsolve/utils.jl")
 include("fpsolve/functional.jl")
-include("verbosity.jl")
 include("cache_utils.jl")
 include("interpolants.jl")
 include("history_function.jl")

@@ -111,7 +111,10 @@ function compute_step_fixedpoint!(
     DiffEqBase.calculate_residuals!(atmp, dz, ode_integrator.u, integrator.u,
         opts.abstol, opts.reltol, opts.internalnorm, t)
 
-    opts.internalnorm(atmp, t)
+    residual = opts.internalnorm(atmp, t)
+    @SciMLMessage(lazy"Fixed-point iteration residual = $residual at t = $t",
+        opts.verbose, :residual_control)
+    residual
 end
 
 ## resize!

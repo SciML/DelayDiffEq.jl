@@ -11,8 +11,6 @@ diagnostic messages, warnings, and errors during DDE solution.
 
 ## Delay-Specific Group
 - `discontinuity_tracking`: Messages about discontinuity propagation tracking
-- `history_interpolation`: Messages about history function interpolation
-- `history_extrapolation`: Messages when history function extrapolates beyond bounds
 - `delay_evaluation`: Messages about delay term evaluation
 - `constrained_step`: Messages when step size is constrained by discontinuities
 - `residual_control`: Messages about residual control in implicit methods
@@ -49,7 +47,7 @@ verbose = DDEVerbosity(
 # Set individual fields
 verbose = DDEVerbosity(
     discontinuity_tracking = SciMLLogging.InfoLevel(),
-    history_interpolation = SciMLLogging.WarnLevel()
+    delay_evaluation = SciMLLogging.WarnLevel()
 )
 
 # Mix group and individual settings
@@ -64,8 +62,6 @@ verbose = DDEVerbosity(
     ode_verbosity
     # Delay-specific options
     discontinuity_tracking
-    history_interpolation
-    history_extrapolation
     delay_evaluation
     constrained_step
     residual_control
@@ -74,9 +70,8 @@ verbose = DDEVerbosity(
 end
 
 # Group classifications
-const delay_specific_options = (:discontinuity_tracking, :history_interpolation,
-    :history_extrapolation, :delay_evaluation, :constrained_step, :residual_control,
-    :neutral_delay, :state_dependent_delay)
+const delay_specific_options = (:discontinuity_tracking, :delay_evaluation,
+    :constrained_step, :residual_control, :neutral_delay, :state_dependent_delay)
 
 function option_group(option::Symbol)
     if option in delay_specific_options
@@ -121,8 +116,6 @@ function DDEVerbosity(;
     default_args = (
         ode_verbosity = ode_verbosity === nothing ? ODEVerbosity() : ode_verbosity,
         discontinuity_tracking = Silent(),
-        history_interpolation = Silent(),
-        history_extrapolation = WarnLevel(),
         delay_evaluation = Silent(),
         constrained_step = Silent(),
         residual_control = Silent(),
@@ -157,8 +150,6 @@ function DDEVerbosity(verbose::AbstractVerbosityPreset)
         DDEVerbosity(
             ode_verbosity = ODEVerbosity(Minimal()),
             discontinuity_tracking = Silent(),
-            history_interpolation = Silent(),
-            history_extrapolation = WarnLevel(),
             delay_evaluation = Silent(),
             constrained_step = Silent(),
             residual_control = Silent(),
@@ -173,8 +164,6 @@ function DDEVerbosity(verbose::AbstractVerbosityPreset)
         DDEVerbosity(
             ode_verbosity = ODEVerbosity(Detailed()),
             discontinuity_tracking = InfoLevel(),
-            history_interpolation = InfoLevel(),
-            history_extrapolation = WarnLevel(),
             delay_evaluation = InfoLevel(),
             constrained_step = InfoLevel(),
             residual_control = InfoLevel(),
@@ -186,8 +175,6 @@ function DDEVerbosity(verbose::AbstractVerbosityPreset)
         DDEVerbosity(
             ode_verbosity = ODEVerbosity(All()),
             discontinuity_tracking = InfoLevel(),
-            history_interpolation = InfoLevel(),
-            history_extrapolation = InfoLevel(),
             delay_evaluation = InfoLevel(),
             constrained_step = InfoLevel(),
             residual_control = InfoLevel(),
@@ -200,8 +187,6 @@ end
 @inline function DDEVerbosity(verbose::None)
     DDEVerbosity(
         ODEVerbosity(None()),
-        Silent(),
-        Silent(),
         Silent(),
         Silent(),
         Silent(),
