@@ -28,7 +28,7 @@ import FastBroadcast: @..
 
 using OrdinaryDiffEqNonlinearSolve: NLAnderson, NLFunctional
 using OrdinaryDiffEqCore: AbstractNLSolverCache, SlowConvergence,
-                          alg_extrapolates, alg_maximum_order, initialize!
+                          alg_extrapolates, alg_maximum_order, initialize!, ODEVerbosity
 using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
 using OrdinaryDiffEqFunctionMap: FunctionMap
 # using OrdinaryDiffEqDifferentiation: resize_grad_config!, resize_jac_config!
@@ -49,6 +49,9 @@ using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, Re
                  change_t_via_interpolation!, isadaptive
 using DiffEqBase: initialize!
 import DiffEqBase
+using ConcreteStructs: @concrete
+using SciMLLogging: AbstractVerbositySpecifier, AbstractVerbosityPreset, None, Minimal, Standard, Detailed, All,
+                    Silent, DebugLevel, InfoLevel, WarnLevel, ErrorLevel
 
 import SciMLBase
 
@@ -65,6 +68,7 @@ include("fpsolve/type.jl")
 include("fpsolve/fpsolve.jl")
 include("fpsolve/utils.jl")
 include("fpsolve/functional.jl")
+include("verbosity.jl")
 include("cache_utils.jl")
 include("interpolants.jl")
 include("history_function.jl")
