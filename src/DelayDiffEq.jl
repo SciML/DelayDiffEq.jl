@@ -49,7 +49,7 @@ using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, Re
 using DiffEqBase: initialize!
 import DiffEqBase
 using ConcreteStructs: @concrete
-using SciMLLogging: AbstractVerbositySpecifier, AbstractVerbosityPreset, None, Minimal, Standard, Detailed, All,
+using SciMLLogging: AbstractVerbositySpecifier, AbstractVerbosityPreset, AbstractMessageLevel, None, Minimal, Standard, Detailed, All,
                     Silent, DebugLevel, InfoLevel, WarnLevel, ErrorLevel, @SciMLMessage
 
 import SciMLBase
