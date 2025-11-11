@@ -16,7 +16,7 @@ prob = DDEProblem(f!, [1.0], h, tspan; constant_lags = [0.2])
 # Test that the dispatch is correctly defined
 # The solve will encounter cache compatibility issues but should dispatch correctly
 dispatch_works = try
-    sol = SciMLBase.__solve(prob; maxiters = 1, verbose = false)
+    sol = SciMLBase.__solve(prob; maxiters = 1)
     true
 catch e
     # Check if it's the expected cache error

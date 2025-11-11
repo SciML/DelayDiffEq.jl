@@ -107,6 +107,19 @@ function SciMLBase.__init(
         order_discontinuity_t0 = prob.order_discontinuity_t0
     end
 
+    # Handle verbose argument: convert Bool or AbstractVerbosityPreset to DDEVerbosity
+    if verbose isa Bool
+        if verbose
+            verbose_spec = DDEVerbosity()
+        else
+            verbose_spec = DDEVerbosity(None())
+        end
+    elseif verbose isa AbstractVerbosityPreset
+        verbose_spec = DDEVerbosity(verbose)
+    else
+        verbose_spec = verbose
+    end
+
     if alg.alg isa CompositeAlgorithm && alg.alg.choice_function isa AutoSwitch
         auto = alg.alg.choice_function
         alg = MethodOfSteps(
@@ -157,7 +170,13 @@ function SciMLBase.__init(
     # no fixed-point iterations for constrained algorithms,
     # and thus `dtmax` should match minimal lag
     if isconstrained(alg) && has_constant_lags(prob)
-        dtmax = tdir * min(abs(dtmax), minimum(abs, constant_lags))
+        min_lag = minimum(abs, constant_lags)
+        old_dtmax = abs(dtmax)
+        dtmax = tdir * min(old_dtmax, min_lag)
+        if min_lag < old_dtmax
+            @SciMLMessage(lazy"Constrained algorithm: limiting dtmax from $old_dtmax to $min_lag (minimum lag)",
+                verbose_spec, :constrained_step)
+        end
     end
 
     # get absolute and relative tolerances
@@ -324,7 +343,7 @@ function SciMLBase.__init(
             typeof(d_discontinuities_internal), typeof(userdata),
             typeof(save_idxs),
             typeof(maxiters), typeof(tstops),
-            typeof(saveat), typeof(d_discontinuities), typeof(verbose),
+            typeof(saveat), typeof(d_discontinuities), typeof(verbose_spec),
         }(
             maxiters,
             save_everystep,
@@ -367,7 +386,7 @@ function SciMLBase.__init(
             callback_set,
             isoutofdomain,
             unstable_check,
-            verbose,
+            verbose_spec,
             calck,
             force_dtmin,
             advance_to_tstop,
@@ -430,7 +449,7 @@ function SciMLBase.__init(
             callback_set,
             isoutofdomain,
             unstable_check,
-            verbose,
+            verbose_spec,
             calck,
             force_dtmin,
             advance_to_tstop,

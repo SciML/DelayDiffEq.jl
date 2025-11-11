@@ -126,7 +126,10 @@ function compute_step_fixedpoint!(
         opts.abstol, opts.reltol, opts.internalnorm, t
     )
 
-    return opts.internalnorm(atmp, t)
+    residual = return opts.internalnorm(atmp, t)
+    @SciMLMessage(lazy"Fixed-point iteration residual = $residual at t = $t",
+        opts.verbose, :residual_control)
+    residual
 end
 
 ## resize!
