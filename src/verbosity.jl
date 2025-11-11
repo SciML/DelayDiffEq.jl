@@ -221,3 +221,13 @@ end
         return default_val
     end
 end
+
+function Base.getproperty(v::DDEVerbosity, s::Symbol)
+    if s in fieldnames(DDEVerbosity)
+        return getfield(v, s)
+    elseif s in fieldnames(ODEVerbosity)
+        return getfield(getfield(v, :ode_verbosity), s)
+    else
+        return error("type DDEVerbosity has no field ", s)
+    end
+end
