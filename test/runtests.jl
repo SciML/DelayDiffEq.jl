@@ -57,6 +57,9 @@ if GROUP == "All" || GROUP == "Interface"
     @time @safetestset "Units Tests" begin
         include("interface/units.jl")
     end
+    @time @safetestset "Verbosity Tests" begin
+        include("interface/verbosity.jl")
+    end
 end
 
 if GROUP == "All" || GROUP == "Integrators"
