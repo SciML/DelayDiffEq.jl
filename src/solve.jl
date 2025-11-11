@@ -78,7 +78,7 @@ function SciMLBase.__init(
         internalopnorm = opnorm,
         isoutofdomain = DiffEqBase.ODE_DEFAULT_ISOUTOFDOMAIN,
         unstable_check = DiffEqBase.ODE_DEFAULT_UNSTABLE_CHECK,
-        verbose = true,
+        verbose = DDEVerbosity(),
         timeseries_errors = true,
         dense_errors = false,
         advance_to_tstop = false,
