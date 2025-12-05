@@ -66,3 +66,25 @@ end
     @test sol.u[iter + 1] == [0.0]
     @test sol.u[iter + 2] != [0.0]
 end
+
+# Issue #341: PeriodicCallback support for DDEIntegrator
+@testset "periodic callback" begin
+    # Simple DDE with constant delay
+    function f(du, u, h, p, t)
+        du[1] = -u[1] + h(p, t - 1.0)[1]
+    end
+    h(p, t) = [1.0]
+    prob = DDEProblem(f, [1.0], h, (0.0, 10.0); constant_lags = [1.0])
+
+    # Count how many times the callback is triggered
+    counter = Ref(0)
+    function affect!(integrator)
+        counter[] += 1
+    end
+    cb = PeriodicCallback(affect!, 1.0)
+
+    sol = solve(prob, MethodOfSteps(Tsit5()), callback = cb)
+    @test sol.retcode == ReturnCode.Success
+    # Should be triggered approximately 10 times (at t=1,2,3,...,10)
+    @test counter[] >= 9
+end
