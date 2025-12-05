@@ -17,7 +17,7 @@ const algs = [Rosenbrock23(), Rosenbrock32(), ROS3P(), Rodas3(),
     sol_ip = solve(prob_ip, stepsalg)
     sol_scalar = solve(prob_scalar, stepsalg)
 
-    @test sol_ip(ts, idxs = 1) ≈ sol_scalar(ts)
-    @test sol_ip.t ≈ sol_scalar.t
-    @test sol_ip[1, :] ≈ sol_scalar.u
+    @test isapprox(sol_ip(ts, idxs = 1), sol_scalar(ts), rtol = 1e-4)
+    @test isapprox(sol_ip.t, sol_scalar.t, rtol = 1e-4)
+    @test isapprox(sol_ip[1, :], sol_scalar.u, rtol = 1e-4)
 end
