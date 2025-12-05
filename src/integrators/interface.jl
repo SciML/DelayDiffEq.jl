@@ -141,7 +141,8 @@ end
 # DefaultCache sumtype does lazy initializations of sub-caches
 # Need to overload this function so that the history function has initialized caches
 # https://github.com/SciML/DelayDiffEq.jl/issues/329
-function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator, cache::OrdinaryDiffEqCore.DefaultCache, repeat_step = false)
+function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator,
+        cache::OrdinaryDiffEqCore.DefaultCache, repeat_step = false)
     algs = integrator.alg.algs
     OrdinaryDiffEqCore.init_ith_default_cache(cache, algs, cache.current)
     if cache.current == 1
@@ -445,7 +446,8 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
         # erase array of tracked discontinuities
         if order_discontinuity_t0 ≤ OrdinaryDiffEqCore.alg_maximum_order(integrator.alg)
             resize!(integrator.tracked_discontinuities, 1)
-            integrator.tracked_discontinuities[1] = Discontinuity(integrator.tdir * integrator.t, order_discontinuity_t0)
+            integrator.tracked_discontinuities[1] = Discontinuity(
+                integrator.tdir * integrator.t, order_discontinuity_t0)
         else
             resize!(integrator.tracked_discontinuities, 0)
         end
@@ -535,6 +537,16 @@ function DiffEqBase.change_t_via_interpolation!(integrator::DDEIntegrator,
         t, modify_save_endpoint::Type{Val{T}} = Val{false},
         reinitialize_alg = nothing) where {T}
     OrdinaryDiffEqCore._change_t_via_interpolation!(integrator, t, modify_save_endpoint, reinitialize_alg)
+end
+
+# tstops interface for PeriodicCallback support (issue #341)
+DiffEqBase.get_tstops(integrator::DDEIntegrator) = integrator.opts.tstops
+function DiffEqBase.get_tstops_array(integrator::DDEIntegrator)
+    DiffEqBase.get_tstops(integrator).valtree
+end
+function DiffEqBase.get_tstops_max(integrator::DDEIntegrator)
+    tstops_array = DiffEqBase.get_tstops_array(integrator)
+    isempty(tstops_array) ? integrator.sol.prob.tspan[end] : maximum(tstops_array)
 end
 
 # update integrator when u is modified by callbacks
