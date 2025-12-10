@@ -133,7 +133,7 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
             ArrayInterface.issingular(prob.f.mass_matrix)
 
     # unpack problem
-    @unpack f, u0, h, tspan, p, neutral, constant_lags, dependent_lags = prob
+    (; f, u0, h, tspan, p, neutral, constant_lags, dependent_lags) = prob
 
     # determine type and direction of time
     tType = eltype(tspan)
@@ -522,8 +522,8 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
 end
 
 function DiffEqBase.solve!(integrator::DDEIntegrator)
-    @unpack tdir, opts, sol = integrator
-    @unpack tstops = opts
+    (; tdir, opts, sol) = integrator
+    (; tstops) = opts
 
     # step over all stopping time points, similar to solving with ODE integrators
     @inbounds while !isempty(tstops)

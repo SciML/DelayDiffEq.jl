@@ -116,7 +116,7 @@ end
 
 # perform next integration step
 function OrdinaryDiffEqCore.perform_step!(integrator::DDEIntegrator)
-    @unpack cache, history = integrator
+    (; cache, history) = integrator
 
     # reset boolean which indicates if the history function was evaluated at a time point
     # past the final point of the current solution
@@ -484,9 +484,9 @@ function DiffEqBase.reinit!(integrator::DDEIntegrator, u0 = integrator.sol.prob.
 end
 
 function DiffEqBase.auto_dt_reset!(integrator::DDEIntegrator)
-    @unpack f, u, t, tdir, opts, sol, stats = integrator
-    @unpack prob = sol
-    @unpack abstol, reltol, internalnorm = opts
+    (; f, u, t, tdir, opts, sol, stats) = integrator
+    (; prob) = sol
+    (; abstol, reltol, internalnorm) = opts
 
     # determine maximal time step
     if has_constant_lags(prob)

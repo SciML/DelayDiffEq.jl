@@ -73,7 +73,7 @@ end
 ## resize
 
 function resize_fpsolver!(integrator::DDEIntegrator, i::Int)
-    @unpack fpsolver = integrator
+    (; fpsolver) = integrator
 
     if fpsolver !== nothing
         resize!(fpsolver, integrator, i)

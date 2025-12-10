@@ -258,7 +258,7 @@ end
 
 function build_history_function(prob, alg, rate_prototype, reltol, differential_vars;
         dt, dtmin, adaptive, calck, internalnorm)
-    @unpack f, u0, tspan, p = prob
+    (; f, u0, tspan, p) = prob
 
     t0 = first(tspan)
     tType = eltype(tspan)
