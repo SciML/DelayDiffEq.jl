@@ -47,7 +47,7 @@ and interpolation data with the current values and a full set of interpolation d
 `integrator`.
 """
 function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = false)
-    @unpack f, u, t, p, k, dt, uprev, alg, cache = integrator
+    (; f, u, t, p, k, dt, uprev, alg, cache) = integrator
     ode_integrator = integrator.integrator
 
     # algorithm only works if current time of DDE integrator equals final time point
@@ -100,7 +100,7 @@ Update the ODE integrator of `integrator` by updating its values and interpolati
 with the current values and a full set of interpolation data of `integrator`.
 """
 function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = false)
-    @unpack f, u, t, p, k, dt, uprev, alg, cache = integrator
+    (; f, u, t, p, k, dt, uprev, alg, cache) = integrator
     ode_integrator = integrator.integrator
 
     # algorithm only works if the ODE integrator is already moved to the current integration
@@ -137,7 +137,7 @@ and interpolation data to the values saved in the dense history.
 """
 function move_back_ode_integrator!(integrator::DDEIntegrator)
     ode_integrator = integrator.integrator
-    @unpack sol = ode_integrator
+    (; sol) = ode_integrator
 
     # set values of the ODE integrator back to the values in the solution
     if isinplace(sol.prob)

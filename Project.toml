@@ -1,7 +1,7 @@
 name = "DelayDiffEq"
 uuid = "bcd4f6db-9728-5f36-b5f7-82caef46ccdb"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
-version = "5.62.0"
+version = "5.63.0"
 
 [deps]
 ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
@@ -23,7 +23,6 @@ RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 SimpleNonlinearSolve = "727e6d20-b764-4bd8-a329-72de5adea6c7"
-SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
 SymbolicIndexingInterface = "2efcf032-c050-4f8e-a9bb-153293bab1f5"
 
 [compat]
@@ -46,6 +45,5 @@ RecursiveArrayTools = "3"
 Reexport = "1.0"
 SciMLBase = "2.115.0"
 SimpleNonlinearSolve = "2"
-SimpleUnPack = "1"
 SymbolicIndexingInterface = "0.3.36"
 julia = "1.10"

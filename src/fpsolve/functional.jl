@@ -13,8 +13,8 @@ end
 function OrdinaryDiffEqNonlinearSolve.compute_step!(
         fpsolver::FPSolver{<:NLAnderson, false},
         integrator::DDEIntegrator)
-    @unpack cache, iter = fpsolver
-    @unpack aa_start = cache
+    (; cache, iter) = fpsolver
+    (; aa_start) = cache
 
     # perform Anderson acceleration
     previter = iter - 1
@@ -42,8 +42,8 @@ end
 
 function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
         integrator::DDEIntegrator)
-    @unpack cache, iter = fpsolver
-    @unpack aa_start = cache
+    (; cache, iter) = fpsolver
+    (; aa_start) = cache
 
     # perform Anderson acceleration
     previter = iter - 1
@@ -73,8 +73,8 @@ function compute_step_fixedpoint!(
         fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
             false},
         integrator::DDEIntegrator)
-    @unpack t, opts = integrator
-    @unpack cache = fpsolver
+    (; t, opts) = integrator
+    (; cache) = fpsolver
     ode_integrator = integrator.integrator
 
     # recompute next integration step
@@ -98,9 +98,9 @@ function compute_step_fixedpoint!(
         fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
             true},
         integrator::DDEIntegrator)
-    @unpack t, opts = integrator
-    @unpack cache = fpsolver
-    @unpack dz, atmp = cache
+    (; t, opts) = integrator
+    (; cache) = fpsolver
+    (; dz, atmp) = cache
     ode_integrator = integrator.integrator
 
     # recompute next integration step
@@ -128,7 +128,7 @@ function Base.resize!(fpcache::FPAndersonCache, fpsolver::FPSolver{<:NLAnderson}
 end
 
 function Base.resize!(fpcache::FPAndersonCache, fpalg::NLAnderson, i::Int)
-    @unpack z₊old, Δz₊s = fpcache
+    (; z₊old, Δz₊s) = fpcache
 
     resize!(fpcache.atmp, i)
     resize!(fpcache.dz, i)
