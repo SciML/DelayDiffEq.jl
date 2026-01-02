@@ -96,6 +96,9 @@ if GROUP == "All" || GROUP == "Integrators"
 end
 
 if GROUP == "All" || GROUP == "Regression"
+    @time @safetestset "Allocation Tests" begin
+        include("regression/allocations.jl")
+    end
     @time @safetestset "Inference Tests" begin
         include("regression/inference.jl")
     end
