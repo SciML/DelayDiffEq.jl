@@ -139,7 +139,7 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
             SimpleNonlinearSolve.IntervalNonlinearProblem{false}(zero_func,
                 (bottom_Θ,
                     top_Θ)),
-            SimpleNonlinearSolve.Falsi()).left
+            SimpleNonlinearSolve.ITP()).left
     end
 
     integrator.t + Θ * integrator.dt
