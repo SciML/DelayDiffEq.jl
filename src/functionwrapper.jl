@@ -7,7 +7,7 @@ macro wrap_h(signature)
     args = signature.args[2:end]
     args_wo_h = [arg for arg in args if arg !== :h]
 
-    quote
+    return quote
         if f.$name === nothing
             nothing
         else
@@ -25,7 +25,7 @@ macro wrap_h(signature)
 end
 
 struct ODEFunctionWrapper{iip, F, H, TMM, Ta, Tt, TJ, JP, SP, TW, TWt, TPJ, S, TCV, ID} <:
-       SciMLBase.AbstractODEFunction{iip}
+    SciMLBase.AbstractODEFunction{iip}
     f::F
     h::H
     mass_matrix::TMM
@@ -48,12 +48,15 @@ function ODEFunctionWrapper(f::SciMLBase.AbstractDDEFunction, h)
     Wfact = @wrap_h Wfact(W, u, h, p, dtgamma, t)
     Wfact_t = @wrap_h Wfact_t(W, u, h, p, dtgamma, t)
 
-    ODEFunctionWrapper{isinplace(f), typeof(f.f), typeof(h), typeof(f.mass_matrix),
+    return ODEFunctionWrapper{
+        isinplace(f), typeof(f.f), typeof(h), typeof(f.mass_matrix),
         typeof(f.analytic), typeof(f.tgrad), typeof(jac),
         typeof(f.jac_prototype), typeof(f.sparsity),
         typeof(Wfact), typeof(Wfact_t),
         typeof(f.paramjac), typeof(f.sys), typeof(f.colorvec),
-        typeof(f.initialization_data)}(f.f, h,
+        typeof(f.initialization_data),
+    }(
+        f.f, h,
         f.mass_matrix,
         f.analytic,
         f.tgrad, jac,
@@ -64,7 +67,8 @@ function ODEFunctionWrapper(f::SciMLBase.AbstractDDEFunction, h)
         f.paramjac,
         f.sys,
         f.colorvec,
-        f.initialization_data)
+        f.initialization_data
+    )
 end
 
 (f::ODEFunctionWrapper{true})(du, u, p, t) = f.f(du, u, f.h, p, t)

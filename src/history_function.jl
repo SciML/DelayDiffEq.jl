@@ -17,8 +17,10 @@ end
 
 HistoryFunction(h, integrator) = HistoryFunction(h, integrator, false)
 
-function (f::HistoryFunction)(p, t, ::Type{Val{deriv}} = Val{0};
-        idxs = nothing) where {deriv}
+function (f::HistoryFunction)(
+        p, t, ::Type{Val{deriv}} = Val{0};
+        idxs = nothing
+    ) where {deriv}
     (; integrator) = f
     (; tdir, sol) = integrator
 
@@ -59,8 +61,10 @@ function (f::HistoryFunction)(p, t, ::Type{Val{deriv}} = Val{0};
     end
 end
 
-function (f::HistoryFunction)(val, p, t, ::Type{Val{deriv}} = Val{0};
-        idxs = nothing) where {deriv}
+function (f::HistoryFunction)(
+        val, p, t, ::Type{Val{deriv}} = Val{0};
+        idxs = nothing
+    ) where {deriv}
     (; integrator) = f
     (; tdir, sol) = integrator
 

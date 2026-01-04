@@ -14,13 +14,13 @@ using Test
         sol_ip = solve(prob_ip, alg)
 
         @test sol_ip.errors[:l∞] < 8.7e-4
-        @test sol_ip.errors[:final] < 6e-6
+        @test sol_ip.errors[:final] < 6.0e-6
         @test sol_ip.errors[:l2] < 5.4e-4
 
         sol_scalar = solve(prob_scalar, alg)
 
         # fails due to floating point issues
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1) ≈ sol_scalar(ts) atol = 1.0e-5
     end
 
     # Vern7
@@ -35,7 +35,7 @@ using Test
 
         sol_scalar = solve(prob_scalar, alg)
 
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1) ≈ sol_scalar(ts) atol = 1.0e-5
     end
 
     # Vern8
@@ -50,7 +50,7 @@ using Test
 
         sol_scalar = solve(prob_scalar, alg)
 
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1) ≈ sol_scalar(ts) atol = 1.0e-5
     end
 
     # Vern9
@@ -65,7 +65,7 @@ using Test
 
         sol_scalar = solve(prob_scalar, alg)
 
-        @test sol_ip(ts, idxs = 1)≈sol_scalar(ts) atol=1e-5
+        @test sol_ip(ts, idxs = 1) ≈ sol_scalar(ts) atol = 1.0e-5
     end
 end
 

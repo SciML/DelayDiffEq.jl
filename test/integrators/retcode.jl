@@ -4,8 +4,10 @@ using Test
 const prob = prob_dde_constant_1delay_ip
 
 @testset for composite in (true, false)
-    alg = MethodOfSteps(composite ? AutoTsit5(Rosenbrock23()) : Tsit5();
-        constrained = false)
+    alg = MethodOfSteps(
+        composite ? AutoTsit5(Rosenbrock23()) : Tsit5();
+        constrained = false
+    )
 
     sol1 = solve(prob, alg)
     @test sol1.retcode == ReturnCode.Success

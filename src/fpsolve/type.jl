@@ -1,6 +1,6 @@
 # solver
 mutable struct FPSolver{algType, iip, uTolType, C <: AbstractNLSolverCache} <:
-               OrdinaryDiffEqCore.AbstractNLSolver{algType, iip}
+    OrdinaryDiffEqCore.AbstractNLSolver{algType, iip}
     alg::algType
     κ::uTolType
     fast_convergence_cutoff::uTolType
@@ -21,7 +21,7 @@ end
 struct FPFunctionalConstantCache <: AbstractNLSolverCache end
 
 mutable struct FPAndersonCache{uType, uNoUnitsType, uEltypeNoUnits, D} <:
-               AbstractNLSolverCache
+    AbstractNLSolverCache
     atmp::uNoUnitsType
     dz::uType
     dzold::uType
@@ -36,7 +36,7 @@ mutable struct FPAndersonCache{uType, uNoUnitsType, uEltypeNoUnits, D} <:
 end
 
 mutable struct FPAndersonConstantCache{uType, uEltypeNoUnits, D} <:
-               AbstractNLSolverCache
+    AbstractNLSolverCache
     dz::uType
     dzold::uType
     z₊old::uType

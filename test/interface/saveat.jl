@@ -77,8 +77,10 @@ end
 # save every step
 @testset "every step (save_start=$save_start)" for save_start in (false, true)
     for saveat in (25.0, [25.0, 50.0, 75.0])
-        dde_int2 = init(prob, alg; saveat = saveat, save_everystep = true,
-            save_start = save_start)
+        dde_int2 = init(
+            prob, alg; saveat = saveat, save_everystep = true,
+            save_start = save_start
+        )
 
         # end point is saved implicitly
         @test dde_int2.opts.save_end
@@ -101,8 +103,10 @@ end
 # save every step
 @testset "every step (save_end=$save_end)" for save_end in (false, true)
     for saveat in (25.0, [25.0, 50.0, 75.0])
-        dde_int2 = init(prob, alg; saveat = saveat, save_everystep = true,
-            save_end = save_end)
+        dde_int2 = init(
+            prob, alg; saveat = saveat, save_everystep = true,
+            save_end = save_end
+        )
 
         # start point is saved implicitly
         @test dde_int2.opts.save_start
@@ -130,20 +134,26 @@ end
 
 @testset "changing end time point saveat" begin
     _saveat = [0.0, 0.25, 0.5, 1.0]
-    integ = init(DDEProblem((u, h, p, t) -> u, 0.0, (p, t) -> 0.0, (0.0, 1.0)),
-        MethodOfSteps(Tsit5()), saveat = _saveat)
+    integ = init(
+        DDEProblem((u, h, p, t) -> u, 0.0, (p, t) -> 0.0, (0.0, 1.0)),
+        MethodOfSteps(Tsit5()), saveat = _saveat
+    )
     add_tstop!(integ, 2.0)
     solve!(integ)
     @test integ.sol.t == _saveat
 
-    integ = init(DDEProblem((u, h, p, t) -> u, 0.0, (p, t) -> 0.0, (0.0, 1.0)),
-        MethodOfSteps(Tsit5()), saveat = _saveat, save_end = true)
+    integ = init(
+        DDEProblem((u, h, p, t) -> u, 0.0, (p, t) -> 0.0, (0.0, 1.0)),
+        MethodOfSteps(Tsit5()), saveat = _saveat, save_end = true
+    )
     add_tstop!(integ, 2.0)
     solve!(integ)
     @test integ.sol.t == [0.0, 0.25, 0.5, 1.0, 2.0]
 
-    integ = init(DDEProblem((u, h, p, t) -> u, 0.0, (p, t) -> 0.0, (0.0, 1.0)),
-        MethodOfSteps(Tsit5()), saveat = _saveat, save_end = false)
+    integ = init(
+        DDEProblem((u, h, p, t) -> u, 0.0, (p, t) -> 0.0, (0.0, 1.0)),
+        MethodOfSteps(Tsit5()), saveat = _saveat, save_end = false
+    )
     add_tstop!(integ, 2.0)
     solve!(integ)
     @test integ.sol.t == [0.0, 0.25, 0.5]

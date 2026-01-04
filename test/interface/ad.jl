@@ -11,10 +11,14 @@ h(p, t) = p[4]
 
 @testset "Gradient" begin
     function test(p)
-        prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
-            constant_lags = (p[1],))
-        sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
-            saveat = 1.0)
+        prob = DDEProblem(
+            f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
+            constant_lags = (p[1],)
+        )
+        sol = solve(
+            prob, MethodOfSteps(Tsit5()); abstol = 1.0e-14, reltol = 1.0e-14,
+            saveat = 1.0
+        )
         sum(sol)
     end
 
@@ -22,7 +26,7 @@ h(p, t) = p[4]
     p = [1.5, 1.0, 0.5]
     findiff = FiniteDiff.finite_difference_gradient(p -> test(vcat(1, p, p[end])), p)
     fordiff = ForwardDiff.gradient(p -> test(vcat(1, p, p[end])), p)
-    @test maximum(abs.(findiff .- fordiff)) < 1e-6
+    @test maximum(abs.(findiff .- fordiff)) < 1.0e-6
 
     # with delay length estimation and without discontinuity
     p = [1.0, 1.5, 1.0, 0.5]
@@ -45,10 +49,14 @@ end
 
 @testset "Jacobian" begin
     function test(p)
-        prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
-            constant_lags = (p[1],))
-        sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
-            saveat = 1.0)
+        prob = DDEProblem(
+            f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
+            constant_lags = (p[1],)
+        )
+        sol = solve(
+            prob, MethodOfSteps(Tsit5()); abstol = 1.0e-14, reltol = 1.0e-14,
+            saveat = 1.0
+        )
         sol.u
     end
 
@@ -56,7 +64,7 @@ end
     p = [1.5, 1.0, 0.5]
     findiff = FiniteDiff.finite_difference_jacobian(p -> test(vcat(1, p, p[end])), p)
     fordiff = ForwardDiff.jacobian(p -> test(vcat(1, p, p[end])), p)
-    @test maximum(abs.(findiff .- fordiff)) < 2e-6
+    @test maximum(abs.(findiff .- fordiff)) < 2.0e-6
 
     # with delay length estimation and without discontinuity
     p = [1.0, 1.5, 1.0, 0.5]
@@ -79,10 +87,14 @@ end
 
 @testset "Hessian" begin
     function test(p)
-        prob = DDEProblem(f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
-            constant_lags = (p[1],))
-        sol = solve(prob, MethodOfSteps(Tsit5()); abstol = 1e-14, reltol = 1e-14,
-            saveat = 1.0)
+        prob = DDEProblem(
+            f, p[5], h, eltype(p).((0.0, 10.0)), copy(p);
+            constant_lags = (p[1],)
+        )
+        sol = solve(
+            prob, MethodOfSteps(Tsit5()); abstol = 1.0e-14, reltol = 1.0e-14,
+            saveat = 1.0
+        )
         sum(sol)
     end
 
@@ -90,7 +102,7 @@ end
     p = [1.5, 1.0, 0.5]
     findiff = FiniteDiff.finite_difference_hessian(p -> test(vcat(1, p, p[end])), p)
     fordiff = ForwardDiff.hessian(p -> test(vcat(1, p, p[end])), p)
-    @test maximum(abs.(findiff .- fordiff)) < 1e-5
+    @test maximum(abs.(findiff .- fordiff)) < 1.0e-5
 
     # with delay length estimation and without discontinuity
     p = [1.0, 1.5, 1.0, 0.5]

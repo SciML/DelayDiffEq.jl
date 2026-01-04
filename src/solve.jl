@@ -1,9 +1,11 @@
-function SciMLBase.__solve(prob::SciMLBase.AbstractDDEProblem,
+function SciMLBase.__solve(
+        prob::SciMLBase.AbstractDDEProblem,
         alg::AbstractMethodOfStepsAlgorithm, args...;
-        kwargs...)
+        kwargs...
+    )
     integrator = SciMLBase.__init(prob, alg, args...; kwargs...)
     DiffEqBase.solve!(integrator)
-    integrator.sol
+    return integrator.sol
 end
 
 # Compile-time detection for OrdinaryDiffEqCore version compatibility
@@ -33,7 +35,8 @@ Old version has 20 parameters, new version has 21 parameters (adds typeof(verbos
 """
 const DEOPTIONS_HAS_VERBOSE_TYPEPARAM = _count_deoptions_typeparams() >= 21
 
-function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
+function SciMLBase.__init(
+        prob::SciMLBase.AbstractDDEProblem,
         alg::AbstractMethodOfStepsAlgorithm,
         timeseries_init = (),
         ts_init = (),
@@ -45,13 +48,13 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         save_everystep = isempty(saveat),
         save_on = true,
         save_start = save_everystep || isempty(saveat) ||
-                     saveat isa Number || prob.tspan[1] in saveat,
+            saveat isa Number || prob.tspan[1] in saveat,
         save_end = nothing,
         save_discretes = true,
         callback = nothing,
         dense = save_everystep && isempty(saveat),
         calck = (callback !== nothing && callback != CallbackSet()) || # Empty callback
-                dense, # and no dense output
+            dense, # and no dense output
         dt = zero(eltype(prob.tspan)),
         dtmin = DiffEqBase.prob2dtmin(prob; use_end_time = false),
         dtmax = eltype(prob.tspan)(prob.tspan[end] - prob.tspan[1]),
@@ -95,7 +98,8 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         discontinuity_abstol = eltype(prob.tspan)(1 // Int64(10)^12),
         discontinuity_reltol = 0,
         initializealg = DDEDefaultInit(),
-        kwargs...)
+        kwargs...
+    )
     if haskey(kwargs, :initial_order)
         @warn "initial_order has been deprecated. Please specify order_discontinuity_t0 in the DDEProblem instead."
         order_discontinuity_t0::Int = kwargs[:initial_order]
@@ -105,18 +109,24 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
 
     if alg.alg isa CompositeAlgorithm && alg.alg.choice_function isa AutoSwitch
         auto = alg.alg.choice_function
-        alg = MethodOfSteps(CompositeAlgorithm(alg.alg.algs,
-            OrdinaryDiffEqCore.AutoSwitchCache(0, 0,
-                auto.nonstiffalg,
-                auto.stiffalg,
-                auto.stiffalgfirst,
-                auto.maxstiffstep,
-                auto.maxnonstiffstep,
-                auto.nonstifftol,
-                auto.stifftol,
-                auto.dtfac,
-                auto.stiffalgfirst,
-                auto.switch_max)))
+        alg = MethodOfSteps(
+            CompositeAlgorithm(
+                alg.alg.algs,
+                OrdinaryDiffEqCore.AutoSwitchCache(
+                    0, 0,
+                    auto.nonstiffalg,
+                    auto.stiffalg,
+                    auto.stiffalgfirst,
+                    auto.maxstiffstep,
+                    auto.maxnonstiffstep,
+                    auto.nonstifftol,
+                    auto.stifftol,
+                    auto.dtfac,
+                    auto.stiffalgfirst,
+                    auto.switch_max
+                )
+            )
+        )
     end
 
     if haskey(kwargs, :minimal_solution)
@@ -127,10 +137,10 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         @warn("Dense output is incompatible with saveat. Please use the SavingCallback from the Callback Library to mix the two behaviors.")
     end
 
-    progress && @logmsg(-1, progress_name, _id=progress_id, progress=0)
+    progress && @logmsg(-1, progress_name, _id = progress_id, progress = 0)
 
     isdae = prob.f.mass_matrix !== I && !(prob.f.mass_matrix isa Tuple) &&
-            ArrayInterface.issingular(prob.f.mass_matrix)
+        ArrayInterface.issingular(prob.f.mass_matrix)
 
     # unpack problem
     (; f, u0, h, tspan, p, neutral, constant_lags, dependent_lags) = prob
@@ -159,74 +169,88 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
 
     # get states (possibly different from the ODE integrator!)
     u, uprev,
-    uprev2 = u_uprev_uprev2(u0, alg;
+        uprev2 = u_uprev_uprev2(
+        u0, alg;
         alias_u0 = alias_u0,
         adaptive = adaptive,
         allow_extrapolation = allow_extrapolation,
-        calck = calck)
+        calck = calck
+    )
     uEltypeNoUnits = recursive_unitless_eltype(u)
     uBottomEltypeNoUnits = recursive_unitless_bottom_eltype(u)
 
     # get the differential vs algebraic variables
     differential_vars = prob isa DAEProblem ? prob.differential_vars :
-                        OrdinaryDiffEqCore.get_differential_vars(f, u)
+        OrdinaryDiffEqCore.get_differential_vars(f, u)
 
     # create a history function
-    history = build_history_function(prob, alg, rate_prototype, reltol_internal,
+    history = build_history_function(
+        prob, alg, rate_prototype, reltol_internal,
         differential_vars;
         dt = dt, dtmin = dtmin, calck = false,
-        adaptive = adaptive, internalnorm = internalnorm)
+        adaptive = adaptive, internalnorm = internalnorm
+    )
     f_with_history = ODEFunctionWrapper(f, history)
 
     # initialize output arrays of the solution
     save_idxs,
-    saved_subsystem = SciMLBase.get_save_idxs_and_saved_subsystem(prob, save_idxs)
+        saved_subsystem = SciMLBase.get_save_idxs_and_saved_subsystem(prob, save_idxs)
 
     k = typeof(rate_prototype)[]
     ts, timeseries,
-    ks = solution_arrays(u, tspan, rate_prototype;
+        ks = solution_arrays(
+        u, tspan, rate_prototype;
         timeseries_init = timeseries_init,
         ts_init = ts_init,
         ks_init = ks_init,
         save_idxs = save_idxs,
-        save_start = save_start)
+        save_start = save_start
+    )
 
     # build cache
     ode_integrator = history.integrator
-    cache = OrdinaryDiffEqCore.alg_cache(alg.alg, u, rate_prototype, uEltypeNoUnits,
+    cache = OrdinaryDiffEqCore.alg_cache(
+        alg.alg, u, rate_prototype, uEltypeNoUnits,
         uBottomEltypeNoUnits, tTypeNoUnits, uprev, uprev2,
         f_with_history, t0, zero(tType), reltol_internal, p,
         calck,
-        Val(isinplace(prob)))
+        Val(isinplace(prob))
+    )
 
     # separate statistics of the integrator and the history
     stats = SciMLBase.DEStats(0)
 
     # create solution
     alg_choice = iscomposite(alg) ? Int[] : nothing
-    id = OrdinaryDiffEqCore.InterpolationData(f_with_history, timeseries, ts, ks,
-        alg_choice, dense, cache, differential_vars, false)
-    sol = SciMLBase.build_solution(prob, alg.alg, ts, timeseries;
+    id = OrdinaryDiffEqCore.InterpolationData(
+        f_with_history, timeseries, ts, ks,
+        alg_choice, dense, cache, differential_vars, false
+    )
+    sol = SciMLBase.build_solution(
+        prob, alg.alg, ts, timeseries;
         dense = dense, k = ks, interp = id, saved_subsystem = saved_subsystem,
         alg_choice = id.alg_choice, calculate_error = false,
-        stats = stats)
+        stats = stats
+    )
 
     # retrieve time stops, time points at which solutions is saved, and discontinuities
     tstops_internal = OrdinaryDiffEqCore.initialize_tstops(
         tType, tstops, d_discontinuities,
-        tspan)
+        tspan
+    )
     saveat_internal = OrdinaryDiffEqCore.initialize_saveat(tType, saveat, tspan)
     d_discontinuities_internal = OrdinaryDiffEqCore.initialize_d_discontinuities(
         Discontinuity{
             tType,
-            Int
+            Int,
         },
         d_discontinuities,
-        tspan)
+        tspan
+    )
 
     maximum_order = OrdinaryDiffEqCore.alg_maximum_order(alg)
     tstops_propagated,
-    d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
+        d_discontinuities_propagated = initialize_tstops_d_discontinuities_propagated(
         tType,
         tstops,
         d_discontinuities,
@@ -234,12 +258,15 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         order_discontinuity_t0,
         maximum_order,
         constant_lags,
-        neutral)
+        neutral
+    )
 
     # reserve capacity for the solution
-    _sizehint_solution!(sol, alg, tspan, tstops_internal, saveat_internal;
+    _sizehint_solution!(
+        sol, alg, tspan, tstops_internal, saveat_internal;
         save_everystep = save_everystep, adaptive = adaptive, dt = tType(dt),
-        dtmin = dtmin, internalnorm = internalnorm)
+        dtmin = dtmin, internalnorm = internalnorm
+    )
 
     # create array of tracked discontinuities
     # used to find propagated discontinuities with callbacks and to keep track of all
@@ -268,22 +295,25 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
     end
 
     if controller === nothing
-        controller = OrdinaryDiffEqCore.default_controller(alg.alg, cache,
+        controller = OrdinaryDiffEqCore.default_controller(
+            alg.alg, cache,
             convert(QT, qoldinit)::QT, beta1,
-            beta2)
+            beta2
+        )
     end
 
     save_end_user = save_end
     save_end = save_end === nothing ?
-               save_everystep || isempty(saveat) || saveat isa Number ||
-               prob.tspan[2] in saveat : save_end
+        save_everystep || isempty(saveat) || saveat isa Number ||
+        prob.tspan[2] in saveat : save_end
 
     # Construct DEOptions with compatibility for both old and new OrdinaryDiffEqCore
     # Old version (before PR #2895): DEOptions without typeof(verbose) type parameter
     # New version (with PR #2895): DEOptions with typeof(verbose) type parameter
     @static if DEOPTIONS_HAS_VERBOSE_TYPEPARAM
         # New version: include typeof(verbose) as a type parameter
-        opts = OrdinaryDiffEqCore.DEOptions{typeof(abstol_internal), typeof(reltol_internal),
+        opts = OrdinaryDiffEqCore.DEOptions{
+            typeof(abstol_internal), typeof(reltol_internal),
             QT, tType, typeof(controller),
             typeof(internalnorm), typeof(internalopnorm),
             typeof(save_end_user),
@@ -294,7 +324,9 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
             typeof(d_discontinuities_internal), typeof(userdata),
             typeof(save_idxs),
             typeof(maxiters), typeof(tstops),
-            typeof(saveat), typeof(d_discontinuities), typeof(verbose)}(maxiters,
+            typeof(saveat), typeof(d_discontinuities), typeof(verbose),
+        }(
+            maxiters,
             save_everystep,
             adaptive,
             abstol_internal,
@@ -339,10 +371,12 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
             calck,
             force_dtmin,
             advance_to_tstop,
-            stop_at_next_tstop)
+            stop_at_next_tstop
+        )
     else
         # Old version: without typeof(verbose) type parameter
-        opts = OrdinaryDiffEqCore.DEOptions{typeof(abstol_internal), typeof(reltol_internal),
+        opts = OrdinaryDiffEqCore.DEOptions{
+            typeof(abstol_internal), typeof(reltol_internal),
             QT, tType, typeof(controller),
             typeof(internalnorm), typeof(internalopnorm),
             typeof(save_end_user),
@@ -353,7 +387,9 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
             typeof(d_discontinuities_internal), typeof(userdata),
             typeof(save_idxs),
             typeof(maxiters), typeof(tstops),
-            typeof(saveat), typeof(d_discontinuities)}(maxiters,
+            typeof(saveat), typeof(d_discontinuities),
+        }(
+            maxiters,
             save_everystep,
             adaptive,
             abstol_internal,
@@ -398,12 +434,15 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
             calck,
             force_dtmin,
             advance_to_tstop,
-            stop_at_next_tstop)
+            stop_at_next_tstop
+        )
     end
 
     # create fixed point solver
-    fpsolver = build_fpsolver(alg, alg.fpsolve, u, uEltypeNoUnits, uBottomEltypeNoUnits,
-        Val(isinplace(prob)))
+    fpsolver = build_fpsolver(
+        alg, alg.fpsolve, u, uEltypeNoUnits, uBottomEltypeNoUnits,
+        Val(isinplace(prob))
+    )
 
     # initialize indices of u(t) and u(tprev) in the dense history
     prev_idx = 1
@@ -439,7 +478,8 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
     dtacc = tType(1)
 
     fsalfirst, fsallast = OrdinaryDiffEqCore.get_fsalfirstlast(cache, rate_prototype)
-    integrator = DDEIntegrator{typeof(alg.alg), isinplace(prob), typeof(u0), tType,
+    integrator = DDEIntegrator{
+        typeof(alg.alg), isinplace(prob), typeof(u0), tType,
         typeof(p),
         typeof(eigen_est), QT, typeof(tdir), typeof(k), typeof(sol),
         typeof(f_with_history), typeof(cache),
@@ -450,7 +490,9 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         typeof(d_discontinuities_propagated),
         typeof(fsalfirst),
         typeof(last_event_error), typeof(callback_cache),
-        typeof(differential_vars), typeof(initializealg)}(sol, u, k,
+        typeof(differential_vars), typeof(initializealg),
+    }(
+        sol, u, k,
         t0,
         tType(dt),
         f_with_history,
@@ -502,7 +544,8 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
         stats,
         history,
         differential_vars,
-        ode_integrator, fsalfirst, fsallast, initializealg)
+        ode_integrator, fsalfirst, fsallast, initializealg
+    )
 
     # initialize DDE integrator
     if initialize_integrator
@@ -518,7 +561,7 @@ function SciMLBase.__init(prob::SciMLBase.AbstractDDEProblem,
     # take care of time step dt = 0 and dt with incorrect sign
     OrdinaryDiffEqCore.handle_dt!(integrator)
 
-    integrator
+    return integrator
 end
 
 function DiffEqBase.solve!(integrator::DDEIntegrator)
@@ -554,17 +597,21 @@ function DiffEqBase.solve!(integrator::DDEIntegrator)
     f = sol.prob.f
 
     if SciMLBase.has_analytic(f)
-        SciMLBase.calculate_solution_errors!(sol;
+        SciMLBase.calculate_solution_errors!(
+            sol;
             timeseries_errors = opts.timeseries_errors,
-            dense_errors = opts.dense_errors)
+            dense_errors = opts.dense_errors
+        )
     end
     sol.retcode == ReturnCode.Default || return sol
 
-    integrator.sol = SciMLBase.solution_new_retcode(sol, ReturnCode.Success)
+    return integrator.sol = SciMLBase.solution_new_retcode(sol, ReturnCode.Success)
 end
 
-function OrdinaryDiffEqCore.initialize_callbacks!(integrator::DDEIntegrator,
-        initialize_save = true)
+function OrdinaryDiffEqCore.initialize_callbacks!(
+        integrator::DDEIntegrator,
+        initialize_save = true
+    )
     callbacks = integrator.opts.callback
     prob = integrator.sol.prob
 
@@ -600,28 +647,32 @@ function OrdinaryDiffEqCore.initialize_callbacks!(integrator::DDEIntegrator,
         reeval_internals_due_to_modification!(integrator, Val{false})
 
         if initialize_save &&
-           (any((c) -> c.save_positions[2], callbacks.discrete_callbacks) ||
-            any((c) -> c.save_positions[2], callbacks.continuous_callbacks))
+                (
+                any((c) -> c.save_positions[2], callbacks.discrete_callbacks) ||
+                    any((c) -> c.save_positions[2], callbacks.continuous_callbacks)
+            )
             savevalues!(integrator, true)
         end
     end
 
     # reset this as it is now handled so the integrators should proceed as normal
-    integrator.u_modified = false
+    return integrator.u_modified = false
 end
 
-function initialize_tstops_d_discontinuities_propagated(::Type{T}, tstops,
+function initialize_tstops_d_discontinuities_propagated(
+        ::Type{T}, tstops,
         d_discontinuities, tspan,
         order_discontinuity_t0,
         alg_maximum_order,
-        constant_lags, neutral) where {T}
+        constant_lags, neutral
+    ) where {T}
     # create heaps for propagated discontinuities and corresponding time stops
     tstops_propagated = BinaryMinHeap{T}()
     d_discontinuities_propagated = BinaryMinHeap{Discontinuity{T, Int}}()
 
     # add discontinuities and time stops propagated from initial discontinuity
     if constant_lags !== nothing && !isempty(constant_lags) &&
-       order_discontinuity_t0 ≤ alg_maximum_order
+            order_discontinuity_t0 ≤ alg_maximum_order
         sizehint!(tstops_propagated, length(constant_lags))
         sizehint!(d_discontinuities_propagated, length(constant_lags))
 
@@ -646,12 +697,14 @@ end
 struct DDEDefaultInit <: SciMLBase.DAEInitializationAlgorithm end
 
 function SciMLBase.initialize_dae!(integrator::DDEIntegrator, initializealg = integrator.initializealg)
-    OrdinaryDiffEqCore._initialize_dae!(integrator, integrator.sol.prob, initializealg,
-        Val(DiffEqBase.isinplace(integrator.sol.prob)))
+    return OrdinaryDiffEqCore._initialize_dae!(
+        integrator, integrator.sol.prob, initializealg,
+        Val(DiffEqBase.isinplace(integrator.sol.prob))
+    )
 end
 
 function OrdinaryDiffEqCore._initialize_dae!(integrator::DDEIntegrator, prob, ::DDEDefaultInit, isinplace)
-    if SciMLBase.has_initializeprob(prob.f)
+    return if SciMLBase.has_initializeprob(prob.f)
         OrdinaryDiffEqCore._initialize_dae!(integrator, prob, SciMLBase.OverrideInit(), isinplace)
     else
         OrdinaryDiffEqCore._initialize_dae!(integrator, prob, SciMLBase.CheckInit(), isinplace)
