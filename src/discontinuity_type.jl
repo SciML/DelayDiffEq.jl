@@ -12,10 +12,10 @@ end
 # ordering of discontinuities
 Base.:<(a::Discontinuity, b::Discontinuity) = a.t < b.t || (a.t == b.t && a.order < b.order)
 function Base.isless(a::Discontinuity, b::Discontinuity)
-    isless(a.t, b.t) || (isequal(a.t, b.t) && isless(a.order, b.order))
+    return isless(a.t, b.t) || (isequal(a.t, b.t) && isless(a.order, b.order))
 end
 function Base.isequal(a::Discontinuity, b::Discontinuity)
-    isequal(a.t, b.t) && isequal(a.order, b.order)
+    return isequal(a.t, b.t) && isequal(a.order, b.order)
 end
 Base.:(==)(a::Discontinuity, b::Discontinuity) = a.t == b.t && a.order == b.order
 
@@ -38,10 +38,17 @@ Base.convert(::Type{T}, d::Discontinuity) where {T <: Number} = convert(T, d.t)
 Base.convert(::Type{T}, d::Discontinuity{T}) where {T <: Number} = d.t
 
 # Fix ForwardDiff ambiguities
-function Base.convert(::Type{ForwardDiff.Dual{T, V, N}},
-        ::Discontinuity{ForwardDiff.Dual{T, V, N}}) where {N, V, T}
-    throw(MethodError(convert, (
-        ForwardDiff.Dual{T, V, N}, Discontinuity{ForwardDiff.Dual{T, V, N}})))
+function Base.convert(
+        ::Type{ForwardDiff.Dual{T, V, N}},
+        ::Discontinuity{ForwardDiff.Dual{T, V, N}}
+    ) where {N, V, T}
+    throw(
+        MethodError(
+            convert, (
+                ForwardDiff.Dual{T, V, N}, Discontinuity{ForwardDiff.Dual{T, V, N}},
+            )
+        )
+    )
 end
 function Base.convert(::Type{ForwardDiff.Dual{T, V, N}}, ::Discontinuity) where {N, V, T}
     throw(MethodError(convert, (ForwardDiff.Dual{T, V, N}, Discontinuity)))

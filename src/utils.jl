@@ -18,7 +18,7 @@ has_dependent_lags(integrator::DDEIntegrator) = has_dependent_lags(integrator.so
 Return if the DDE problem `prob` contains constant delays.
 """
 function has_constant_lags(prob::DDEProblem)
-    prob.constant_lags !== nothing && !isempty(prob.constant_lags)
+    return prob.constant_lags !== nothing && !isempty(prob.constant_lags)
 end
 
 """
@@ -27,7 +27,7 @@ end
 Return if the DDE problem `prob` contains dependent delays.
 """
 function has_dependent_lags(prob::DDEProblem)
-    prob.dependent_lags !== nothing && !isempty(prob.dependent_lags)
+    return prob.dependent_lags !== nothing && !isempty(prob.dependent_lags)
 end
 
 """
@@ -36,10 +36,12 @@ end
 Return state vectors `u` and `uprev` (possibly aliased) for solving the
 differential equation problem for initial state `u0` with algorithm `alg`.
 """
-function u_uprev(u0, alg;
+function u_uprev(
+        u0, alg;
         alias_u0 = false,
         adaptive = isadaptive(alg),
-        calck = false)
+        calck = false
+    )
     if alias_u0
         u = u0
     else
@@ -54,7 +56,7 @@ function u_uprev(u0, alg;
         uprev = u
     end
 
-    u, uprev
+    return u, uprev
 end
 
 """
@@ -63,9 +65,11 @@ end
 Return state vectors `u`, `uprev`, and `uprev2` (possibly aliased) for solving the
 differential equation problem for initial state `u0` with algorithm `alg`.
 """
-function u_uprev_uprev2(u0, alg;
+function u_uprev_uprev2(
+        u0, alg;
         allow_extrapolation = alg_extrapolates(alg),
-        kwargs...)
+        kwargs...
+    )
     # compute u and uprev first
     u, uprev = u_uprev(u0, alg; kwargs...)
 
@@ -75,7 +79,7 @@ function u_uprev_uprev2(u0, alg;
         uprev2 = uprev
     end
 
-    u, uprev, uprev2
+    return u, uprev, uprev2
 end
 
 """
@@ -100,7 +104,7 @@ function get_abstol(u, tspan, alg; abstol = nothing)
         _abstol = real.(abstol)
     end
 
-    _abstol
+    return _abstol
 end
 
 """
@@ -125,7 +129,7 @@ function get_reltol(u, tspan, alg; reltol = nothing)
         _reltol = real.(reltol)
     end
 
-    _reltol
+    return _reltol
 end
 
 """
@@ -140,13 +144,15 @@ function callback_set_and_cache(prob, callback)
     max_len_cb = DiffEqBase.max_vector_callback_length(callback_set)
     if max_len_cb isa VectorContinuousCallback
         uBottomEltype = recursive_bottom_eltype(prob.u0)
-        callback_cache = DiffEqBase.CallbackCache(max_len_cb.len, uBottomEltype,
-            uBottomEltype)
+        callback_cache = DiffEqBase.CallbackCache(
+            max_len_cb.len, uBottomEltype,
+            uBottomEltype
+        )
     else
         callback_cache = nothing
     end
 
-    callback_set, callback_cache
+    return callback_set, callback_cache
 end
 
 """
@@ -163,12 +169,14 @@ rate_prototype_of(u0, tspan) = @.. u0 * $(inv(oneunit(eltype(tspan))))
 Return arrays of saved time points, states, and rates, initialized with the solution at the
 first time point if `save_start = true` (the default).
 """
-function solution_arrays(u, tspan, rate_prototype;
+function solution_arrays(
+        u, tspan, rate_prototype;
         timeseries_init,
         ts_init,
         ks_init,
         save_idxs,
-        save_start)
+        save_start
+    )
     # determine types of time and state
     uType = typeof(u)
     tType = eltype(tspan)
@@ -179,11 +187,11 @@ function solution_arrays(u, tspan, rate_prototype;
     # initialize vector of saved states
     if save_idxs === nothing
         timeseries = timeseries_init === () ? uType[] :
-                     convert(Vector{uType}, timeseries_init)
+            convert(Vector{uType}, timeseries_init)
     else
         u_initial = u[save_idxs]
         timeseries = timeseries_init === () ? typeof(u_initial)[] :
-                     convert(Vector{typeof(u_initial)}, timeseries_init)
+            convert(Vector{typeof(u_initial)}, timeseries_init)
     end
 
     # initialize vector of saved rates
@@ -208,7 +216,7 @@ function solution_arrays(u, tspan, rate_prototype;
         end
     end
 
-    ts, timeseries, ks
+    return ts, timeseries, ks
 end
 
 """
@@ -221,7 +229,7 @@ function _sizehint_solution!(sol::DESolution, n)
     sizehint!(sol.t, n)
     sizehint!(sol.k, n)
 
-    nothing
+    return nothing
 end
 
 """
@@ -230,8 +238,10 @@ end
 Suggest that solution `sol` reserves capacity for a number of elements that
 depends on the parameter settings of the numerical solver.
 """
-function _sizehint_solution!(sol::DESolution, alg, tspan, tstops, saveat;
-        save_everystep, adaptive, internalnorm, dt, dtmin)
+function _sizehint_solution!(
+        sol::DESolution, alg, tspan, tstops, saveat;
+        save_everystep, adaptive, internalnorm, dt, dtmin
+    )
     # obtain integration time
     t0 = first(tspan)
     integrationtime = last(tspan) - t0
@@ -253,11 +263,13 @@ function _sizehint_solution!(sol::DESolution, alg, tspan, tstops, saveat;
         _sizehint_solution!(sol, 2)
     end
 
-    nothing
+    return nothing
 end
 
-function build_history_function(prob, alg, rate_prototype, reltol, differential_vars;
-        dt, dtmin, adaptive, calck, internalnorm)
+function build_history_function(
+        prob, alg, rate_prototype, reltol, differential_vars;
+        dt, dtmin, adaptive, calck, internalnorm
+    )
     (; f, u0, tspan, p) = prob
 
     t0 = first(tspan)
@@ -285,12 +297,14 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
     # initialize output arrays
     ode_k = typeof(rate_prototype)[]
     ode_ts, ode_timeseries,
-    ode_ks = solution_arrays(ode_u, tspan, rate_prototype;
+        ode_ks = solution_arrays(
+        ode_u, tspan, rate_prototype;
         timeseries_init = (),
         ts_init = (),
         ks_init = (),
         save_idxs = nothing,
-        save_start = true)
+        save_start = true
+    )
 
     # obtain cache (we alias uprev2 and uprev)
     ode_cache = OrdinaryDiffEqCore.alg_cache(
@@ -298,24 +312,31 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
         uBottomEltypeNoUnits, tTypeNoUnits, ode_uprev,
         ode_uprev, ode_f, t0, zero(tType), reltol, p,
         calck,
-        Val(isinplace(prob)))
+        Val(isinplace(prob))
+    )
 
     # build dense interpolation of history
     ode_alg_choice = iscomposite(alg) ? Int[] : nothing
-    ode_id = OrdinaryDiffEqCore.InterpolationData(ode_f, ode_timeseries, ode_ts,
+    ode_id = OrdinaryDiffEqCore.InterpolationData(
+        ode_f, ode_timeseries, ode_ts,
         ode_ks,
         ode_alg_choice, true, ode_cache,
-        differential_vars, false)
-    ode_sol = SciMLBase.build_solution(ode_prob, alg.alg, ode_ts, ode_timeseries;
+        differential_vars, false
+    )
+    ode_sol = SciMLBase.build_solution(
+        ode_prob, alg.alg, ode_ts, ode_timeseries;
         dense = true, k = ode_ks, interp = ode_id,
         alg_choice = ode_alg_choice,
         calculate_error = false,
-        stats = DiffEqBase.Stats(0))
+        stats = DiffEqBase.Stats(0)
+    )
 
     # reserve capacity
-    _sizehint_solution!(ode_sol, alg.alg, tspan, (), ();
+    _sizehint_solution!(
+        ode_sol, alg.alg, tspan, (), ();
         save_everystep = true, adaptive = adaptive, internalnorm = internalnorm,
-        dt = dt, dtmin = dtmin)
+        dt = dt, dtmin = dtmin
+    )
 
     # create simple integrator
     tdirType = typeof(sign(zero(tType)))
@@ -323,7 +344,9 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
         typeof(alg.alg), isinplace(prob), typeof(prob.u0),
         tType, tdirType, typeof(ode_k),
         typeof(ode_sol), typeof(ode_cache),
-        typeof(differential_vars)}(ode_sol,
+        typeof(differential_vars),
+    }(
+        ode_sol,
         ode_u, ode_k,
         t0,
         zero(tType),
@@ -332,14 +355,15 @@ function build_history_function(prob, alg, rate_prototype, reltol, differential_
         zero(tType),
         tdir, 1, 1,
         ode_cache,
-        differential_vars)
+        differential_vars
+    )
 
     # combine the user-provided history function and the ODE integrator with dense solution
     # to a joint dense history of the DDE
     # we use this history information to create a problem function of the DDE with all
     # available history information that is of the form f(du,u,p,t) or f(u,p,t) such that
     # ODE algorithms can be applied
-    HistoryFunction(prob.h, ode_integrator)
+    return HistoryFunction(prob.h, ode_integrator)
 end
 
 """
@@ -355,7 +379,7 @@ function initialize_solution!(integrator::DDEIntegrator)
         end
     end
 
-    nothing
+    return nothing
 end
 
 function unwrap_alg(integrator::DDEIntegrator, is_stiff)
@@ -372,5 +396,5 @@ function unwrap_alg(integrator::DDEIntegrator, is_stiff)
 end
 
 function OrdinaryDiffEqCore.nlsolve_f(integrator::DDEIntegrator)
-    OrdinaryDiffEqCore.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
+    return OrdinaryDiffEqCore.nlsolve_f(integrator.f, unwrap_alg(integrator, true))
 end

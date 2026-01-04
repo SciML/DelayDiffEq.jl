@@ -23,13 +23,16 @@ using Test
     end
 
     prob_ddae = DDEProblem(
-        DDEFunction{true}(sir_ddae!;
-            mass_matrix = Diagonal([1.0, 1.0, 0.0])),
+        DDEFunction{true}(
+            sir_ddae!;
+            mass_matrix = Diagonal([1.0, 1.0, 0.0])
+        ),
         u0_good,
         sir_history,
         tspan,
         p;
-        constant_lags = (p.τ,))
+        constant_lags = (p.τ,)
+    )
     alg = MethodOfSteps(Rosenbrock23())
     @test_nowarn init(prob_ddae, alg)
     prob_ddae.u0[1] = 2.0

@@ -8,7 +8,7 @@ values and interpolation data with the current values and a full set of interpol
 function advance_or_update_ode_integrator!(integrator, always_calc_begin = false)
     ode_integrator = integrator.integrator
 
-    if ode_integrator.t != integrator.t + integrator.dt
+    return if ode_integrator.t != integrator.t + integrator.dt
         advance_ode_integrator!(integrator, always_calc_begin)
     else
         update_ode_integrator!(integrator, always_calc_begin)
@@ -61,11 +61,13 @@ function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = 
     if iscomposite(alg)
         OrdinaryDiffEqCore._ode_addsteps!(
             k, t, uprev, u, dt, f, p, get_current_cache(cache, cache.current),
-            always_calc_begin, true, true)
+            always_calc_begin, true, true
+        )
     else
         OrdinaryDiffEqCore._ode_addsteps!(
             k, t, uprev, u, dt, f, p, cache, always_calc_begin,
-            true, true)
+            true, true
+        )
     end
     @inbounds for i in 1:length(k)
         copyat_or_push!(ode_integrator.k, i, k[i])
@@ -90,7 +92,7 @@ function advance_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = 
     # update prev_idx to index of t and u(t) in solution
     integrator.prev_idx = length(ode_integrator.sol.t)
 
-    nothing
+    return nothing
 end
 
 """
@@ -110,10 +112,13 @@ function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = f
     if iscomposite(alg)
         OrdinaryDiffEqCore._ode_addsteps!(
             k, t, uprev, u, dt, f, p, get_current_cache(cache, cache.current),
-            always_calc_begin, true, true)
+            always_calc_begin, true, true
+        )
     else
-        OrdinaryDiffEqCore._ode_addsteps!(k, t, uprev, u, dt, f, p, cache,
-            always_calc_begin, true, true)
+        OrdinaryDiffEqCore._ode_addsteps!(
+            k, t, uprev, u, dt, f, p, cache,
+            always_calc_begin, true, true
+        )
     end
     @inbounds for i in 1:length(k)
         copyat_or_push!(ode_integrator.k, i, k[i])
@@ -126,7 +131,7 @@ function update_ode_integrator!(integrator::DDEIntegrator, always_calc_begin = f
         ode_integrator.u = integrator.u
     end
 
-    nothing
+    return nothing
 end
 
 """
@@ -161,7 +166,7 @@ function move_back_ode_integrator!(integrator::DDEIntegrator)
         recursivecopy!(ode_integrator.k, sol.k[end])
     end
 
-    nothing
+    return nothing
 end
 
 #=
@@ -190,7 +195,7 @@ function OrdinaryDiffEqCore.handle_discontinuities!(integrator::DDEIntegrator)
     order = d.order
     tdir_t = integrator.tdir * integrator.t
     while OrdinaryDiffEqCore.has_discontinuity(integrator) &&
-        OrdinaryDiffEqCore.first_discontinuity(integrator) == tdir_t
+            OrdinaryDiffEqCore.first_discontinuity(integrator) == tdir_t
         d2 = OrdinaryDiffEqCore.pop_discontinuity!(integrator)
         order = min(order, d2.order)
     end
@@ -202,14 +207,14 @@ function OrdinaryDiffEqCore.handle_discontinuities!(integrator::DDEIntegrator)
         maxΔt = 10eps(integrator.t)
 
         while OrdinaryDiffEqCore.has_discontinuity(integrator) &&
-            abs(OrdinaryDiffEqCore.first_discontinuity(integrator).t - tdir_t) < maxΔt
+                abs(OrdinaryDiffEqCore.first_discontinuity(integrator).t - tdir_t) < maxΔt
             d2 = OrdinaryDiffEqCore.pop_discontinuity!(integrator)
             order = min(order, d2.order)
         end
 
         # also remove all corresponding time stops
         while OrdinaryDiffEqCore.has_tstop(integrator) &&
-            abs(OrdinaryDiffEqCore.first_tstop(integrator) - tdir_t) < maxΔt
+                abs(OrdinaryDiffEqCore.first_tstop(integrator) - tdir_t) < maxΔt
             OrdinaryDiffEqCore.pop_tstop!(integrator)
         end
     end
@@ -217,7 +222,7 @@ function OrdinaryDiffEqCore.handle_discontinuities!(integrator::DDEIntegrator)
     # add discontinuities of next order to integrator
     add_next_discontinuities!(integrator, order)
 
-    nothing
+    return nothing
 end
 
 """
@@ -256,7 +261,7 @@ function add_next_discontinuities!(integrator, order, t = integrator.t)
     # track propagated discontinuities with callback
     push!(integrator.tracked_discontinuities, Discontinuity(integrator.tdir * t, order))
 
-    nothing
+    return nothing
 end
 
 # Interface for accessing and removing next time stops and discontinuities
@@ -271,16 +276,22 @@ function OrdinaryDiffEqCore.pop_tstop!(integrator::DDEIntegrator)
 end
 
 function OrdinaryDiffEqCore.has_discontinuity(integrator::DDEIntegrator)
-    return _has(integrator.opts.d_discontinuities,
-        integrator.d_discontinuities_propagated)
+    return _has(
+        integrator.opts.d_discontinuities,
+        integrator.d_discontinuities_propagated
+    )
 end
 function OrdinaryDiffEqCore.first_discontinuity(integrator::DDEIntegrator)
-    return _first(integrator.opts.d_discontinuities,
-        integrator.d_discontinuities_propagated)
+    return _first(
+        integrator.opts.d_discontinuities,
+        integrator.d_discontinuities_propagated
+    )
 end
 function OrdinaryDiffEqCore.pop_discontinuity!(integrator::DDEIntegrator)
-    return _pop!(integrator.opts.d_discontinuities,
-        integrator.d_discontinuities_propagated)
+    return _pop!(
+        integrator.opts.d_discontinuities,
+        integrator.d_discontinuities_propagated
+    )
 end
 
 _has(x, y) = !isempty(x) || !isempty(y)
@@ -294,7 +305,7 @@ function _first(x, y)
     end
 end
 function _pop!(x, y)
-    if isempty(x)
+    return if isempty(x)
         pop!(y)
     elseif isempty(y)
         pop!(x)

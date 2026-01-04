@@ -2,7 +2,7 @@ using DelayDiffEq, OrdinaryDiffEqDefault, OrdinaryDiffEqCore, Test
 
 # Simple DDE problem for testing
 function f!(du, u, h, p, t)
-    du[1] = -h(p, t - 0.2)[1]
+    return du[1] = -h(p, t - 0.2)[1]
 end
 
 h(p, t) = [0.0]

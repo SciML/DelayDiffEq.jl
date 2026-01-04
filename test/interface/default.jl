@@ -5,7 +5,7 @@ function delay_lotka_volterra(du, u, h, p, t)
     # Current state.
     x, y = u
     # Evaluate differential equations
-    du[1] = α * h(p, t - 1; idxs=1) - β * x * y
+    du[1] = α * h(p, t - 1; idxs = 1) - β * x * y
     du[2] = -γ * y + δ * x * y
     return nothing
 end

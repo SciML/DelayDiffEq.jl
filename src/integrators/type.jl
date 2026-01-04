@@ -1,7 +1,8 @@
 mutable struct HistoryODEIntegrator{
-    algType, IIP, uType, tType, tdirType, ksEltype, SolType,
-    CacheType, DV} <:
-               AbstractODEIntegrator{algType, IIP, uType, tType}
+        algType, IIP, uType, tType, tdirType, ksEltype, SolType,
+        CacheType, DV,
+    } <:
+    AbstractODEIntegrator{algType, IIP, uType, tType}
     sol::SolType
     u::uType
     k::ksEltype
@@ -19,22 +20,26 @@ mutable struct HistoryODEIntegrator{
 end
 
 function (integrator::HistoryODEIntegrator)(t, deriv::Type = Val{0}; idxs = nothing)
-    OrdinaryDiffEqCore.current_interpolant(t, integrator, idxs, deriv)
+    return OrdinaryDiffEqCore.current_interpolant(t, integrator, idxs, deriv)
 end
 
-function (integrator::HistoryODEIntegrator)(val::AbstractArray,
+function (integrator::HistoryODEIntegrator)(
+        val::AbstractArray,
         t::Union{Number, AbstractArray},
-        deriv::Type = Val{0}; idxs = nothing)
-    OrdinaryDiffEqCore.current_interpolant!(val, t, integrator, idxs, deriv)
+        deriv::Type = Val{0}; idxs = nothing
+    )
+    return OrdinaryDiffEqCore.current_interpolant!(val, t, integrator, idxs, deriv)
 end
 
-mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUnits,
-    tdirType,
-    ksEltype, SolType, F, CacheType, IType, FP, O, dAbsType,
-    dRelType, H,
-    tstopsType, discType, FSALType, EventErrorType,
-    CallbackCacheType, DV, IA} <:
-               AbstractDDEIntegrator{algType, IIP, uType, tType}
+mutable struct DDEIntegrator{
+        algType, IIP, uType, tType, P, eigenType, tTypeNoUnits,
+        tdirType,
+        ksEltype, SolType, F, CacheType, IType, FP, O, dAbsType,
+        dRelType, H,
+        tstopsType, discType, FSALType, EventErrorType,
+        CallbackCacheType, DV, IA,
+    } <:
+    AbstractDDEIntegrator{algType, IIP, uType, tType}
     sol::SolType
     u::uType
     k::ksEltype
@@ -99,12 +104,14 @@ mutable struct DDEIntegrator{algType, IIP, uType, tType, P, eigenType, tTypeNoUn
 end
 
 function (integrator::DDEIntegrator)(t, deriv::Type = Val{0}; idxs = nothing)
-    OrdinaryDiffEqCore.current_interpolant(t, integrator, idxs, deriv)
+    return OrdinaryDiffEqCore.current_interpolant(t, integrator, idxs, deriv)
 end
 
-function (integrator::DDEIntegrator)(val::AbstractArray, t::Union{Number, AbstractArray},
-        deriv::Type = Val{0}; idxs = nothing)
-    OrdinaryDiffEqCore.current_interpolant!(val, t, integrator, idxs, deriv)
+function (integrator::DDEIntegrator)(
+        val::AbstractArray, t::Union{Number, AbstractArray},
+        deriv::Type = Val{0}; idxs = nothing
+    )
+    return OrdinaryDiffEqCore.current_interpolant!(val, t, integrator, idxs, deriv)
 end
 
 function SII.get_history_function(integrator::DDEIntegrator)

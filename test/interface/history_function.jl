@@ -22,14 +22,18 @@ end
     end
 
     # ODE integrator
-    prob = ODEProblem((du, u, p, t) -> @.(du=p * u), ones(2), (0.0, 1.0), 1.01)
+    prob = ODEProblem((du, u, p, t) -> @.(du = p * u), ones(2), (0.0, 1.0), 1.01)
     integrator = init(prob, Tsit5())
 
     # combined history function
-    history_notinplace = DelayDiffEq.HistoryFunction(h_notinplace,
-        integrator)
-    history_inplace = DelayDiffEq.HistoryFunction(h_inplace,
-        integrator)
+    history_notinplace = DelayDiffEq.HistoryFunction(
+        h_notinplace,
+        integrator
+    )
+    history_inplace = DelayDiffEq.HistoryFunction(
+        h_inplace,
+        integrator
+    )
 
     # test evaluation of history function
     @testset "evaluation" for idxs in (nothing, [2])
@@ -53,8 +57,8 @@ end
     @testset "constant extrapolation" for deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
         # expected value
         trueval = deriv == Val{0} ?
-                  (idxs === nothing ? integrator.u : integrator.u[[2]]) :
-                  (idxs === nothing ? zeros(2) : [0.0])
+            (idxs === nothing ? integrator.u : integrator.u[[2]]) :
+            (idxs === nothing ? zeros(2) : [0.0])
 
         # out-of-place
         history_notinplace.isout = false
@@ -84,7 +88,7 @@ end
 
     # test integrator interpolation
     @testset "integrator interpolation" for deriv in (Val{0}, Val{1}),
-        idxs in (nothing, [2])
+            idxs in (nothing, [2])
         # expected value
         trueval = OrdinaryDiffEqCore.current_interpolant(0.01, integrator, idxs, deriv)
 

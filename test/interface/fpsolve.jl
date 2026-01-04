@@ -6,8 +6,12 @@ const prob = prob_dde_constant_2delays_long_ip
 const prob_oop = prob_dde_constant_2delays_long_oop
 const prob_scalar = prob_dde_constant_2delays_long_scalar
 
-const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
-    abstol = 1 / 10^14, reltol = 1 / 10^14))
+const testsol = TestSolution(
+    solve(
+        prob, MethodOfSteps(Vern9());
+        abstol = 1 / 10^14, reltol = 1 / 10^14
+    )
+)
 
 @testset "NLFunctional" begin
     alg = MethodOfSteps(Tsit5(); fpsolve = NLFunctional(; max_iter = 10))
@@ -35,9 +39,9 @@ const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
     @test sol_oop.stats.nsolve == sol.stats.nsolve
     @test sol_oop.stats.nfpiter == sol.stats.nfpiter
     @test sol_oop.stats.nfpconvfail == sol.stats.nfpconvfail
-    @test sol_oop.t≈sol.t atol=1e-3
+    @test sol_oop.t ≈ sol.t atol = 1.0e-3
     @test sol_oop.u ≈ sol.u
-    @test isapprox(sol.u, sol_oop.u; atol = 1e-7)
+    @test isapprox(sol.u, sol_oop.u; atol = 1.0e-7)
 
     ## scalar problem
 
@@ -48,7 +52,7 @@ const testsol = TestSolution(solve(prob, MethodOfSteps(Vern9());
     @test sol_scalar.stats.nsolve == sol.stats.nsolve
     @test sol_scalar.stats.nfpiter == sol.stats.nfpiter
     @test sol_scalar.stats.nfpconvfail == sol.stats.nfpconvfail
-    @test sol_scalar.t≈sol.t atol=1e-3
+    @test sol_scalar.t ≈ sol.t atol = 1.0e-3
     @test sol_scalar.u ≈ sol[1, :]
 end
 
@@ -80,7 +84,7 @@ end
     @test_broken sol_oop.stats.nfpconvfail == sol.stats.nfpconvfail
     @test_broken sol_oop.t ≈ sol.t
     @test_broken sol_oop.u ≈ sol.u
-    @test appxtrue(sol, sol_oop).errors[:L∞] < 3e-6
+    @test appxtrue(sol, sol_oop).errors[:L∞] < 3.0e-6
 
     ## scalar problem
 

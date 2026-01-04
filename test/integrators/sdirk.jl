@@ -7,19 +7,23 @@ const ts = 0:0.1:10
 
 # ODE algorithms
 noreuse = NLNewton(fast_convergence_cutoff = 0)
-const working_algs = [ImplicitMidpoint(), SSPSDIRK2(), KenCarp5(nlsolve = noreuse),
+const working_algs = [
+    ImplicitMidpoint(), SSPSDIRK2(), KenCarp5(nlsolve = noreuse),
     ImplicitEuler(nlsolve = noreuse), Trapezoid(nlsolve = noreuse),
     TRBDF2(nlsolve = noreuse), SDIRK2(nlsolve = noreuse),
     Kvaerno3(nlsolve = noreuse), KenCarp3(nlsolve = noreuse),
     Cash4(nlsolve = noreuse), Hairer4(nlsolve = noreuse),
     Hairer42(nlsolve = noreuse), Kvaerno4(nlsolve = noreuse), KenCarp4(nlsolve = noreuse),
-    Kvaerno5(nlsolve = noreuse)]
+    Kvaerno5(nlsolve = noreuse),
+]
 
-const broken_algs = [ImplicitEuler(), Trapezoid(),
+const broken_algs = [
+    ImplicitEuler(), Trapezoid(),
     TRBDF2(), SDIRK2(),
     Kvaerno3(), KenCarp3(),
     Cash4(), Hairer4(), Hairer42(), Kvaerno4(), KenCarp4(),
-    Kvaerno5()]
+    Kvaerno5(),
+]
 
 @testset "Algorithm $(nameof(typeof(alg)))" for alg in working_algs
     println(nameof(typeof(alg)))
