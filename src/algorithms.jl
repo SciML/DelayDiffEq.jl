@@ -32,5 +32,5 @@ sixth-order Runge-Kutta methods for the solution of state-dependent functional d
 equations", Applied Numerical Mathematics, 1997.
 """
 function MethodOfSteps(alg; constrained = false, fpsolve = NLFunctional())
-    MethodOfSteps{typeof(alg), typeof(fpsolve), constrained}(alg, fpsolve)
+    return MethodOfSteps{typeof(alg), typeof(fpsolve), constrained}(alg, fpsolve)
 end

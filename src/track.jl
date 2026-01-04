@@ -12,7 +12,7 @@ function track_propagated_discontinuities!(integrator::DDEIntegrator)
 
     # for dependent lags and previous discontinuities
     for lag in integrator.sol.prob.dependent_lags,
-        discontinuity in integrator.tracked_discontinuities
+            discontinuity in integrator.tracked_discontinuities
         # obtain time of previous discontinuity
         T = discontinuity.t
 
@@ -39,7 +39,7 @@ function track_propagated_discontinuities!(integrator::DDEIntegrator)
         end
     end
 
-    nothing
+    return nothing
 end
 
 """
@@ -60,7 +60,7 @@ function discontinuity_function(integrator::DDEIntegrator, lag, T, t)
         ut = cache
     end
 
-    T + lag(ut, integrator.p, t) - t
+    return T + lag(ut, integrator.p, t) - t
 end
 
 """
@@ -76,9 +76,11 @@ The interval is estimated by checking the signs of `T + lag(u(t), p, t) - t` for
 function discontinuity_interval(integrator::DDEIntegrator, lag, T, Θs)
     # use start and end point of last time interval to check for discontinuities
     previous_condition = discontinuity_function(integrator, lag, T, integrator.t)
-    if isapprox(previous_condition, 0;
-        rtol = integrator.discontinuity_reltol,
-        atol = integrator.discontinuity_abstol)
+    if isapprox(
+            previous_condition, 0;
+            rtol = integrator.discontinuity_reltol,
+            atol = integrator.discontinuity_abstol
+        )
         prev_sign = 0
     else
         prev_sign = cmp(previous_condition, zero(previous_condition))
@@ -113,7 +115,7 @@ function discontinuity_interval(integrator::DDEIntegrator, lag, T, Θs)
         end
     end
 
-    nothing
+    return nothing
 end
 
 """
@@ -130,17 +132,22 @@ function discontinuity_time(integrator::DDEIntegrator, lag, T, (bottom_Θ, top_�
     else
         # define function for root finding
         zero_func = let integrator = integrator, lag = lag, T = T, t = integrator.t,
-            dt = integrator.dt
+                dt = integrator.dt
 
             (θ, p = nothing) -> discontinuity_function(integrator, lag, T, t + θ * dt)
         end
 
         Θ = SimpleNonlinearSolve.solve(
-            SimpleNonlinearSolve.IntervalNonlinearProblem{false}(zero_func,
-                (bottom_Θ,
-                    top_Θ)),
-            SimpleNonlinearSolve.Falsi()).left
+            SimpleNonlinearSolve.IntervalNonlinearProblem{false}(
+                zero_func,
+                (
+                    bottom_Θ,
+                    top_Θ,
+                )
+            ),
+            SimpleNonlinearSolve.Falsi()
+        ).left
     end
 
-    integrator.t + Θ * integrator.dt
+    return integrator.t + Θ * integrator.dt
 end

@@ -1,5 +1,7 @@
-function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLFunctional},
-        integrator::DDEIntegrator)
+function OrdinaryDiffEqNonlinearSolve.compute_step!(
+        fpsolver::FPSolver{<:NLFunctional},
+        integrator::DDEIntegrator
+    )
     # update ODE integrator to next time interval together with correct interpolation
     if fpsolver.iter == 1
         advance_ode_integrator!(integrator)
@@ -7,12 +9,13 @@ function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLFunct
         update_ode_integrator!(integrator)
     end
 
-    compute_step_fixedpoint!(fpsolver, integrator)
+    return compute_step_fixedpoint!(fpsolver, integrator)
 end
 
 function OrdinaryDiffEqNonlinearSolve.compute_step!(
         fpsolver::FPSolver{<:NLAnderson, false},
-        integrator::DDEIntegrator)
+        integrator::DDEIntegrator
+    )
     (; cache, iter) = fpsolver
     (; aa_start) = cache
 
@@ -37,11 +40,13 @@ function OrdinaryDiffEqNonlinearSolve.compute_step!(
     end
 
     # compute next step
-    compute_step_fixedpoint!(fpsolver, integrator)
+    return compute_step_fixedpoint!(fpsolver, integrator)
 end
 
-function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLAnderson, true},
-        integrator::DDEIntegrator)
+function OrdinaryDiffEqNonlinearSolve.compute_step!(
+        fpsolver::FPSolver{<:NLAnderson, true},
+        integrator::DDEIntegrator
+    )
     (; cache, iter) = fpsolver
     (; aa_start) = cache
 
@@ -66,13 +71,16 @@ function OrdinaryDiffEqNonlinearSolve.compute_step!(fpsolver::FPSolver{<:NLAnder
     end
 
     # compute next step
-    compute_step_fixedpoint!(fpsolver, integrator)
+    return compute_step_fixedpoint!(fpsolver, integrator)
 end
 
 function compute_step_fixedpoint!(
-        fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
-            false},
-        integrator::DDEIntegrator)
+        fpsolver::FPSolver{
+            <:Union{NLFunctional, NLAnderson},
+            false,
+        },
+        integrator::DDEIntegrator
+    )
     (; t, opts) = integrator
     (; cache) = fpsolver
     ode_integrator = integrator.integrator
@@ -82,22 +90,27 @@ function compute_step_fixedpoint!(
 
     # compute residuals
     dz = integrator.u .- ode_integrator.u
-    atmp = DiffEqBase.calculate_residuals(dz, ode_integrator.u, integrator.u,
+    atmp = DiffEqBase.calculate_residuals(
+        dz, ode_integrator.u, integrator.u,
         opts.abstol, opts.reltol, opts.internalnorm,
-        t)
+        t
+    )
 
     # cache results
     if isdefined(cache, :dz)
         cache.dz = dz
     end
 
-    opts.internalnorm(atmp, t)
+    return opts.internalnorm(atmp, t)
 end
 
 function compute_step_fixedpoint!(
-        fpsolver::FPSolver{<:Union{NLFunctional, NLAnderson},
-            true},
-        integrator::DDEIntegrator)
+        fpsolver::FPSolver{
+            <:Union{NLFunctional, NLAnderson},
+            true,
+        },
+        integrator::DDEIntegrator
+    )
     (; t, opts) = integrator
     (; cache) = fpsolver
     (; dz, atmp) = cache
@@ -108,10 +121,12 @@ function compute_step_fixedpoint!(
 
     # compute residuals
     @.. dz = integrator.u - ode_integrator.u
-    DiffEqBase.calculate_residuals!(atmp, dz, ode_integrator.u, integrator.u,
-        opts.abstol, opts.reltol, opts.internalnorm, t)
+    DiffEqBase.calculate_residuals!(
+        atmp, dz, ode_integrator.u, integrator.u,
+        opts.abstol, opts.reltol, opts.internalnorm, t
+    )
 
-    opts.internalnorm(atmp, t)
+    return opts.internalnorm(atmp, t)
 end
 
 ## resize!
@@ -119,12 +134,14 @@ end
 function Base.resize!(fpcache::FPFunctionalCache, i::Int)
     resize!(fpcache.atmp, i)
     resize!(fpcache.dz, i)
-    nothing
+    return nothing
 end
 
-function Base.resize!(fpcache::FPAndersonCache, fpsolver::FPSolver{<:NLAnderson},
-        integrator::DDEIntegrator, i::Int)
-    resize!(fpcache, fpsolver.alg, i)
+function Base.resize!(
+        fpcache::FPAndersonCache, fpsolver::FPSolver{<:NLAnderson},
+        integrator::DDEIntegrator, i::Int
+    )
+    return resize!(fpcache, fpsolver.alg, i)
 end
 
 function Base.resize!(fpcache::FPAndersonCache, fpalg::NLAnderson, i::Int)
@@ -154,5 +171,5 @@ function Base.resize!(fpcache::FPAndersonCache, fpalg::NLAnderson, i::Int)
         end
     end
 
-    nothing
+    return nothing
 end

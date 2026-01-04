@@ -6,15 +6,19 @@ const alg = MethodOfSteps(Tsit5(); constrained = false)
 
 # continuous callback
 @testset "continuous" begin
-    cb = ContinuousCallback((u, t, integrator) -> t - 2.60, # Event when event_f(t,u,k) == 0
-        integrator -> (integrator.u = -integrator.u))
+    cb = ContinuousCallback(
+        (u, t, integrator) -> t - 2.6, # Event when event_f(t,u,k) == 0
+        integrator -> (integrator.u = -integrator.u)
+    )
 
     sol1 = solve(prob, alg, callback = cb)
     ts = findall(x -> x ≈ 2.6, sol1.t)
     @test length(ts) == 2
     @test sol1.u[ts[1]] == -sol1.u[ts[2]]
-    @test sol1(2.6;
-        continuity = :right)≈-sol1(2.6; continuity = :left) atol=1e-5
+    @test sol1(
+        2.6;
+        continuity = :right
+    ) ≈ -sol1(2.6; continuity = :left) atol = 1.0e-5
 
     # fails on 32bit?!
     # see https://github.com/SciML/DelayDiffEq.jl/pull/180
@@ -24,7 +28,7 @@ const alg = MethodOfSteps(Tsit5(); constrained = false)
         @test length(ts) == 2
         @test sol2.u[ts[1]] == -sol2.u[ts[2]]
         @test sol2(2.6; continuity = :right) ≈
-              -sol2(2.6; continuity = :left)
+            -sol2(2.6; continuity = :left)
 
         sol3 = appxtrue(sol1, sol2)
         @test sol3.errors[:L2] < 1.5e-2
