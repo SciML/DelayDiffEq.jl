@@ -28,7 +28,7 @@ const alg = MethodOfSteps(Tsit5(); constrained = false)
         @test length(ts) == 2
         @test sol2.u[ts[1]] == -sol2.u[ts[2]]
         @test sol2(2.6; continuity = :right) ≈
-            -sol2(2.6; continuity = :left)
+              -sol2(2.6; continuity = :left)
 
         sol3 = appxtrue(sol1, sol2)
         @test sol3.errors[:L2] < 1.5e-2

@@ -8,9 +8,9 @@ const prob_scalar = prob_dde_constant_2delays_long_scalar
 
 const testsol = TestSolution(
     solve(
-        prob, MethodOfSteps(Vern9());
-        abstol = 1 / 10^14, reltol = 1 / 10^14
-    )
+    prob, MethodOfSteps(Vern9());
+    abstol = 1 / 10^14, reltol = 1 / 10^14
+)
 )
 
 @testset "NLFunctional" begin
