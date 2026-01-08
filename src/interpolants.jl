@@ -55,8 +55,10 @@ function constant_extrapolant!(
             return zero(integrator.u[idxs]) ./ oneunit(t)
         end
     elseif idxs === nothing
-        val .= zero(integrator.u) ./ oneunit(t)
+        # Use in-place operation to avoid allocation
+        fill!(val, zero(eltype(val)) / oneunit(t))
     else
-        @views val .= zero(integrator.u[idxs]) ./ oneunit(t)
+        # Use in-place operation to avoid allocation
+        @views fill!(val, zero(eltype(val)) / oneunit(t))
     end
 end
