@@ -14,7 +14,7 @@ const working_algs = [
     Kvaerno3(nlsolve = noreuse), KenCarp3(nlsolve = noreuse),
     Cash4(nlsolve = noreuse), Hairer4(nlsolve = noreuse),
     Hairer42(nlsolve = noreuse), Kvaerno4(nlsolve = noreuse), KenCarp4(nlsolve = noreuse),
-    Kvaerno5(nlsolve = noreuse),
+    Kvaerno5(nlsolve = noreuse)
 ]
 
 const broken_algs = [
@@ -22,7 +22,7 @@ const broken_algs = [
     TRBDF2(), SDIRK2(),
     Kvaerno3(), KenCarp3(),
     Cash4(), Hairer4(), Hairer42(), Kvaerno4(), KenCarp4(),
-    Kvaerno5(),
+    Kvaerno5()
 ]
 
 @testset "Algorithm $(nameof(typeof(alg)))" for alg in working_algs

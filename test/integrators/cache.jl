@@ -10,7 +10,7 @@ const CACHE_TEST_ALGS = [
     ParsaniKetchesonDeconinck3S32(),
     BS3(), BS5(), DP5(), DP8(), Feagin10(), Feagin12(), Feagin14(), TanYam7(),
     Tsit5(), TsitPap8(), Vern6(), Vern7(), Vern8(), Vern9(), OwrenZen3(), OwrenZen4(),
-    OwrenZen5(),
+    OwrenZen5()
 ]
 
 function f(du, u, h, p, t)
