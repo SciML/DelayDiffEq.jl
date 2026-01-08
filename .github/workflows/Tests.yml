@@ -28,6 +28,9 @@ jobs:
           - Integrators
           - Regression
           - QA
+        exclude:
+          - version: "pre"
+            group: QA
         include:
           - coverage: false
           - version: "1"
