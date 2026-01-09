@@ -1,5 +1,5 @@
 name = "DelayDiffEq"
-uuid = "bcd4f6db-9728-5f36-b5f7-82caef46ccdb"https://github.com/SciML/DelayDiffEq.jl/issues
+uuid = "bcd4f6db-9728-5f36-b5f7-82caef46ccdb"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
 version = "5.65.0"
 
