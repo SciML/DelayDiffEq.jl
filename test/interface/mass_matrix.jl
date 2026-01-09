@@ -25,9 +25,9 @@ using Test
     prob_dde = DDEProblem(sir_dde!, u0, sir_history, tspan, p; constant_lags = (p.τ,))
     sol_dde = TestSolution(
         solve(
-        prob_dde, MethodOfSteps(Vern9()); reltol = 1.0e-14,
-        abstol = 1.0e-14
-    )
+            prob_dde, MethodOfSteps(Vern9()); reltol = 1.0e-14,
+            abstol = 1.0e-14
+        )
     )
 
     function sir_ddae!(du, u, h, p, t)
@@ -63,11 +63,11 @@ using Test
     @test int.f.mass_matrix == Diagonal([1.0, 1.0, 0.0])
 
     for (alg, reltol) in (
-        (Rosenbrock23(), nothing),
-        (Rodas4(), nothing),
-        (QNDF(), 1.0e-6),
-        (Trapezoid(), 1.0e-6)
-    )
+            (Rosenbrock23(), nothing),
+            (Rodas4(), nothing),
+            (QNDF(), 1.0e-6),
+            (Trapezoid(), 1.0e-6),
+        )
         sol_ddae = solve(prob_ddae, MethodOfSteps(alg); reltol = reltol)
         sol = appxtrue(sol_ddae, sol_dde)
         @test sol.errors[:L∞] < 5.0e-3

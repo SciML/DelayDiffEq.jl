@@ -57,8 +57,8 @@ end
     @testset "constant extrapolation" for deriv in (Val{0}, Val{1}), idxs in (nothing, [2])
         # expected value
         trueval = deriv == Val{0} ?
-                  (idxs === nothing ? integrator.u : integrator.u[[2]]) :
-                  (idxs === nothing ? zeros(2) : [0.0])
+            (idxs === nothing ? integrator.u : integrator.u[[2]]) :
+            (idxs === nothing ? zeros(2) : [0.0])
 
         # out-of-place
         history_notinplace.isout = false
@@ -88,7 +88,7 @@ end
 
     # test integrator interpolation
     @testset "integrator interpolation" for deriv in (Val{0}, Val{1}),
-        idxs in (nothing, [2])
+            idxs in (nothing, [2])
         # expected value
         trueval = OrdinaryDiffEqCore.current_interpolant(0.01, integrator, idxs, deriv)
 

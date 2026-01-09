@@ -9,7 +9,7 @@ const ts = 0:0.1:10
 const algs = [
     Rosenbrock23(), Rosenbrock32(), ROS3P(), Rodas3(),
     RosShamp4(), Veldd4(), Velds4(), GRK4T(), GRK4A(),
-    Ros4LStab(), Rodas4(), Rodas42(), Rodas4P(), Rodas5()
+    Ros4LStab(), Rodas4(), Rodas42(), Rodas4P(), Rodas5(),
 ]
 
 @testset "Algorithm $(nameof(typeof(alg)))" for alg in algs
