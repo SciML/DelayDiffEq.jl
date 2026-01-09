@@ -20,9 +20,9 @@ end
     sol2 = solve!(dde_int2)
 
     @test getfield.(dde_int.tracked_discontinuities, :t) ≈
-          getfield.(dde_int2.tracked_discontinuities, :t)
+        getfield.(dde_int2.tracked_discontinuities, :t)
     @test getfield.(dde_int.tracked_discontinuities, :order) ==
-          getfield.(dde_int2.tracked_discontinuities, :order)
+        getfield.(dde_int2.tracked_discontinuities, :order)
 
     # worse than results above with constant delays specified as scalars
     @test sol2.errors[:l∞] < 3.2e-3

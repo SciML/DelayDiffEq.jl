@@ -21,7 +21,7 @@ end
     using ExplicitImports
 
     @test check_no_implicit_imports(DelayDiffEq; skip = (Base, Core), ignore = (Symbol("@reexport"),)) ===
-          nothing
+        nothing
     @test check_no_stale_explicit_imports(DelayDiffEq) === nothing
     @test check_all_qualified_accesses_via_owners(DelayDiffEq) === nothing
 end
