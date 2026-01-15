@@ -107,7 +107,7 @@ if GROUP == "All" || GROUP == "Regression"
     end
 end
 
-if GROUP == "All" || GROUP == "QA"
+if GROUP == "QA"
     @time @safetestset "QA Tests" begin
         include("qa/qa_tests.jl")
     end
