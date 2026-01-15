@@ -50,7 +50,7 @@ using DiffEqBase: initialize!
 import DiffEqBase
 using ConcreteStructs: @concrete
 using SciMLLogging: AbstractVerbositySpecifier, AbstractVerbosityPreset, AbstractMessageLevel, None, Minimal, Standard, Detailed, All,
-                    Silent, DebugLevel, InfoLevel, WarnLevel, ErrorLevel, @SciMLMessage
+                    Silent, DebugLevel, InfoLevel, WarnLevel, ErrorLevel, @SciMLMessage, @verbosity_specifier
 
 import SciMLBase
 
