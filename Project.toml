@@ -1,6 +1,5 @@
 name = "DelayDiffEq"
 uuid = "bcd4f6db-9728-5f36-b5f7-82caef46ccdb"
-version = "5.61.1"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
 version = "5.66.0"
 
@@ -38,7 +37,7 @@ ForwardDiff = "1.0.1"
 LinearAlgebra = "1"
 Logging = "1"
 OrdinaryDiffEq = "6.69"
-OrdinaryDiffEqCore = "2"
+OrdinaryDiffEqCore = "3"
 OrdinaryDiffEqDefault = "1.9"
 OrdinaryDiffEqDifferentiation = "1.17"
 OrdinaryDiffEqFunctionMap = "1.6"
