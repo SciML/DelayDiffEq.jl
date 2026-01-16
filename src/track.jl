@@ -10,6 +10,9 @@ function track_propagated_discontinuities!(integrator::DDEIntegrator)
     interp_points = integrator.discontinuity_interp_points
     Θs = range(zero(integrator.t); stop = oneunit(integrator.t), length = interp_points)
 
+    @SciMLMessage(lazy"Tracking discontinuities for state-dependent delays in interval [$(integrator.t), $(integrator.t + integrator.dt)]",
+        integrator.opts.verbose, :state_dependent_delay)
+
     # for dependent lags and previous discontinuities
     for lag in integrator.sol.prob.dependent_lags,
             discontinuity in integrator.tracked_discontinuities
@@ -28,8 +31,12 @@ function track_propagated_discontinuities!(integrator::DDEIntegrator)
             # add new discontinuity of correct order at the estimated time point
             if integrator.sol.prob.neutral
                 d = Discontinuity(t, discontinuity.order)
+                @SciMLMessage(lazy"Propagated discontinuity found at t = $t with order $(discontinuity.order) (neutral DDE)",
+                    integrator.opts.verbose, :discontinuity_tracking)
             else
                 d = Discontinuity(t, discontinuity.order + 1)
+                @SciMLMessage(lazy"Propagated discontinuity found at t = $t with order $(discontinuity.order + 1)",
+                    integrator.opts.verbose, :discontinuity_tracking)
             end
             push!(integrator.opts.d_discontinuities, d)
             push!(integrator.opts.tstops, t)
@@ -61,6 +68,8 @@ function discontinuity_function(integrator::DDEIntegrator, lag, T, t)
     end
 
     lag_value = lag(ut, integrator.p, t)
+    @SciMLMessage(lazy"Evaluating state-dependent delay at t = $t: lag = $lag_value",
+        integrator.opts.verbose, :delay_evaluation)
     T + lag_value - t
 end
 

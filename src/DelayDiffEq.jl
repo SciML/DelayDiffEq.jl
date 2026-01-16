@@ -27,7 +27,7 @@ import FastBroadcast: @..
 
 using OrdinaryDiffEqNonlinearSolve: NLAnderson, NLFunctional
 using OrdinaryDiffEqCore: AbstractNLSolverCache, SlowConvergence,
-    alg_extrapolates, alg_maximum_order, initialize!, ODEVerbosity
+    alg_extrapolates, alg_maximum_order, initialize!, DEVerbosity
 using OrdinaryDiffEqRosenbrock: RosenbrockMutableCache
 using OrdinaryDiffEqFunctionMap: FunctionMap
 # using OrdinaryDiffEqDifferentiation: resize_grad_config!, resize_jac_config!
