@@ -49,7 +49,7 @@ using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, Re
 using DiffEqBase: initialize!
 import DiffEqBase
 using SciMLLogging: AbstractVerbosityPreset, AbstractVerbositySpecifier, None, Minimal, Detailed, All,
-                    Silent, InfoLevel, WarnLevel, @SciMLMessage, @verbosity_specifier
+                    Silent, InfoLevel, WarnLevel, Standard, @SciMLMessage, @verbosity_specifier
 
 import SciMLBase
 
