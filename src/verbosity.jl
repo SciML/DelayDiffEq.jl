@@ -57,6 +57,8 @@ verbose = DDEVerbosity(
 )
 ```
 """
+function DDEVerbosity end 
+
 @verbosity_specifier DDEVerbosity begin
     toggles = (
         :ode_verbosity,
