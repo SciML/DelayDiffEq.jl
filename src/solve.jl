@@ -78,7 +78,7 @@ function SciMLBase.__init(
         internalopnorm = opnorm,
         isoutofdomain = DiffEqBase.ODE_DEFAULT_ISOUTOFDOMAIN,
         unstable_check = DiffEqBase.ODE_DEFAULT_UNSTABLE_CHECK,
-        verbose = DDEVerbosity(),
+        verbose = ODEVerbosity(),
         timeseries_errors = true,
         dense_errors = false,
         advance_to_tstop = false,
@@ -107,15 +107,15 @@ function SciMLBase.__init(
         order_discontinuity_t0 = prob.order_discontinuity_t0
     end
 
-    # Handle verbose argument: convert Bool or AbstractVerbosityPreset to DDEVerbosity
+    # Handle verbose argument: convert Bool or AbstractVerbosityPreset to ODEVerbosity
     if verbose isa Bool
         if verbose
-            verbose_spec = DDEVerbosity()
+            verbose_spec = ODEVerbosity()
         else
-            verbose_spec = DDEVerbosity(None())
+            verbose_spec = ODEVerbosity(None())
         end
     elseif verbose isa AbstractVerbosityPreset
-        verbose_spec = DDEVerbosity(verbose)
+        verbose_spec = ODEVerbosity(verbose)
     else
         verbose_spec = verbose
     end
@@ -173,10 +173,6 @@ function SciMLBase.__init(
         min_lag = minimum(abs, constant_lags)
         old_dtmax = abs(dtmax)
         dtmax = tdir * min(old_dtmax, min_lag)
-        if min_lag < old_dtmax
-            @SciMLMessage(lazy"Constrained algorithm: limiting dtmax from $old_dtmax to $min_lag (minimum lag)",
-                verbose_spec, :constrained_step)
-        end
     end
 
     # get absolute and relative tolerances
