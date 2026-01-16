@@ -48,9 +48,8 @@ using SciMLBase: CallbackSet, DAEProblem, DDEProblem, DESolution, ODEProblem, Re
     change_t_via_interpolation!, isadaptive
 using DiffEqBase: initialize!
 import DiffEqBase
-using ConcreteStructs: @concrete
-using SciMLLogging: AbstractVerbositySpecifier, AbstractVerbosityPreset, AbstractMessageLevel, None, Minimal, Standard, Detailed, All,
-                    Silent, DebugLevel, InfoLevel, WarnLevel, ErrorLevel, @SciMLMessage, @verbosity_specifier
+using SciMLLogging: AbstractVerbosityPreset, None, Minimal, Detailed, All,
+                    Silent, InfoLevel, WarnLevel, @SciMLMessage, @verbosity_specifier
 
 import SciMLBase
 
