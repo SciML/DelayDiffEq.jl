@@ -78,7 +78,7 @@ function SciMLBase.__init(
         internalopnorm = opnorm,
         isoutofdomain = DiffEqBase.ODE_DEFAULT_ISOUTOFDOMAIN,
         unstable_check = DiffEqBase.ODE_DEFAULT_UNSTABLE_CHECK,
-        verbose = ODEVerbosity(),
+        verbose = DEVerbosity(),
         timeseries_errors = true,
         dense_errors = false,
         advance_to_tstop = false,
@@ -107,15 +107,15 @@ function SciMLBase.__init(
         order_discontinuity_t0 = prob.order_discontinuity_t0
     end
 
-    # Handle verbose argument: convert Bool or AbstractVerbosityPreset to ODEVerbosity
+    # Handle verbose argument: convert Bool or AbstractVerbosityPreset to DEVerbosity
     if verbose isa Bool
         if verbose
-            verbose_spec = ODEVerbosity()
+            verbose_spec = DEVerbosity()
         else
-            verbose_spec = ODEVerbosity(None())
+            verbose_spec = DEVerbosity(None())
         end
     elseif verbose isa AbstractVerbosityPreset
-        verbose_spec = ODEVerbosity(verbose)
+        verbose_spec = DEVerbosity(verbose)
     else
         verbose_spec = verbose
     end
@@ -173,6 +173,10 @@ function SciMLBase.__init(
         min_lag = minimum(abs, constant_lags)
         old_dtmax = abs(dtmax)
         dtmax = tdir * min(old_dtmax, min_lag)
+        if min_lag < old_dtmax
+            @SciMLMessage(lazy"Constrained algorithm: limiting dtmax from $old_dtmax to $min_lag (minimum lag)",
+                verbose_spec, :constrained_step)
+        end
     end
 
     # get absolute and relative tolerances
@@ -229,7 +233,7 @@ function SciMLBase.__init(
         uBottomEltypeNoUnits, tTypeNoUnits, uprev, uprev2,
         f_with_history, t0, zero(tType), reltol_internal, p,
         calck,
-        Val(isinplace(prob)), OrdinaryDiffEqCore.ODEVerbosity()
+        Val(isinplace(prob)), OrdinaryDiffEqCore.DEVerbosity()
     )
 
     # separate statistics of the integrator and the history
