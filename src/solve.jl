@@ -174,8 +174,10 @@ function SciMLBase.__init(
         old_dtmax = abs(dtmax)
         dtmax = tdir * min(old_dtmax, min_lag)
         if min_lag < old_dtmax
-            @SciMLMessage(lazy"Constrained algorithm: limiting dtmax from $old_dtmax to $min_lag (minimum lag)",
-                verbose_spec, :constrained_step)
+            @SciMLMessage(
+                lazy"Constrained algorithm: limiting dtmax from $old_dtmax to $min_lag (minimum lag)",
+                verbose_spec, :constrained_step
+            )
         end
     end
 
