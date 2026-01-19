@@ -195,8 +195,10 @@ function OrdinaryDiffEqCore.handle_discontinuities!(integrator::DDEIntegrator)
     order = d.order
     tdir_t = integrator.tdir * integrator.t
 
-    @SciMLMessage(lazy"Handling discontinuity at t = $(integrator.t) with order $order",
-        integrator.opts.verbose, :discontinuity_tracking)
+    @SciMLMessage(
+        lazy"Handling discontinuity at t = $(integrator.t) with order $order",
+        integrator.opts.verbose, :discontinuity_tracking
+    )
 
     while OrdinaryDiffEqCore.has_discontinuity(integrator) &&
             OrdinaryDiffEqCore.first_discontinuity(integrator) == tdir_t
@@ -244,11 +246,15 @@ function add_next_discontinuities!(integrator, order, t = integrator.t)
     next_order = neutral ? order : order + 1
 
     if neutral
-        @SciMLMessage(lazy"Adding next discontinuities for neutral DDE: order remains $order",
-            integrator.opts.verbose, :neutral_delay)
+        @SciMLMessage(
+            lazy"Adding next discontinuities for neutral DDE: order remains $order",
+            integrator.opts.verbose, :neutral_delay
+        )
     else
-        @SciMLMessage(lazy"Adding next discontinuities: order increases from $order to $next_order",
-            integrator.opts.verbose, :discontinuity_tracking)
+        @SciMLMessage(
+            lazy"Adding next discontinuities: order increases from $order to $next_order",
+            integrator.opts.verbose, :discontinuity_tracking
+        )
     end
 
     # only track discontinuities up to order of the applied method
