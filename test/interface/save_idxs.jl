@@ -42,7 +42,7 @@ const alg = MethodOfSteps(BS3())
             @test sol.u == dde_int.sol.u
 
             ## interpolation
-            @test sol(25:100, idxs = 2) ≈ [u[1] for u in sol(25:100, idxs = [2])]
+            @test sol(25:100, idxs = 2).u ≈ [u[1] for u in sol(25:100, idxs = [2]).u]
         end
 
         # with keyword argument
@@ -61,7 +61,7 @@ const alg = MethodOfSteps(BS3())
             @test sol.u == dde_int.sol.u
 
             # interpolation
-            @test sol[2, :] ≈ dde_int.integrator.sol(sol.t, idxs = 2)
+            @test sol[2, :] ≈ dde_int.integrator.sol(sol.t, idxs = 2).u
         end
     end
 
@@ -84,8 +84,8 @@ const alg = MethodOfSteps(BS3())
             @test sol2.u == dde_int2.sol.u
 
             # interpolation
-            @test sol(25:100, idxs = 2) ≈ sol2(25:100, idxs = 1)
-            @test sol(25:100, idxs = [2]) ≈ sol2(25:100, idxs = [1])
+            @test sol(25:100, idxs = 2).u ≈ sol2(25:100, idxs = 1).u
+            @test sol(25:100, idxs = [2]).u ≈ sol2(25:100, idxs = [1]).u
         end
 
         # scalar index
@@ -109,7 +109,7 @@ const alg = MethodOfSteps(BS3())
 
             # interpolation of solution equals second component of
             # interpolation of complete solution
-            @test sol(25:100, idxs = 2) ≈ sol2(25:100, idxs = 1)
+            @test sol(25:100, idxs = 2).u ≈ sol2(25:100, idxs = 1).u
         end
     end
 end

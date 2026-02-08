@@ -76,7 +76,7 @@ end
     for (u, t) in TimeChoiceIterator(integrator4, ts)
         push!(us, u)
     end
-    @test us ≈ integrator4.sol(ts)
+    @test us ≈ integrator4.sol(ts).u
 end
 
 @testset "iter" begin
