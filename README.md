@@ -4,12 +4,10 @@
 [![Coverage Status](https://coveralls.io/repos/SciML/DelayDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/SciML/DelayDiffEq.jl?branch=master)
 [![codecov](https://codecov.io/gh/SciML/DelayDiffEq.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/SciML/DelayDiffEq.jl)
 
-## Update
-
-This package was moved to be a sublibrary in [OrdinaryDiffEq.jl](https://github.com/SciML/OrdinaryDiffEq.jl). The migration is a maintanance change but should have no functional
-change to the library.
-
-## Previous Stuff
+> [!IMPORTANT] 
+>
+> This package was moved to be a sublibrary in [OrdinaryDiffEq.jl](https://github.com/SciML/OrdinaryDiffEq.jl). The migration is a maintanance change but should have no functional
+> change to the library.
 
 DelayDiffEq.jl is a component package in the DifferentialEquations ecosystem. It holds the
 delay differential equation solvers and utilities. It is built on top of OrdinaryDiffEq
